@@ -1,0 +1,37 @@
+version: "3"
+
+services:
+  conduit:
+    image: ghcr.io/girlbossceo/conduwuit:latest
+    container_name: nazar-test-conduit
+    environment:
+      CONDUWUIT_SERVER_NAME: localhost
+      CONDUWUIT_DATABASE_PATH: /var/lib/conduwuit
+      CONDUWUIT_PORT: "6167"
+      CONDUWUIT_ALLOW_REGISTRATION: "true"
+    ports:
+      - "6167:6167"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6167/_matrix/client/versions"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  matrix-bridge:
+    image: nazar-matrix-bridge
+    container_name: nazar-test-bridge
+    depends_on:
+      conduit:
+        condition: service_healthy
+    environment:
+      NAZAR_MATRIX_HOMESERVER: http://conduit:6167
+      NAZAR_MATRIX_ACCESS_TOKEN: test-token
+      NAZAR_OBJECTS_DIR: /data/objects
+    volumes:
+      - bridge-data:/data
+    # Bridge will fail to fully connect without valid credentials,
+    # but the container should at least start and attempt connection.
+
+volumes:
+  bridge-data:
