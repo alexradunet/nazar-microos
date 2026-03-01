@@ -1,0 +1,65 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  unit-tests:
+    name: Unit Tests (TypeScript)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm -w packages/nazar-core test
+
+  shell-tests:
+    name: Shell Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install yq and jq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+          sudo apt-get install -y jq
+      - run: bash tests/shell/run.sh
+
+  container-tests:
+    name: Container Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build containers
+        run: |
+          podman build -t nazar-base -f containers/base/Containerfile .
+          podman build -t nazar-heartbeat -f containers/heartbeat/Containerfile .
+          podman build -t nazar-matrix-bridge -f containers/matrix-bridge/Containerfile .
+      - name: Smoke test
+        run: |
+          podman run --rm nazar-base node -e "const { ObjectStore } = require('./packages/nazar-core/dist/index.js'); console.log('OK')"
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [container-tests]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run integration tests
+        run: |
+          if [ -f tests/integration/run.sh ]; then
+            bash tests/integration/run.sh
+          else
+            echo "No integration tests yet — skipping"
+          fi

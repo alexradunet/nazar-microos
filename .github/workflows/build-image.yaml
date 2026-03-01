@@ -1,0 +1,68 @@
+name: Build Image
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/alexradunet
+
+jobs:
+  build-containers:
+    name: Build and Push Container Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push nazar-base
+        run: |
+          podman build -t ${{ env.IMAGE_PREFIX }}/nazar-base:${{ github.sha }} \
+            -t ${{ env.IMAGE_PREFIX }}/nazar-base:latest \
+            -f containers/base/Containerfile .
+          podman push ${{ env.IMAGE_PREFIX }}/nazar-base:${{ github.sha }}
+          podman push ${{ env.IMAGE_PREFIX }}/nazar-base:latest
+
+      - name: Build and push nazar-heartbeat
+        run: |
+          podman build -t ${{ env.IMAGE_PREFIX }}/nazar-heartbeat:${{ github.sha }} \
+            -t ${{ env.IMAGE_PREFIX }}/nazar-heartbeat:latest \
+            -f containers/heartbeat/Containerfile .
+          podman push ${{ env.IMAGE_PREFIX }}/nazar-heartbeat:${{ github.sha }}
+          podman push ${{ env.IMAGE_PREFIX }}/nazar-heartbeat:latest
+
+      - name: Build and push nazar-matrix-bridge
+        run: |
+          podman build -t ${{ env.IMAGE_PREFIX }}/nazar-matrix-bridge:${{ github.sha }} \
+            -t ${{ env.IMAGE_PREFIX }}/nazar-matrix-bridge:latest \
+            -f containers/matrix-bridge/Containerfile .
+          podman push ${{ env.IMAGE_PREFIX }}/nazar-matrix-bridge:${{ github.sha }}
+          podman push ${{ env.IMAGE_PREFIX }}/nazar-matrix-bridge:latest
+
+  build-kiwi-image:
+    name: Build KIWI MicroOS Image (Placeholder)
+    runs-on: ubuntu-latest
+    needs: [build-containers]
+    steps:
+      - uses: actions/checkout@v4
+      - name: KIWI image build
+        run: |
+          echo "KIWI image build requires OBS or a KIWI runner."
+          echo "This is a placeholder — configure OBS integration for production builds."
+          echo "See: https://osinside.github.io/kiwi/"
