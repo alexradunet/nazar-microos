@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.pre-commit-config.yaml
+data/objects/
+*.raw
+*.raw.xz
