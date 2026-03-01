@@ -17,7 +17,7 @@ Use this skill when the user wants to set up the Matrix messaging channel on the
 
 ## Prerequisites
 
-- Nazar is installed and `nazar apply --flake .` works.
+- Nazar is installed and `nazar apply` works.
 - The user has shell access (SSH, ttyd, or local terminal).
 - The user has `sudo` privileges.
 
@@ -28,7 +28,7 @@ Use this skill when the user wants to set up the Matrix messaging channel on the
 1. Confirm we are inside the Nazar repo root (`~/Nazar`).
 2. Read the current Matrix channel config:
    ```bash
-   cat nazar-config.nix
+   cat /etc/nazar/nazar.yaml
    ```
 3. Show the user the current Matrix module settings:
    - `serverName` (default: `nazar.local`)
@@ -40,7 +40,7 @@ Use this skill when the user wants to set up the Matrix messaging channel on the
 4. Ask the user if they want to customize any of these values:
    - "What username would you like for your Matrix account? (default: human)"
    - "What server name for your homeserver? (default: nazar.local)"
-   - If they want changes, show the exact Nix config diff and confirm before applying.
+   - If they want changes, show the exact config diff and confirm before applying.
 
 ### Phase 2: Enable Registration and Deploy Conduit
 
@@ -48,18 +48,18 @@ Use this skill when the user wants to set up the Matrix messaging channel on the
    ```bash
    systemctl is-active conduit 2>/dev/null || echo "not running"
    ```
-6. Check if registration is currently enabled:
+6. Check if registration is currently enabled in `nazar.yaml`:
    ```bash
-   grep -q 'allowRegistration = true' nazar-config.nix && echo "enabled" || echo "disabled"
+   yq '.channels.matrix.conduit.allowRegistration' /etc/nazar/nazar.yaml
    ```
 7. If registration is not enabled, explain why it's needed and show the change:
    - "I need to temporarily enable Matrix account registration to create your accounts."
    - "After setup, I'll disable it again for security."
-   - Show the exact line to add: `conduit.allowRegistration = true;`
-8. Apply the config change to the host file (add `conduit.allowRegistration = true;` inside the `nazar.channels.matrix` block).
-9. Rebuild MicroOS:
+   - Show the exact change: set `conduit.allowRegistration: true` in `nazar.yaml`
+8. Apply the config change to `nazar.yaml`.
+9. Apply the configuration:
    ```bash
-   sudo nazar apply --flake .
+   sudo nazar apply
    ```
 10. Verify Conduit is running:
     ```bash
@@ -94,12 +94,12 @@ Use this skill when the user wants to set up the Matrix messaging channel on the
         -d '{"type":"m.login.password","identifier":{"type":"m.id.user","user":"<botUser>"},"password":"<password>"}'
       ```
 
-### Phase 4: Disable Registration and Rebuild
+### Phase 4: Disable Registration and Apply
 
-14. Remove the `conduit.allowRegistration = true;` line from the host file.
-15. Rebuild MicroOS:
+14. Set `conduit.allowRegistration: false` in `nazar.yaml`.
+15. Apply the configuration:
     ```bash
-    sudo nazar apply --flake .
+    sudo nazar apply
     ```
 16. Verify registration is disabled:
     ```bash
@@ -175,7 +175,7 @@ Use this skill when the user wants to set up the Matrix messaging channel on the
 
 ## Configuration Reference
 
-All options live under `nazar.channels.matrix` in the host's Nix config:
+All Matrix options live under `channels.matrix` in `/etc/nazar/nazar.yaml`:
 
 | Option                      | Default                             | Description                            |
 | --------------------------- | ----------------------------------- | -------------------------------------- |
@@ -227,7 +227,7 @@ curl -s -X POST http://localhost:6167/_matrix/client/v3/login \
 ## Safety Notes
 
 - Never commit access tokens or passwords to git.
-- The `accessTokenFile` uses EnvironmentFile loading to keep secrets out of the Nix store.
+- The `accessTokenFile` uses EnvironmentFile loading to keep secrets out of config files.
 - Registration is disabled by default — only enable temporarily during setup.
 - Conduit binds to `127.0.0.1` — only reachable via Tailscale (port 6167 firewall rule).
 - Do not enable federation unless you understand the implications.
@@ -239,5 +239,5 @@ This skill is the first step toward a broader **interactive Nazar setup assistan
 - List all available Nazar modules and their current state (enabled/disabled).
 - Guide the user through enabling/disabling modules interactively.
 - Validate configuration before applying.
-- Run `nazar apply` with rollback safety.
+- Run `nazar apply` with rollback safety (btrfs snapshots).
 - The assistant will use this same guided-flow pattern for each module.

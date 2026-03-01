@@ -1,5 +1,5 @@
-import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
+import { afterEach, beforeEach, describe, it } from "node:test";
 import { MatrixStubServer } from "../testing/matrix-stub-server.js";
 
 describe("MatrixStubServer", () => {

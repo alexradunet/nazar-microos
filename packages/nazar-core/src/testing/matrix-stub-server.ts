@@ -258,12 +258,14 @@ export class MatrixStubServer {
     // If we have pending events, return them immediately
     if (this.pendingEvents.length > 0) {
       const events = this.pendingEvents.splice(0);
-      return this.syncResponse(res, events);
+      this.syncResponse(res, events);
+      return;
     }
 
     // If timeout is 0 or no events, return empty immediately for initial sync
     if (timeout === 0) {
-      return this.syncResponse(res, []);
+      this.syncResponse(res, []);
+      return;
     }
 
     // Long-poll: wait for events or timeout

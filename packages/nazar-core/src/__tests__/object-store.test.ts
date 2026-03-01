@@ -1,10 +1,10 @@
-import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { IFrontmatterParser, ObjectData } from "../types.js";
+import { beforeEach, describe, it } from "node:test";
 import { ObjectStore } from "../object-store.js";
+import type { IFrontmatterParser, ObjectData } from "../types.js";
 
 function makeTmpDir(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), "nazar-test-"));

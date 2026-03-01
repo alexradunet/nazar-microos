@@ -25,7 +25,12 @@ Implement approved evolution plans in controlled development context with strict
   ```bash
   git worktree add .claude/worktrees/<evolution-slug> -b evolution/<slug>
   ```
-- Verify toolchain is available: `nix-shell -p yq-go --run "yq --version"`
+- Verify toolchain is available:
+  ```bash
+  node --version
+  npm --version
+  yq --version
+  ```
 
 ### 3. Write Failing Tests (Red)
 
@@ -34,7 +39,7 @@ Write tests FIRST, before any production code. Run them to confirm they fail.
 **Shell tests** (for scripts, object CRUD):
 
 ```bash
-nix-shell -p yq-go --run "./scripts/test.sh"
+bash tests/shell/run.sh
 ```
 
 **TypeScript tests** (for packages/services):
@@ -43,12 +48,10 @@ nix-shell -p yq-go --run "./scripts/test.sh"
 npm -w packages/nazar-core test
 ```
 
-**Nix evaluation tests** (for modules/flake):
+**Lint check** (for code style):
 
 ```bash
-# Stage new .nix files first — flake check only sees git-tracked files
-git add <new-files>
-nix flake check --no-build
+npx biome check
 ```
 
 ### 4. Implement Minimal Fix (Green)
@@ -121,11 +124,12 @@ Include a rework evidence section:
 
 Keep these in mind during implementation:
 
-- **git add before flake check**: `nix flake check` only sees git-tracked files. Stage new `.nix` files first.
-- **yq-go package name**: The nixpkgs package is `yq-go`, not `yq`.
+- **transactional-update requires reboot**: System package changes via `transactional-update` only take effect after a reboot. Plan accordingly.
+- **Podman rootless vs root**: Quadlet services may run rootless or as root depending on configuration. Check which context applies.
+- **shell tests need executable bit**: Ensure test scripts have `chmod +x` before running.
 - **npm workspaces**: Use `"*"` not `"workspace:*"` (workspace: is pnpm/yarn syntax).
 - **Frontmatter regex**: Must handle empty YAML — use `([\s\S]*?)` not `([\s\S]*?)\n` before closing `---`.
 - **yq env() for safe injection**: `YQ_VAL="$val" yq -i '.key = env(YQ_VAL)' file`
 - **grep leading dash**: `grep -F "- something"` needs `--` to prevent leading dash being parsed as option.
 - **Glob expansion**: `"${dir}"*.md` needs dir to end with `/` for proper expansion.
-- **lib.mkMerge**: Use when combining `inherit (x) systemd;` with `systemd.timers = ...;` in the same attrset.
+- **btrfs snapshots**: MicroOS uses btrfs snapshots for rollback. Test rollback scenarios when modifying system state.

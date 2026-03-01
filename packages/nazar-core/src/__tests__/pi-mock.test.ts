@@ -1,12 +1,12 @@
-import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { ScenarioBasedPiMock } from "../testing/pi-mock.js";
+import { describe, it } from "node:test";
 import {
-  TASK_CREATE_SCENARIO,
-  HEARTBEAT_SCENARIO,
-  ERROR_SCENARIO,
   ALL_SCENARIOS,
+  ERROR_SCENARIO,
+  HEARTBEAT_SCENARIO,
+  TASK_CREATE_SCENARIO,
 } from "../testing/fixtures/pi-scenarios.js";
+import { ScenarioBasedPiMock } from "../testing/pi-mock.js";
 
 describe("ScenarioBasedPiMock", () => {
   it("matches string patterns", () => {

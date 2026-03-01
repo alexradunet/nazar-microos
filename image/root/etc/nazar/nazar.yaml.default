@@ -36,6 +36,11 @@ pi:
   skills_dir: /usr/share/nazar/skills
   persona_dir: /usr/share/nazar/persona
 
+# --- Evolution ---
+evolution:
+  # Maximum packages per single host evolution (safety limit)
+  max_packages_per_evolution: 5
+
 # --- Networking ---
 firewall:
   restrict_to_tailscale: true

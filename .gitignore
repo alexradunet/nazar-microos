@@ -4,3 +4,4 @@ dist/
 data/objects/
 *.raw
 *.raw.xz
+*.tsbuildinfo

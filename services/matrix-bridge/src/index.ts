@@ -12,12 +12,12 @@
 import { execFile } from "node:child_process";
 import fs from "node:fs";
 import { promisify } from "node:util";
+import type { AgentConfig, IncomingMessage, MessageChannel } from "@nazar/core";
 import {
+  AutojoinRoomsMixin,
   MatrixClient,
   SimpleFsStorageProvider,
-  AutojoinRoomsMixin,
 } from "matrix-bot-sdk";
-import type { IncomingMessage, MessageChannel, AgentConfig } from "@nazar/core";
 
 const execFileAsync = promisify(execFile);
 
@@ -34,40 +34,23 @@ export interface MatrixBridgeConfig extends AgentConfig {
 
 const DEFAULT_CONFIG: MatrixBridgeConfig = {
   piCommand: process.env.NAZAR_PI_COMMAND || "pi",
-  piDir:
-    process.env.PI_CODING_AGENT_DIR || `${process.env.HOME}/.pi/agent`,
+  piDir: process.env.PI_CODING_AGENT_DIR || `${process.env.HOME}/.pi/agent`,
   repoRoot: process.env.NAZAR_REPO_ROOT || `/var/lib/nazar`,
-  objectsDir:
-    process.env.NAZAR_OBJECTS_DIR || `/var/lib/nazar/objects`,
-  skillsDir:
-    process.env.NAZAR_SKILLS_DIR || `/usr/share/nazar/skills`,
+  objectsDir: process.env.NAZAR_OBJECTS_DIR || `/var/lib/nazar/objects`,
+  skillsDir: process.env.NAZAR_SKILLS_DIR || `/usr/share/nazar/skills`,
   homeserverUrl: process.env.NAZAR_MATRIX_HOMESERVER || "http://localhost:6167",
   accessToken: process.env.NAZAR_MATRIX_ACCESS_TOKEN || "",
   allowedUsers: (process.env.NAZAR_MATRIX_ALLOWED_USERS || "")
     .split(",")
     .filter(Boolean),
   storageDir:
-    process.env.NAZAR_MATRIX_STORAGE_DIR ||
-    `/var/lib/nazar/matrix-storage`,
+    process.env.NAZAR_MATRIX_STORAGE_DIR || `/var/lib/nazar/matrix-storage`,
   timeoutMs: Number(process.env.NAZAR_MATRIX_TIMEOUT_MS) || 120_000,
 };
 
 export function isAllowed(userId: string, config: MatrixBridgeConfig): boolean {
   if (config.allowedUsers.length === 0) return true; // no whitelist = allow all
   return config.allowedUsers.includes(userId);
-}
-
-// Message processing queue — one at a time to avoid Pi session conflicts.
-let processingQueue: Promise<void> = Promise.resolve();
-
-function enqueue(fn: () => Promise<void>): Promise<void> {
-  processingQueue = processingQueue.then(fn).catch((err) => {
-    console.error(
-      "Queue processing error:",
-      err instanceof Error ? err.message : String(err),
-    );
-  });
-  return processingQueue;
 }
 
 export async function processMessage(
@@ -100,9 +83,21 @@ export class MatrixBotChannel implements MessageChannel {
   private messageHandler?: (msg: IncomingMessage) => Promise<string>;
   private config: MatrixBridgeConfig;
   private client?: MatrixClient;
+  private processingQueue: Promise<void> = Promise.resolve();
+  private healthInterval?: ReturnType<typeof setInterval>;
 
   constructor(config: MatrixBridgeConfig) {
     this.config = config;
+  }
+
+  private enqueue(fn: () => Promise<void>): Promise<void> {
+    this.processingQueue = this.processingQueue.then(fn).catch((err) => {
+      console.error(
+        "Queue processing error:",
+        err instanceof Error ? err.message : String(err),
+      );
+    });
+    return this.processingQueue;
   }
 
   onMessage(handler: (msg: IncomingMessage) => Promise<string>): void {
@@ -117,6 +112,10 @@ export class MatrixBotChannel implements MessageChannel {
   }
 
   async disconnect(): Promise<void> {
+    if (this.healthInterval) {
+      clearInterval(this.healthInterval);
+      this.healthInterval = undefined;
+    }
     this.client?.stop();
     this.client = undefined;
   }
@@ -143,7 +142,6 @@ export class MatrixBotChannel implements MessageChannel {
     AutojoinRoomsMixin.setupOnClient(client);
 
     this.client = client;
-    const self = this;
 
     const botUserId = await client.getUserId();
     console.log(`Bot user ID: ${botUserId}`);
@@ -163,14 +161,14 @@ export class MatrixBotChannel implements MessageChannel {
 
         const from = event.sender as string;
 
-        if (!isAllowed(from, self.config)) {
+        if (!isAllowed(from, this.config)) {
           console.log(`Blocked message from unauthorized user: ${from}`);
           return;
         }
 
         console.log(`Message from ${from}: ${text.substring(0, 50)}...`);
 
-        enqueue(async () => {
+        this.enqueue(async () => {
           const incoming: IncomingMessage = {
             from,
             text,
@@ -181,7 +179,7 @@ export class MatrixBotChannel implements MessageChannel {
           const response = await handleMessage(incoming);
 
           try {
-            await self.sendMessage(roomId, response);
+            await this.sendMessage(roomId, response);
           } catch (sendErr: unknown) {
             const errMsg =
               sendErr instanceof Error ? sendErr.message : String(sendErr);
@@ -193,6 +191,13 @@ export class MatrixBotChannel implements MessageChannel {
 
     await client.start();
     console.log("Connected to Matrix homeserver.");
+
+    // Write health timestamp for container HEALTHCHECK
+    const healthFile = `${this.config.storageDir}/healthy`;
+    fs.writeFileSync(healthFile, new Date().toISOString());
+    this.healthInterval = setInterval(() => {
+      fs.writeFileSync(healthFile, new Date().toISOString());
+    }, 15_000);
   }
 }
 
@@ -240,8 +245,8 @@ async function main(): Promise<void> {
 
 // Only run main when executed directly (not when imported for tests).
 import { fileURLToPath } from "node:url";
-const isDirectExecution =
-  process.argv[1] === fileURLToPath(import.meta.url);
+
+const isDirectExecution = process.argv[1] === fileURLToPath(import.meta.url);
 if (isDirectExecution) {
   main().catch((err) => {
     console.error("Fatal error:", err);

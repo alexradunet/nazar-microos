@@ -30,11 +30,11 @@ If incomplete, return verdict `rework` with finding: "Incomplete change package.
 - Run tests independently to confirm they pass:
   ```bash
   # Shell tests
-  nix-shell -p yq-go --run "./scripts/test.sh"
+  bash tests/shell/run.sh
   # TypeScript tests
   npm -w packages/nazar-core test
-  # Nix evaluation
-  nix flake check --no-build
+  # Lint check
+  npx biome check
   ```
 - Verify edge cases are covered (not just happy path).
 - Check that tests actually test the changed behavior (not just passing trivially).
@@ -45,7 +45,7 @@ If incomplete, return verdict `rework` with finding: "Incomplete change package.
 - Identify attack surface touched by the change.
 - Check for command injection, path traversal, unvalidated input.
 - Verify no secrets, credentials, or private keys are exposed.
-- For Nix changes: check permission escalation, service hardening, sandbox settings.
+- For system changes: check permission escalation, service hardening, Podman container isolation.
 - For shell scripts: check for unquoted variables, unsafe eval, missing `set -euo pipefail`.
 
 ### 5. Policy Conformance
@@ -54,19 +54,19 @@ Check each mandatory policy:
 
 - **Standards-first**: open standards and portable formats preferred.
 - **Pre-release simplicity**: no legacy code paths, no backward-compatibility shims.
-- **Nix-first**: Nix packages preferred over npm equivalents.
+- **System packages via zypper, app deps via npm**: prefer zypper for system-level tools, npm for Node.js application dependencies.
 - **TDD policy**: Red -> Green -> Refactor evidence present.
 - **No unmaintained deps**: npm deps <18 months since last publish.
 - **Interface-first**: domain components implement `@nazar/core/types.ts` interfaces.
 
 ### 6. Dependency Review
 
-When a change adds or modifies Nix packages or npm dependencies:
+When a change adds or modifies system packages or npm dependencies:
 
-- Invoke the **nix-artifact-reviewer** skill checklist.
-- Verify Nix-first alternative was considered.
+- Invoke the **artifact-reviewer** skill checklist.
+- Verify zypper/npm alternatives were considered appropriately.
 - Verify freshness, security, and maintenance criteria are met.
-- Verify closure size impact is acceptable.
+- Check `npm audit` for vulnerabilities and `zypper patches` for pending security updates.
 
 ## Verdict Decision Tree
 

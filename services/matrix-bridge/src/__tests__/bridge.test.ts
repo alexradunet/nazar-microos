@@ -6,20 +6,22 @@
  * complex mocking while still validating behaviour end-to-end.
  */
 
-import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { isAllowed, validateMatrixUserId, processMessage } from "../index.js";
+import { describe, it } from "node:test";
 import type { MatrixBridgeConfig } from "../index.js";
+import { isAllowed, processMessage, validateMatrixUserId } from "../index.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 /** Build a minimal MatrixBridgeConfig for testing. */
-function makeConfig(overrides: Partial<MatrixBridgeConfig> = {}): MatrixBridgeConfig {
+function makeConfig(
+  overrides: Partial<MatrixBridgeConfig> = {},
+): MatrixBridgeConfig {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "nazar-bridge-test-"));
   return {
     homeserverUrl: "http://localhost:6167",
@@ -178,7 +180,7 @@ describe("processMessage", () => {
     // receives "-p" and the text as arguments but we ignore them.
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "nazar-cwd-test-"));
     const scriptPath = path.join(tmpDir, "print-cwd.sh");
-    fs.writeFileSync(scriptPath, '#!/bin/sh\npwd\n', { mode: 0o755 });
+    fs.writeFileSync(scriptPath, "#!/bin/sh\npwd\n", { mode: 0o755 });
 
     const config = makeConfig({ piCommand: scriptPath, repoRoot: tmpDir });
     const result = await processMessage("ignored", config);

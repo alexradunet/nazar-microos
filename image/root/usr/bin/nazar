@@ -8,6 +8,7 @@ set -euo pipefail
 #   nazar status               Show running services and object store stats
 #   nazar update               Pull latest container images
 #   nazar rollback             Rollback to previous btrfs snapshot (via snapper)
+#   nazar evolve <cmd> ...     Host package evolution lifecycle
 #   nazar object <cmd> ...     Object store CRUD (nazar-object.sh)
 #   nazar pi [args]            Launch Pi agent with persona + skills
 #   nazar setup                Interactive first-time setup (Pi with install-nazar skill)
@@ -49,7 +50,7 @@ case "$cmd" in
     echo "Pulling latest container images..."
     podman pull ghcr.io/alexradunet/nazar-heartbeat:latest 2>/dev/null || true
     podman pull ghcr.io/alexradunet/nazar-matrix-bridge:latest 2>/dev/null || true
-    podman pull ghcr.io/girlbossceo/conduwuit:latest 2>/dev/null || true
+    podman pull docker.io/matrixconduit/matrix-conduit:latest 2>/dev/null || true
     podman pull docker.io/syncthing/syncthing:latest 2>/dev/null || true
     podman pull docker.io/tsl0922/ttyd:latest 2>/dev/null || true
     echo "Done. Restart services with: systemctl restart nazar-*"
@@ -62,6 +63,10 @@ case "$cmd" in
     echo "To rollback, use:"
     echo "  sudo snapper rollback <snapshot-number>"
     echo "  sudo reboot"
+    ;;
+
+  evolve)
+    exec bash "${NAZAR_SCRIPTS_DIR}/nazar-evolve.sh" "$@"
     ;;
 
   object)
@@ -84,7 +89,7 @@ case "$cmd" in
   *)
     echo "Error: unknown command: $cmd" >&2
     echo "" >&2
-    echo "Usage: nazar <apply|status|update|rollback|object|pi|setup>" >&2
+    echo "Usage: nazar <apply|status|update|rollback|evolve|object|pi|setup>" >&2
     exit 1
     ;;
 esac

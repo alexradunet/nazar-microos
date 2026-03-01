@@ -17,7 +17,8 @@ Evolution objects use frontmatter fields:
 - `status`: pipeline state (default: proposed)
 - `agent`: current owner — `hermes` | `athena` | `hephaestus` | `themis` | `human`
 - `risk`: `low` | `medium` | `high`
-- `area`: affected area (e.g. system, persona, objects, infra, skills)
+- `area`: affected area (e.g. system, persona, objects, infra, skills, host-packages)
+- `host_packages`: YAML list of system packages to install (for `area: host-packages` only)
 - `tags`: comma-separated tags
 - `links`: references to related objects (type/slug)
 
@@ -41,8 +42,8 @@ Any -> rejected | stalled
 - `reviewing`: Themis is performing independent review.
 - `conformance`: Athena is checking final conformance against plan.
 - `approved`: Human approved, ready to apply.
-- `applied`: Changes applied via `nazar apply`.
-- `rejected`: Human or agent rejected the evolution.
+- `applied`: Changes applied via `nazar apply` or `nazar evolve install`.
+- `rejected`: Human or agent rejected the evolution (or auto-rollback on verification failure).
 - `stalled`: No progress for >24h, needs human attention.
 
 ## Commands
@@ -94,3 +95,37 @@ nazar-object link evolution/add-health-tracking task/research-health-apis
 - Append rework notes to the object body (below frontmatter) with timestamps.
 - Terminal statuses (`applied`, `rejected`) should not transition further.
 - During heartbeat, flag evolutions with `status` not in a terminal state and modification time >24h as `stalled`.
+
+## Host Package Evolution
+
+When `area: host-packages`, the evolution object includes a `host_packages` list of system packages to install on MicroOS.
+
+### Creating a host-package evolution
+
+```bash
+nazar-object create evolution "add-whisper-stt" \
+  --title="Install whisper-cpp for speech-to-text" \
+  --status=proposed --agent=hermes --risk=medium \
+  --area=host-packages --host_packages="whisper-cpp"
+```
+
+For multiple packages, use a YAML list in the body or update via:
+
+```bash
+nazar-object update evolution "add-whisper-stt" --host_packages="whisper-cpp,libwhisper"
+```
+
+### Installation flow
+
+1. Pipeline reaches `approved` status with human approval.
+2. User runs: `nazar evolve install <slug>`
+3. Script reads `host_packages`, shows interactive confirmation, installs via `transactional-update`.
+4. Pending state written to `/var/lib/nazar/evolution/pending.yaml`, system reboots.
+5. `nazar-evolve-resume.service` runs on boot, verifies packages, marks `applied` or triggers rollback.
+
+### Safety
+
+- Maximum packages per evolution: configurable in `nazar.yaml` (`evolution.max_packages_per_evolution`, default 5).
+- Interactive approval at install time (y/N prompt).
+- Automatic rollback via `snapper` if post-reboot verification fails.
+- Restricted sudo: `nazar-agent` can only run `transactional-update pkg install`, `snapper rollback`, and `reboot`.

@@ -1,12 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
+import { JsYamlFrontmatterParser } from "./frontmatter.js";
 import type {
   IFrontmatterParser,
   IObjectStore,
   ObjectData,
   ObjectRef,
 } from "./types.js";
-import { JsYamlFrontmatterParser } from "./frontmatter.js";
 
 // Canonical runtime implementation: scripts/nazar-object.sh (used by Pi skills).
 // This TypeScript version serves as a typed reference implementation for tests.

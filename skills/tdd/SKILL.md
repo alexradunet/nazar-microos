@@ -78,8 +78,15 @@ When reporting work, include:
 
 - Prefer small, reversible changes.
 - Keep edits surgical and explain intent before impactful changes.
-- Prefer declarative Nix changes for system behavior.
+- Prefer declarative configuration via `nazar.yaml` for system behavior.
 - Do not access secrets or protected paths.
+
+## Test Commands
+
+- **TypeScript unit tests**: `npm -w packages/nazar-core test`
+- **Shell tests**: `bash tests/shell/run.sh`
+- **Lint check**: `npx biome check`
+- **All tests**: `npm test && bash tests/shell/run.sh`
 
 ## Done Criteria
 
@@ -88,4 +95,4 @@ A task is complete only if all are true:
 - Tests were written first and observed failing.
 - Implementation is minimal and passing.
 - Edge-case/regression coverage exists.
-- Relevant checks passed (project test commands + `nix flake check --no-build` when applicable).
+- Relevant checks passed (`npm test && bash tests/shell/run.sh`).

@@ -28,7 +28,7 @@ export class JsYamlFrontmatterParser implements IFrontmatterParser {
     const yamlStr = lines.slice(1, closingIndex).join("\n");
     const body = lines.slice(closingIndex + 1).join("\n");
 
-    let data: Record<string, unknown> =
+    const data: Record<string, unknown> =
       yamlStr.trim() === ""
         ? {}
         : ((YAML.load(yamlStr, { schema: YAML.JSON_SCHEMA }) as Record<

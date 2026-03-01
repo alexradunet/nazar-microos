@@ -11,6 +11,7 @@ systemctl enable sshd.service
 systemctl enable podman.socket
 systemctl enable nazar-setup.service
 systemctl enable tailscaled.service
+systemctl enable nazar-evolve-resume.service
 
 #======================================
 # Create nazar data directories
@@ -18,6 +19,7 @@ systemctl enable tailscaled.service
 mkdir -p /var/lib/nazar/objects
 mkdir -p /var/lib/nazar/conduit
 mkdir -p /var/lib/nazar/matrix-storage
+mkdir -p /var/lib/nazar/evolution
 chown -R nazar-agent:nazar-agent /var/lib/nazar
 
 #======================================
@@ -25,6 +27,12 @@ chown -R nazar-agent:nazar-agent /var/lib/nazar
 #--------------------------------------
 install -m 0755 /usr/share/nazar/scripts/nazar-object.sh /usr/local/bin/nazar-object
 install -m 0755 /usr/share/nazar/scripts/nazar-setup.sh /usr/local/bin/nazar-setup
+install -m 0755 /usr/share/nazar/scripts/nazar-evolve.sh /usr/local/bin/nazar-evolve
+
+#======================================
+# Install sudoers for nazar-evolve
+#--------------------------------------
+install -m 0440 /etc/sudoers.d/nazar-evolve /etc/sudoers.d/nazar-evolve
 
 #======================================
 # Seed default config if not present

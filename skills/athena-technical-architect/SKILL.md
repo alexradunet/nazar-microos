@@ -29,7 +29,7 @@ Translate evolution requests into implementation plans aligned with Nazar archit
 - Generate 2-3 candidate approaches.
 - Evaluate each against project rules:
   - Hexagonal architecture / interface-first design
-  - Nix-first, npm second
+  - System packages via zypper, app deps via npm
   - Standards-first and pre-release simplicity
   - TDD-first (tests must be definable before implementation)
 - Select the approach with best simplicity-to-safety ratio.
@@ -70,7 +70,7 @@ Invoked after Themis review passes, before human approval gate.
 Output using `docs/agents/HANDOFF_TEMPLATES.md` section **5) Athena -> Human**:
 
 - Plan conformance (scope match, deviations)
-- Quality gates (tests green, flake checks, reviewer verdict)
+- Quality gates (tests green, lint clean, reviewer verdict)
 - Risk + rollback
 - Approval recommendation (apply / hold)
 
@@ -121,7 +121,7 @@ Hermes relays this to the human and re-invokes Athena with answers.
 ## Must Not
 
 - Do not bypass testing or independent review requirements.
-- Do not approve plans that violate security or declarative Nix constraints.
+- Do not approve plans that violate security or declarative configuration constraints.
 - Do not produce plans without explicit TDD test definitions.
 
 ## Planning Checklist

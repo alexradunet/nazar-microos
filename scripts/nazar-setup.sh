@@ -108,11 +108,13 @@ Description=Nazar Conduit Matrix Homeserver
 After=network-online.target
 
 [Container]
-Image=ghcr.io/girlbossceo/conduwuit:latest
-Volume=/var/lib/nazar/conduit:/var/lib/conduwuit:rw
-Environment=CONDUWUIT_SERVER_NAME=${hostname}
-Environment=CONDUWUIT_DATABASE_PATH=/var/lib/conduwuit
-Environment=CONDUWUIT_PORT=6167
+Image=docker.io/matrixconduit/matrix-conduit:latest
+Volume=/var/lib/nazar/conduit:/var/lib/matrix-conduit:rw
+Environment=CONDUIT_SERVER_NAME=${hostname}
+Environment=CONDUIT_DATABASE_BACKEND=rocksdb
+Environment=CONDUIT_DATABASE_PATH=/var/lib/matrix-conduit
+Environment=CONDUIT_PORT=6167
+Environment=CONDUIT_CONFIG=
 PublishPort=6167:6167
 
 [Service]

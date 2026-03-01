@@ -19,6 +19,10 @@ You are running on an openSUSE MicroOS system managed by Nazar.
 | `nazar status` | Show running services and object store stats |
 | `nazar update` | Pull latest container images |
 | `nazar rollback` | Show btrfs snapshots, instructions for rollback |
+| `nazar evolve install <slug>` | Install host packages from an approved evolution object |
+| `nazar evolve --resume` | Post-reboot package verification (called by systemd) |
+| `nazar evolve rollback <slug>` | Rollback to pre-install btrfs snapshot |
+| `nazar evolve status [slug]` | Show evolution and pending state |
 | `nazar object <cmd>` | Object store CRUD (`create`, `read`, `list`, `update`, `search`, `link`) |
 
 ## Services (Containers)
@@ -26,7 +30,7 @@ You are running on an openSUSE MicroOS system managed by Nazar.
 | Service | Image | Purpose |
 |---------|-------|---------|
 | `nazar-heartbeat` | `nazar-heartbeat` | Periodic Pi heartbeat (timer, oneshot) |
-| `nazar-conduit` | `conduwuit` | Self-hosted Matrix homeserver |
+| `nazar-conduit` | `matrix-conduit` | Self-hosted Matrix homeserver |
 | `nazar-matrix-bridge` | `nazar-matrix-bridge` | Matrix → Pi print mode bridge |
 | `nazar-syncthing` | `syncthing` | File sync for object store |
 | `nazar-ttyd` | `ttyd` | Web terminal access |
@@ -41,6 +45,7 @@ You are running on an openSUSE MicroOS system managed by Nazar.
 | `/etc/containers/systemd/` | Generated Quadlet .container files |
 | `/usr/share/nazar/persona/` | OpenPersona identity files |
 | `/usr/share/nazar/skills/` | Pi agent skills |
+| `/var/lib/nazar/evolution/` | Evolution pending state (survives reboots) |
 | `/usr/bin/nazar` | CLI wrapper |
 
 ## Object Store
@@ -48,6 +53,8 @@ You are running on an openSUSE MicroOS system managed by Nazar.
 Objects are Markdown files with YAML frontmatter in `/var/lib/nazar/objects/<type>/<slug>.md`.
 
 Types: `journal`, `task`, `note`, `evolution`
+
+Evolution objects with `area: host-packages` include a `host_packages` field listing system packages to install.
 
 Fields: `type`, `slug`, `title`, `status`, `priority`, `project`, `area`, `tags`, `links`, `created`, `modified`
 
@@ -62,6 +69,17 @@ sudo reboot                     # Apply rollback
 ```
 
 Note: `/var/lib/nazar/` is on a writable subvolume and survives rollbacks.
+
+## Self-Evolution (Host Packages)
+
+Nazar can install system packages atomically via `transactional-update`:
+
+1. An evolution object with `area: host-packages` and `host_packages: [pkg1, pkg2]` is created and approved through the pipeline.
+2. User runs `nazar evolve install <slug>` — interactive confirmation, then `transactional-update pkg install`.
+3. Pending state saved to `/var/lib/nazar/evolution/pending.yaml`, system reboots.
+4. `nazar-evolve-resume.service` runs on boot: verifies packages with `rpm -q`, marks `applied` or triggers `snapper rollback`.
+
+Safety: restricted sudo (only `transactional-update pkg install`, `snapper rollback`, `reboot`), configurable max packages per evolution, interactive approval, automatic rollback on verification failure.
 
 ## Persona
 

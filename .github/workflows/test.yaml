@@ -56,6 +56,15 @@ jobs:
     needs: [container-tests]
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build container images
+        run: |
+          docker build -t nazar-base -f containers/base/Containerfile .
+          docker build -t nazar-matrix-bridge -f containers/matrix-bridge/Containerfile .
       - name: Run integration tests
         run: |
           if [ -f tests/integration/run.sh ]; then

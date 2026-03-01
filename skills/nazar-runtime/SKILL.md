@@ -28,9 +28,10 @@ When a user request arrives, classify it:
 ### 2. Route to Evolution Pipeline
 
 - Code changes to Nazar core, services, or packages.
-- MicroOS configuration changes (`base.nix`, modules, flake).
+- MicroOS configuration changes (`nazar.yaml`, modules, Quadlet files).
 - New skills, object types, or persona changes.
-- Infrastructure changes (systemd services, Nix modules).
+- Infrastructure changes (systemd services, Podman containers).
+- **Host package needs**: when Nazar detects it needs a system package (e.g. whisper-cpp, ffmpeg), route to host-evolution workflow (see below).
 
 ### First-time setup
 
@@ -156,6 +157,42 @@ When Themis returns `rework`:
 nazar-object update evolution "<slug>" --status=implementing --agent=hephaestus
 # Append rework notes below frontmatter
 ```
+
+## Host-Evolution Workflow
+
+When Nazar identifies a need for a system package (e.g. user asks "transcribe this voice note" and whisper-cpp is not installed):
+
+### Detection
+
+1. Recognize the capability gap (e.g. command not found, missing library).
+2. Search zypper repos to confirm the package exists: `zypper search <package>`.
+3. Create an evolution object with `area: host-packages`.
+
+### Creation
+
+```bash
+nazar-object create evolution "<slug>" \
+  --title="<description>" --status=proposed --agent=hermes \
+  --risk=medium --area=host-packages --host_packages="<package-name>"
+```
+
+### Pipeline
+
+The standard evolution pipeline runs (planning → implementing → reviewing → conformance → approved), but for host-packages the "implementing" phase is lightweight — just verifying the package exists in repos and documenting what it provides.
+
+### Installation
+
+After human approval at the `approved` gate:
+
+```bash
+# User runs:
+nazar evolve install <slug>
+# → interactive confirmation → transactional-update → reboot → auto-verify
+```
+
+### Post-Install
+
+After successful verification (`nazar-evolve-resume.service` marks it `applied`), Nazar can now use the package. Update capabilities in the persona SKILL.md if the new package adds a persistent capability.
 
 ## Stall Detection
 

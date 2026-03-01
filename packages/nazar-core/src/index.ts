@@ -1,11 +1,11 @@
-export { ObjectStore } from "./object-store.js";
 export { JsYamlFrontmatterParser } from "./frontmatter.js";
+export { ObjectStore } from "./object-store.js";
 export type {
+  AgentConfig,
+  IFrontmatterParser,
+  IncomingMessage,
+  IObjectStore,
+  MessageChannel,
   ObjectData,
   ObjectRef,
-  IFrontmatterParser,
-  IObjectStore,
-  IncomingMessage,
-  MessageChannel,
-  AgentConfig,
 } from "./types.js";

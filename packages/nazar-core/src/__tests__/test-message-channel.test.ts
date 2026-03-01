@@ -1,5 +1,5 @@
-import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 import { TestMessageChannel } from "../testing/test-message-channel.js";
 
 describe("TestMessageChannel", () => {

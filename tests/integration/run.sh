@@ -24,8 +24,8 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "=== Starting services ==="
-$COMPOSE_CMD -f compose.yaml up -d
+echo "=== Starting Conduit ==="
+$COMPOSE_CMD -f compose.yaml up -d conduit
 
 echo "=== Waiting for Conduit to be healthy ==="
 retries=30
@@ -43,6 +43,9 @@ if [ $retries -eq 0 ]; then
   $COMPOSE_CMD -f compose.yaml logs
   exit 1
 fi
+
+echo "=== Starting bridge ==="
+$COMPOSE_CMD -f compose.yaml up -d matrix-bridge
 
 echo ""
 echo "=== Running assertions ==="

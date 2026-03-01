@@ -12,6 +12,7 @@ ENV NAZAR_OBJECTS_DIR=/data/objects
 ENV NAZAR_MATRIX_STORAGE_DIR=/data/matrix-storage
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD node -e "process.exit(0)" || exit 1
+  CMD test -f /data/matrix-storage/healthy \
+    && test "$(find /data/matrix-storage/healthy -mmin -1 2>/dev/null)" || exit 1
 
 CMD ["node", "services/matrix-bridge/dist/index.js"]
