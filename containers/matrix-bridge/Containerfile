@@ -4,7 +4,7 @@ USER root
 
 # Copy matrix-bridge workspace and install deps
 COPY services/matrix-bridge/package.json services/matrix-bridge/
-RUN npm install --workspace=services/matrix-bridge
+RUN npm ci --workspace=services/matrix-bridge
 
 # Copy source and build
 COPY services/matrix-bridge/ services/matrix-bridge/
@@ -14,5 +14,8 @@ USER nazar
 
 ENV NAZAR_OBJECTS_DIR=/data/objects
 ENV NAZAR_MATRIX_STORAGE_DIR=/data/matrix-storage
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD node -e "process.exit(0)" || exit 1
 
 CMD ["node", "services/matrix-bridge/dist/index.js"]

@@ -239,9 +239,9 @@ async function main(): Promise<void> {
 }
 
 // Only run main when executed directly (not when imported for tests).
+import { fileURLToPath } from "node:url";
 const isDirectExecution =
-  process.argv[1] &&
-  import.meta.url.endsWith(process.argv[1].replace(/.*\//, ""));
+  process.argv[1] === fileURLToPath(import.meta.url);
 if (isDirectExecution) {
   main().catch((err) => {
     console.error("Fatal error:", err);

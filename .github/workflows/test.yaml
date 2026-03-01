@@ -11,7 +11,7 @@ jobs:
     name: Unit Tests (TypeScript)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -23,10 +23,10 @@ jobs:
     name: Shell Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install yq and jq
         run: |
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.44.1/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
           sudo apt-get install -y jq
       - run: bash tests/shell/run.sh
@@ -35,7 +35,7 @@ jobs:
     name: Container Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -48,14 +48,14 @@ jobs:
           podman build -t nazar-matrix-bridge -f containers/matrix-bridge/Containerfile .
       - name: Smoke test
         run: |
-          podman run --rm nazar-base node -e "const { ObjectStore } = require('./packages/nazar-core/dist/index.js'); console.log('OK')"
+          podman run --rm nazar-base node -e "import('./packages/nazar-core/dist/index.js').then(m => { if (typeof m.ObjectStore === 'function') console.log('OK'); else process.exit(1); })"
 
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
     needs: [container-tests]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Run integration tests
         run: |
           if [ -f tests/integration/run.sh ]; then

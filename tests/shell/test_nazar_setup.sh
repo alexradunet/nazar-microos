@@ -29,10 +29,14 @@ NAZAR_CONFIG="$TMPDIR1/nazar.yaml" QUADLET_OUTPUT_DIR="$TMPDIR1/quadlet" \
   bash "$SCRIPT" --dry-run
 
 assert_file_exists "$TMPDIR1/quadlet/nazar-heartbeat.container"
-assert_file_contains "$TMPDIR1/quadlet/nazar-heartbeat.container" "OnCalendar=*:0/30"
+assert_file_exists "$TMPDIR1/quadlet/nazar-heartbeat.timer"
 assert_file_contains "$TMPDIR1/quadlet/nazar-heartbeat.container" "Description=Nazar Heartbeat"
+assert_file_contains "$TMPDIR1/quadlet/nazar-heartbeat.container" "Type=oneshot"
+assert_file_not_contains "$TMPDIR1/quadlet/nazar-heartbeat.container" "[Timer]"
+assert_file_contains "$TMPDIR1/quadlet/nazar-heartbeat.timer" "OnCalendar=*:0/30"
+assert_file_contains "$TMPDIR1/quadlet/nazar-heartbeat.timer" "WantedBy=timers.target"
 
-echo "PASS: test 1 — heartbeat Quadlet generated correctly"
+echo "PASS: test 1 — heartbeat Quadlet generated correctly (container + timer)"
 
 # --- Test 2: Disabled matrix module produces no conduit/bridge Quadlet files ---
 TMPDIR2="$(mktemp -d)"
@@ -60,6 +64,7 @@ NAZAR_CONFIG="$TMPDIR2/nazar.yaml" QUADLET_OUTPUT_DIR="$TMPDIR2/quadlet" \
 assert_file_not_exists "$TMPDIR2/quadlet/nazar-conduit.container"
 assert_file_not_exists "$TMPDIR2/quadlet/nazar-matrix-bridge.container"
 assert_file_not_exists "$TMPDIR2/quadlet/nazar-heartbeat.container"
+assert_file_not_exists "$TMPDIR2/quadlet/nazar-heartbeat.timer"
 
 echo "PASS: test 2 — disabled modules produce no Quadlet files"
 

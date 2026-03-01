@@ -13,6 +13,7 @@ set -euo pipefail
 NAZAR_CONFIG="${NAZAR_CONFIG:-/etc/nazar/nazar.yaml}"
 QUADLET_OUTPUT_DIR="${QUADLET_OUTPUT_DIR:-/etc/containers/systemd}"
 DRY_RUN=0
+GENERATED_COUNT=0
 
 for arg in "$@"; do
   case "$arg" in
@@ -55,12 +56,15 @@ mkdir -p "$QUADLET_OUTPUT_DIR"
 # Heartbeat
 if module_enabled '.modules.heartbeat.enable'; then
   interval="$(module_value '.modules.heartbeat.interval' '30m')"
-  # Convert interval like "30m" to OnCalendar format
-  # Simple: extract minutes for "Xm" format
+  # Convert interval to OnCalendar format: Xm (minutes), Xh (hours), Xd (daily)
   if [[ "$interval" =~ ^([0-9]+)m$ ]]; then
-    minutes="${BASH_REMATCH[1]}"
-    on_calendar="*:0/${minutes}"
+    on_calendar="*:0/${BASH_REMATCH[1]}"
+  elif [[ "$interval" =~ ^([0-9]+)h$ ]]; then
+    on_calendar="*-*-* 0/${BASH_REMATCH[1]}:00:00"
+  elif [[ "$interval" =~ ^([0-9]+)d$ ]]; then
+    on_calendar="*-*-1/${BASH_REMATCH[1]} 00:00:00"
   else
+    echo "Warning: unrecognized interval '$interval', defaulting to 30m" >&2
     on_calendar="*:0/30"
   fi
 
@@ -74,10 +78,17 @@ Image=ghcr.io/alexradunet/nazar-heartbeat:latest
 Volume=/var/lib/nazar/objects:/data/objects:ro
 Volume=/etc/nazar:/etc/nazar:ro
 Environment=NAZAR_CONFIG=/etc/nazar/nazar.yaml
+ReadOnly=true
+NoNewPrivileges=true
 
 [Service]
 Type=oneshot
 Restart=no
+EOF
+
+  cat > "$QUADLET_OUTPUT_DIR/nazar-heartbeat.timer" <<EOF
+[Unit]
+Description=Nazar Heartbeat Timer
 
 [Timer]
 OnCalendar=${on_calendar}
@@ -86,6 +97,7 @@ Persistent=true
 [Install]
 WantedBy=timers.target
 EOF
+  GENERATED_COUNT=$((GENERATED_COUNT + 2))
 fi
 
 # Matrix (Conduit + Bridge)
@@ -109,6 +121,7 @@ Restart=always
 [Install]
 WantedBy=default.target
 EOF
+  GENERATED_COUNT=$((GENERATED_COUNT + 1))
 
   cat > "$QUADLET_OUTPUT_DIR/nazar-matrix-bridge.container" <<EOF
 [Unit]
@@ -128,6 +141,7 @@ Restart=always
 [Install]
 WantedBy=default.target
 EOF
+  GENERATED_COUNT=$((GENERATED_COUNT + 1))
 fi
 
 # Syncthing
@@ -144,6 +158,7 @@ PublishPort=8384:8384
 PublishPort=22000:22000/tcp
 PublishPort=22000:22000/udp
 PublishPort=21027:21027/udp
+NoNewPrivileges=true
 
 [Service]
 Restart=always
@@ -151,6 +166,7 @@ Restart=always
 [Install]
 WantedBy=default.target
 EOF
+  GENERATED_COUNT=$((GENERATED_COUNT + 1))
 fi
 
 # ttyd
@@ -171,11 +187,11 @@ Restart=always
 [Install]
 WantedBy=default.target
 EOF
+  GENERATED_COUNT=$((GENERATED_COUNT + 1))
 fi
 
 # --- Summary ---
-generated=$(find "$QUADLET_OUTPUT_DIR" -maxdepth 1 -name '*.container' 2>/dev/null | wc -l)
-echo "Generated $generated Quadlet file(s) in $QUADLET_OUTPUT_DIR"
+echo "Generated $GENERATED_COUNT Quadlet file(s) in $QUADLET_OUTPUT_DIR"
 
 if [[ "$DRY_RUN" -eq 0 ]]; then
   echo "Reloading systemd..."
