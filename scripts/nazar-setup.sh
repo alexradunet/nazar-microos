@@ -35,6 +35,29 @@ primary_user="$(yq '.primary_user // ""' "$NAZAR_CONFIG")"
 [[ -n "$hostname" && "$hostname" != "null" ]] || die "required field 'hostname' is missing"
 [[ -n "$primary_user" && "$primary_user" != "null" ]] || die "required field 'primary_user' is missing"
 
+# --- Validate config schema ---
+yq '.' "$NAZAR_CONFIG" > /dev/null 2>&1 || die "invalid YAML syntax in $NAZAR_CONFIG"
+
+hb_interval="$(yq '.modules.heartbeat.interval // ""' "$NAZAR_CONFIG")"
+if [[ -n "$hb_interval" && "$hb_interval" != "null" ]]; then
+  [[ "$hb_interval" =~ ^[0-9]+[mhd]$ ]] || die "invalid heartbeat interval '$hb_interval' (expected format: 30m, 2h, 1d)"
+fi
+
+ttyd_port="$(yq '.modules.ttyd.port // ""' "$NAZAR_CONFIG")"
+if [[ -n "$ttyd_port" && "$ttyd_port" != "null" ]]; then
+  [[ "$ttyd_port" =~ ^[0-9]+$ ]] || die "invalid ttyd port '$ttyd_port' (must be numeric)"
+fi
+
+matrix_enabled="$(yq '.modules.channels.matrix.enable // "false"' "$NAZAR_CONFIG")"
+if [[ "$matrix_enabled" == "true" ]]; then
+  matrix_homeserver="$(yq '.modules.channels.matrix.homeserver // ""' "$NAZAR_CONFIG")"
+  [[ -n "$matrix_homeserver" && "$matrix_homeserver" != "null" ]] || die "matrix is enabled but 'modules.channels.matrix.homeserver' is missing"
+fi
+
+if [[ "$DRY_RUN" -eq 0 ]]; then
+  [[ -w "$QUADLET_OUTPUT_DIR" ]] || { mkdir -p "$QUADLET_OUTPUT_DIR" 2>/dev/null && [[ -w "$QUADLET_OUTPUT_DIR" ]]; } || die "output directory is not writable: $QUADLET_OUTPUT_DIR"
+fi
+
 # --- Helper: read module config ---
 module_enabled() {
   local path="$1"
@@ -54,6 +77,14 @@ module_value() {
 mkdir -p "$QUADLET_OUTPUT_DIR"
 
 # --- Generate Quadlet files for enabled modules ---
+#
+# NOTE: The following images use :latest tags. For production reproducibility,
+# pin these to specific digests or version tags:
+#   - ghcr.io/alexradunet/nazar-heartbeat:latest
+#   - docker.io/matrixconduit/matrix-conduit:latest
+#   - ghcr.io/alexradunet/nazar-matrix-bridge:latest
+#   - docker.io/syncthing/syncthing:latest
+#   - docker.io/tsl0922/ttyd:latest
 
 # Heartbeat
 if module_enabled '.modules.heartbeat.enable'; then

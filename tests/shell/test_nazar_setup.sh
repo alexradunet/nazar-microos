@@ -86,3 +86,127 @@ if NAZAR_CONFIG="$TMPDIR3/nazar.yaml" QUADLET_OUTPUT_DIR="$TMPDIR3/quadlet" \
 fi
 
 echo "PASS: test 3 — missing hostname exits with error"
+
+# --- Test 4: Invalid YAML syntax exits with error ---
+TMPDIR4="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR4"' EXIT
+
+cat > "$TMPDIR4/nazar.yaml" <<'EOF'
+hostname: test-box
+primary_user: testuser
+  bad_indent: broken
+EOF
+
+if NAZAR_CONFIG="$TMPDIR4/nazar.yaml" QUADLET_OUTPUT_DIR="$TMPDIR4/quadlet" \
+  bash "$SCRIPT" --dry-run 2>/dev/null; then
+  fail "expected invalid YAML to cause exit with error"
+fi
+
+echo "PASS: test 4 — invalid YAML syntax exits with error"
+
+# --- Test 5: Invalid heartbeat interval exits with error ---
+TMPDIR5="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR5"' EXIT
+
+cat > "$TMPDIR5/nazar.yaml" <<'EOF'
+hostname: test-box
+primary_user: testuser
+modules:
+  heartbeat:
+    enable: true
+    interval: 30x
+  channels:
+    matrix:
+      enable: false
+  syncthing:
+    enable: false
+  ttyd:
+    enable: false
+EOF
+
+if NAZAR_CONFIG="$TMPDIR5/nazar.yaml" QUADLET_OUTPUT_DIR="$TMPDIR5/quadlet" \
+  bash "$SCRIPT" --dry-run 2>/dev/null; then
+  fail "expected invalid heartbeat interval '30x' to cause exit with error"
+fi
+
+echo "PASS: test 5 — invalid heartbeat interval exits with error"
+
+# --- Test 6: Invalid ttyd port exits with error ---
+TMPDIR6="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR6"' EXIT
+
+cat > "$TMPDIR6/nazar.yaml" <<'EOF'
+hostname: test-box
+primary_user: testuser
+modules:
+  heartbeat:
+    enable: false
+  channels:
+    matrix:
+      enable: false
+  syncthing:
+    enable: false
+  ttyd:
+    enable: true
+    port: abc
+EOF
+
+if NAZAR_CONFIG="$TMPDIR6/nazar.yaml" QUADLET_OUTPUT_DIR="$TMPDIR6/quadlet" \
+  bash "$SCRIPT" --dry-run 2>/dev/null; then
+  fail "expected invalid ttyd port 'abc' to cause exit with error"
+fi
+
+echo "PASS: test 6 — invalid ttyd port exits with error"
+
+# --- Test 7: Matrix enabled without homeserver exits with error ---
+TMPDIR7="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR7"' EXIT
+
+cat > "$TMPDIR7/nazar.yaml" <<'EOF'
+hostname: test-box
+primary_user: testuser
+modules:
+  heartbeat:
+    enable: false
+  channels:
+    matrix:
+      enable: true
+  syncthing:
+    enable: false
+  ttyd:
+    enable: false
+EOF
+
+if NAZAR_CONFIG="$TMPDIR7/nazar.yaml" QUADLET_OUTPUT_DIR="$TMPDIR7/quadlet" \
+  bash "$SCRIPT" --dry-run 2>/dev/null; then
+  fail "expected matrix enabled without homeserver to cause exit with error"
+fi
+
+echo "PASS: test 7 — matrix enabled without homeserver exits with error"
+
+# --- Test 8: Valid heartbeat intervals (5m, 2h, 1d) are accepted ---
+for interval in 5m 2h 1d; do
+  TMPDIR8="$(mktemp -d)"
+  trap 'rm -rf "$TMPDIR8"' EXIT
+
+  cat > "$TMPDIR8/nazar.yaml" <<EOF
+hostname: test-box
+primary_user: testuser
+modules:
+  heartbeat:
+    enable: true
+    interval: ${interval}
+  channels:
+    matrix:
+      enable: false
+  syncthing:
+    enable: false
+  ttyd:
+    enable: false
+EOF
+
+  NAZAR_CONFIG="$TMPDIR8/nazar.yaml" QUADLET_OUTPUT_DIR="$TMPDIR8/quadlet" \
+    bash "$SCRIPT" --dry-run || fail "heartbeat interval '$interval' should be accepted"
+done
+
+echo "PASS: test 8 — valid heartbeat intervals (5m, 2h, 1d) are accepted"

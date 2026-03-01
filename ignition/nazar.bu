@@ -171,8 +171,8 @@ storage:
           strategy = "periodic"
           [[updates.periodic.window]]
           days = [ "Sat", "Sun" ]
-          start_time = "03:00"
-          length_minutes = 120
+          start_time = "02:00"
+          length_minutes = 240
 
     # --- Hostname ---
     - path: /etc/hostname
@@ -186,44 +186,14 @@ systemd:
     # --- First-boot RPM layering ---
     - name: nazar-rpm-layer.service
       enabled: true
-      contents: |
-        [Unit]
-        Description=Nazar First-Boot RPM Layer
-        ConditionPathExists=!/etc/nazar/.rpm-layer-complete
-        After=network-online.target
-        Wants=network-online.target
-
-        [Service]
-        Type=oneshot
-        ExecStart=/usr/bin/rpm-ostree install --idempotent --apply-live yq jq git-core nodejs22 tailscale vim-minimal htop tmux
-        ExecStartPost=/usr/bin/touch /etc/nazar/.rpm-layer-complete
-        ExecStartPost=/usr/bin/systemctl reboot
-        RemainAfterExit=yes
-        TimeoutStartSec=600
-
-        [Install]
-        WantedBy=multi-user.target
+      contents:
+        local: ignition/files/nazar-rpm-layer.service
 
     # --- First-boot setup (after RPM layer reboot) ---
     - name: nazar-setup.service
       enabled: true
-      contents: |
-        [Unit]
-        Description=Nazar First-Boot Setup
-        ConditionPathExists=/etc/nazar/.rpm-layer-complete
-        ConditionPathExists=!/etc/nazar/.setup-complete
-        After=network-online.target
-        Wants=network-online.target
-
-        [Service]
-        Type=oneshot
-        ExecStart=/usr/local/bin/nazar apply
-        ExecStartPost=/usr/bin/touch /etc/nazar/.setup-complete
-        RemainAfterExit=yes
-        TimeoutStartSec=300
-
-        [Install]
-        WantedBy=multi-user.target
+      contents:
+        local: ignition/files/nazar-setup.service
 
     # --- Tailscale ---
     - name: tailscaled.service
