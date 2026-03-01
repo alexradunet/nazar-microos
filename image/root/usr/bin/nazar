@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# nazar — CLI wrapper for the Nazar AI companion system.
+#
+# Usage:
+#   nazar apply [--dry-run]    Apply config, generate Quadlet files, reload systemd
+#   nazar status               Show running services and object store stats
+#   nazar update               Pull latest container images
+#   nazar rollback             Rollback to previous btrfs snapshot (via snapper)
+#   nazar object <cmd> ...     Object store CRUD (nazar-object.sh)
+#   nazar pi [args]            Launch Pi agent with persona + skills
+#   nazar setup                Interactive first-time setup (Pi with install-nazar skill)
+#   nazar                      Interactive Pi session (no args)
+
+NAZAR_SCRIPTS_DIR="${NAZAR_SCRIPTS_DIR:-/usr/share/nazar/scripts}"
+NAZAR_SKILLS_DIR="${NAZAR_SKILLS_DIR:-/usr/share/nazar/skills}"
+NAZAR_PERSONA_DIR="${NAZAR_PERSONA_DIR:-/usr/share/nazar/persona}"
+
+cmd="${1:-}"
+shift 2>/dev/null || true
+
+case "$cmd" in
+  apply)
+    exec bash "${NAZAR_SCRIPTS_DIR}/nazar-setup.sh" "$@"
+    ;;
+
+  status)
+    echo "=== Nazar Services ==="
+    systemctl list-units 'nazar-*' --no-pager 2>/dev/null || echo "(no nazar services found)"
+    echo ""
+    echo "=== Object Store ==="
+    objects_dir="${NAZAR_OBJECTS_DIR:-/var/lib/nazar/objects}"
+    if [[ -d "$objects_dir" ]]; then
+      count=$(find "$objects_dir" -name '*.md' -type f 2>/dev/null | wc -l)
+      echo "Objects: $count"
+      for type_dir in "$objects_dir"/*/; do
+        [[ -d "$type_dir" ]] || continue
+        type_name=$(basename "$type_dir")
+        type_count=$(find "$type_dir" -name '*.md' -type f 2>/dev/null | wc -l)
+        echo "  $type_name: $type_count"
+      done
+    else
+      echo "Objects directory not found: $objects_dir"
+    fi
+    ;;
+
+  update)
+    echo "Pulling latest container images..."
+    podman pull ghcr.io/alexradunet/nazar-heartbeat:latest 2>/dev/null || true
+    podman pull ghcr.io/alexradunet/nazar-matrix-bridge:latest 2>/dev/null || true
+    podman pull ghcr.io/girlbossceo/conduwuit:latest 2>/dev/null || true
+    podman pull docker.io/syncthing/syncthing:latest 2>/dev/null || true
+    podman pull docker.io/tsl0922/ttyd:latest 2>/dev/null || true
+    echo "Done. Restart services with: systemctl restart nazar-*"
+    ;;
+
+  rollback)
+    echo "=== Snapper Snapshots ==="
+    snapper list 2>/dev/null || echo "(snapper not available)"
+    echo ""
+    echo "To rollback, use:"
+    echo "  sudo snapper rollback <snapshot-number>"
+    echo "  sudo reboot"
+    ;;
+
+  object)
+    exec bash "${NAZAR_SCRIPTS_DIR}/nazar-object.sh" "$@"
+    ;;
+
+  pi)
+    exec pi "$@"
+    ;;
+
+  setup)
+    exec pi --skill "${NAZAR_SKILLS_DIR}/install-nazar"
+    ;;
+
+  "")
+    # No args — interactive Pi session
+    exec pi
+    ;;
+
+  *)
+    echo "Error: unknown command: $cmd" >&2
+    echo "" >&2
+    echo "Usage: nazar <apply|status|update|rollback|object|pi|setup>" >&2
+    exit 1
+    ;;
+esac
