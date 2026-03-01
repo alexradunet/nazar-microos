@@ -8,6 +8,8 @@ set -euo pipefail
 #   nazar status               Show running services and object store stats
 #   nazar update               Pull latest container images
 #   nazar rollback             Show rpm-ostree deployments and rollback instructions
+#   nazar deploy [flags]       Deploy changes to dev VM
+#   nazar vm <cmd>             Dev VM lifecycle (create/start/stop/destroy/ssh)
 #   nazar evolve <cmd> ...     Container evolution lifecycle
 #   nazar object <cmd> ...     Object store CRUD (nazar-object.sh)
 #   nazar pi [args]            Launch Pi agent with persona + skills
@@ -67,6 +69,14 @@ case "$cmd" in
     echo "  nazar evolve rollback <slug>"
     ;;
 
+  deploy)
+    exec nazar-deploy "$@"
+    ;;
+
+  vm)
+    exec nazar-vm "$@"
+    ;;
+
   evolve)
     exec nazar-evolve "$@"
     ;;
@@ -91,7 +101,7 @@ case "$cmd" in
   *)
     echo "Error: unknown command: $cmd" >&2
     echo "" >&2
-    echo "Usage: nazar <apply|status|update|rollback|evolve|object|pi|setup>" >&2
+    echo "Usage: nazar <apply|status|update|rollback|deploy|vm|evolve|object|pi|setup>" >&2
     exit 1
     ;;
 esac

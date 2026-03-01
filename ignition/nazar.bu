@@ -3,6 +3,12 @@ version: 1.6.0
 
 passwd:
   users:
+    - name: core
+      ssh_authorized_keys_local:
+        - ignition/files/authorized_keys
+      groups:
+        - wheel
+        - sudo
     - name: nazar-agent
       uid: 900
       system: true
@@ -61,6 +67,14 @@ storage:
       mode: 0755
       contents:
         local: scripts/nazar-evolve.sh
+    - path: /usr/local/bin/nazar-vm
+      mode: 0755
+      contents:
+        local: scripts/nazar-vm.sh
+    - path: /usr/local/bin/nazar-deploy
+      mode: 0755
+      contents:
+        local: scripts/nazar-deploy.sh
 
     # --- Configuration ---
     - path: /etc/nazar/nazar.yaml
@@ -71,6 +85,11 @@ storage:
       mode: 0440
       contents:
         local: ignition/files/sudoers-nazar-evolve
+    - path: /etc/sudoers.d/core-wheel
+      mode: 0440
+      contents:
+        inline: |
+          %wheel ALL=(ALL) NOPASSWD: ALL
 
     # --- System documentation ---
     - path: /usr/local/share/nazar/SYSTEM.md
