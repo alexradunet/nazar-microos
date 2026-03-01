@@ -55,14 +55,21 @@ jobs:
           podman push ${{ env.IMAGE_PREFIX }}/nazar-matrix-bridge:${{ github.sha }}
           podman push ${{ env.IMAGE_PREFIX }}/nazar-matrix-bridge:latest
 
-  build-kiwi-image:
-    name: Build KIWI MicroOS Image (Placeholder)
+  validate-ignition:
+    name: Validate and Publish Ignition Config
     runs-on: ubuntu-latest
     needs: [build-containers]
     steps:
       - uses: actions/checkout@v5
-      - name: KIWI image build
+      - name: Transpile Butane to Ignition
         run: |
-          echo "KIWI image build requires OBS or a KIWI runner."
-          echo "This is a placeholder — configure OBS integration for production builds."
-          echo "See: https://osinside.github.io/kiwi/"
+          podman run --rm -v "${PWD}:/pwd" -w /pwd/ignition \
+            quay.io/coreos/butane:release --files-dir /pwd \
+            --pretty --strict nazar.bu > ignition/nazar.ign
+      - name: Validate JSON output
+        run: jq . ignition/nazar.ign > /dev/null
+      - name: Upload Ignition artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nazar-ignition
+          path: ignition/nazar.ign

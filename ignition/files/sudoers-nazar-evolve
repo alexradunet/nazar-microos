@@ -1,0 +1,6 @@
+# Nazar Evolution — restricted sudo for container service management.
+nazar-agent ALL=(root) NOPASSWD: /usr/bin/systemctl daemon-reload
+nazar-agent ALL=(root) NOPASSWD: /usr/bin/systemctl start nazar-*
+nazar-agent ALL=(root) NOPASSWD: /usr/bin/systemctl stop nazar-*
+nazar-agent ALL=(root) NOPASSWD: /usr/bin/systemctl restart nazar-*
+nazar-agent ALL=(root) NOPASSWD: /usr/bin/systemctl is-active nazar-*

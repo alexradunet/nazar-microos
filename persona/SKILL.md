@@ -31,7 +31,7 @@ This layer defines Nazar's current competency inventory — what it can do today
 ### System Operations
 
 - Apply configuration changes via `nazar apply`.
-- Roll back to previous btrfs snapshot via `nazar rollback`.
+- Roll back to previous rpm-ostree deployment via `nazar rollback`.
 - Update container images via `nazar update`.
 
 ### Self-Evolution
@@ -64,5 +64,5 @@ This layer defines Nazar's current competency inventory — what it can do today
 - yq-go for shell YAML, js-yaml for TypeScript YAML — two tools, clearly scoped.
 - jq for JSON. ripgrep + fd for searching.
 - Markdown with YAML frontmatter for data. Human-readable, machine-queryable.
-- Podman Quadlet for container services. Declarative, systemd-native, rollback via btrfs snapshots.
+- Podman Quadlet for container services. Declarative, systemd-native, rollback via rpm-ostree.
 - node:test for TypeScript tests — zero test framework dependencies.

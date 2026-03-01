@@ -124,7 +124,7 @@ Include a rework evidence section:
 
 Keep these in mind during implementation:
 
-- **transactional-update requires reboot**: System package changes via `transactional-update` only take effect after a reboot. Plan accordingly.
+- **Container evolution is instant**: Container-based evolution via Quadlet does not require a reboot — `systemctl daemon-reload` + `start` is sufficient.
 - **Podman rootless vs root**: Quadlet services may run rootless or as root depending on configuration. Check which context applies.
 - **shell tests need executable bit**: Ensure test scripts have `chmod +x` before running.
 - **npm workspaces**: Use `"*"` not `"workspace:*"` (workspace: is pnpm/yarn syntax).
@@ -132,4 +132,4 @@ Keep these in mind during implementation:
 - **yq env() for safe injection**: `YQ_VAL="$val" yq -i '.key = env(YQ_VAL)' file`
 - **grep leading dash**: `grep -F "- something"` needs `--` to prevent leading dash being parsed as option.
 - **Glob expansion**: `"${dir}"*.md` needs dir to end with `/` for proper expansion.
-- **btrfs snapshots**: MicroOS uses btrfs snapshots for rollback. Test rollback scenarios when modifying system state.
+- **rpm-ostree rollback**: CoreOS uses rpm-ostree for atomic OS updates. Test rollback scenarios when modifying system state.

@@ -7,23 +7,22 @@ set -euo pipefail
 #   nazar apply [--dry-run]    Apply config, generate Quadlet files, reload systemd
 #   nazar status               Show running services and object store stats
 #   nazar update               Pull latest container images
-#   nazar rollback             Rollback to previous btrfs snapshot (via snapper)
-#   nazar evolve <cmd> ...     Host package evolution lifecycle
+#   nazar rollback             Show rpm-ostree deployments and rollback instructions
+#   nazar evolve <cmd> ...     Container evolution lifecycle
 #   nazar object <cmd> ...     Object store CRUD (nazar-object.sh)
 #   nazar pi [args]            Launch Pi agent with persona + skills
 #   nazar setup                Interactive first-time setup (Pi with install-nazar skill)
 #   nazar                      Interactive Pi session (no args)
 
-NAZAR_SCRIPTS_DIR="${NAZAR_SCRIPTS_DIR:-/usr/share/nazar/scripts}"
-NAZAR_SKILLS_DIR="${NAZAR_SKILLS_DIR:-/usr/share/nazar/skills}"
-NAZAR_PERSONA_DIR="${NAZAR_PERSONA_DIR:-/usr/share/nazar/persona}"
+NAZAR_SKILLS_DIR="${NAZAR_SKILLS_DIR:-/usr/local/share/nazar/skills}"
+NAZAR_PERSONA_DIR="${NAZAR_PERSONA_DIR:-/usr/local/share/nazar/persona}"
 
 cmd="${1:-}"
 shift 2>/dev/null || true
 
 case "$cmd" in
   apply)
-    exec bash "${NAZAR_SCRIPTS_DIR}/nazar-setup.sh" "$@"
+    exec nazar-setup "$@"
     ;;
 
   status)
@@ -57,20 +56,23 @@ case "$cmd" in
     ;;
 
   rollback)
-    echo "=== Snapper Snapshots ==="
-    snapper list 2>/dev/null || echo "(snapper not available)"
+    echo "=== rpm-ostree Deployments ==="
+    rpm-ostree status 2>/dev/null || echo "(rpm-ostree not available)"
     echo ""
-    echo "To rollback, use:"
-    echo "  sudo snapper rollback <snapshot-number>"
-    echo "  sudo reboot"
+    echo "To rollback the OS to a previous deployment:"
+    echo "  sudo rpm-ostree rollback"
+    echo "  sudo systemctl reboot"
+    echo ""
+    echo "To rollback a container evolution:"
+    echo "  nazar evolve rollback <slug>"
     ;;
 
   evolve)
-    exec bash "${NAZAR_SCRIPTS_DIR}/nazar-evolve.sh" "$@"
+    exec nazar-evolve "$@"
     ;;
 
   object)
-    exec bash "${NAZAR_SCRIPTS_DIR}/nazar-object.sh" "$@"
+    exec nazar-object "$@"
     ;;
 
   pi)

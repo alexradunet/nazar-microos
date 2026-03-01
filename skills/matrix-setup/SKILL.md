@@ -239,5 +239,5 @@ This skill is the first step toward a broader **interactive Nazar setup assistan
 - List all available Nazar modules and their current state (enabled/disabled).
 - Guide the user through enabling/disabling modules interactively.
 - Validate configuration before applying.
-- Run `nazar apply` with rollback safety (btrfs snapshots).
+- Run `nazar apply` with rollback safety (rpm-ostree rollback).
 - The assistant will use this same guided-flow pattern for each module.

@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# nazar-evolve.sh — Host package evolution lifecycle.
+# nazar-evolve.sh — Container-based evolution lifecycle.
 #
-# Manages atomic package installs on MicroOS via transactional-update,
-# with pending state persistence across reboots and automatic rollback
-# on verification failure.
+# Manages evolution by deploying containers via Podman Quadlet files.
+# No reboots required — containers start immediately after generation.
 #
 # Usage:
-#   nazar-evolve install <slug>   Read evolution object, install host_packages
-#   nazar-evolve --resume         Post-reboot verification (called by systemd)
-#   nazar-evolve rollback <slug>  Rollback to pre-install snapshot
-#   nazar-evolve status [slug]    Show pending/completed evolution state
+#   nazar-evolve install <slug>   Read evolution object, deploy containers
+#   nazar-evolve rollback <slug>  Stop and remove evolution containers
+#   nazar-evolve status [slug]    Show evolution state
 
 NAZAR_CONFIG="${NAZAR_CONFIG:-/etc/nazar/nazar.yaml}"
 NAZAR_OBJECTS_DIR="${NAZAR_OBJECTS_DIR:-/var/lib/nazar/objects}"
 NAZAR_EVOLVE_DIR="${NAZAR_EVOLVE_DIR:-/var/lib/nazar/evolution}"
 NAZAR_OBJECT_CMD="${NAZAR_OBJECT_CMD:-nazar-object}"
+QUADLET_DIR="${QUADLET_DIR:-/etc/containers/systemd}"
+HEALTH_CHECK_TIMEOUT="${HEALTH_CHECK_TIMEOUT:-30}"
 
 # --- Helpers ---
 
@@ -29,32 +29,120 @@ read_config_value() {
   yq -r "$key" "$NAZAR_CONFIG" 2>/dev/null | grep -v '^null$' || echo ""
 }
 
-get_max_packages() {
+get_max_containers() {
   local val
-  val=$(read_config_value '.evolution.max_packages_per_evolution')
+  val=$(read_config_value '.evolution.max_containers_per_evolution')
   echo "${val:-5}"
 }
 
-# Read the host_packages field from an evolution object's frontmatter.
-read_host_packages() {
+# Read the containers field from an evolution object's frontmatter as JSON array.
+read_containers() {
   local slug="$1"
   local file="${NAZAR_OBJECTS_DIR}/evolution/${slug}.md"
   [[ -f "$file" ]] || die "evolution object not found: $slug"
 
-  # Extract YAML frontmatter (between --- markers), then get host_packages array
   local frontmatter
   frontmatter=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$file")
-  echo "$frontmatter" | yq -r '.host_packages[]' 2>/dev/null || true
+  echo "$frontmatter" | yq -o=json '.containers // []' 2>/dev/null
 }
 
-# Validate that package names contain only safe characters.
-validate_package_names() {
-  local pkg
-  for pkg in "$@"; do
-    if [[ ! "$pkg" =~ ^[a-zA-Z0-9][a-zA-Z0-9._+-]*$ ]]; then
-      die "invalid package name: '$pkg'"
-    fi
+# Validate a container entry: name must start with nazar- and contain safe chars, image required.
+validate_container() {
+  local name="$1"
+  local image="$2"
+
+  [[ -n "$name" ]] || die "container entry missing 'name' field"
+  [[ -n "$image" ]] || die "container '$name' missing 'image' field"
+
+  if [[ ! "$name" =~ ^nazar-[a-zA-Z0-9][a-zA-Z0-9._-]*$ ]]; then
+    die "invalid container name: '$name' (must start with 'nazar-' and contain only alphanumeric, dot, underscore, hyphen)"
+  fi
+}
+
+# Generate a Quadlet .container file from container spec.
+generate_quadlet() {
+  local name="$1"
+  local image="$2"
+  local volumes_json="$3"
+  local env_json="$4"
+  local quadlet_file="${QUADLET_DIR}/${name}.container"
+
+  local volume_lines=""
+  local num_volumes
+  num_volumes=$(echo "$volumes_json" | jq -r 'length')
+  for ((i = 0; i < num_volumes; i++)); do
+    local vol
+    vol=$(echo "$volumes_json" | jq -r ".[$i]")
+    volume_lines="${volume_lines}Volume=${vol}
+"
   done
+
+  local env_lines=""
+  local env_keys
+  env_keys=$(echo "$env_json" | jq -r 'keys[]' 2>/dev/null || true)
+  for key in $env_keys; do
+    local val
+    val=$(echo "$env_json" | jq -r ".[\"$key\"]")
+    env_lines="${env_lines}Environment=${key}=${val}
+"
+  done
+
+  if [[ "${NAZAR_DRY_RUN:-}" == "1" ]]; then
+    info "[dry-run] Would write Quadlet file: $quadlet_file"
+    echo "[Unit]"
+    echo "Description=Nazar Evolution Container: ${name}"
+    echo "After=network-online.target"
+    echo ""
+    echo "[Container]"
+    echo "Image=${image}"
+    printf '%s' "$volume_lines"
+    printf '%s' "$env_lines"
+    echo ""
+    echo "[Service]"
+    echo "Restart=always"
+    echo ""
+    echo "[Install]"
+    echo "WantedBy=default.target"
+    return
+  fi
+
+  cat > "$quadlet_file" <<EOF
+[Unit]
+Description=Nazar Evolution Container: ${name}
+After=network-online.target
+
+[Container]
+Image=${image}
+${volume_lines}${env_lines}
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
+EOF
+
+  info "Generated Quadlet: $quadlet_file"
+}
+
+# Health check: poll systemctl is-active up to timeout seconds.
+health_check() {
+  local service="$1"
+  local timeout="$HEALTH_CHECK_TIMEOUT"
+  local elapsed=0
+
+  info "Health check: waiting up to ${timeout}s for ${service}.service..."
+
+  while [[ $elapsed -lt $timeout ]]; do
+    if sudo systemctl is-active "${service}.service" >/dev/null 2>&1; then
+      info "  OK: ${service}.service is active"
+      return 0
+    fi
+    sleep 2
+    elapsed=$((elapsed + 2))
+  done
+
+  warn "${service}.service failed to become active within ${timeout}s"
+  return 1
 }
 
 # --- Subcommands ---
@@ -65,204 +153,155 @@ cmd_install() {
 
   info "Reading evolution object: $slug"
 
-  # Read packages from the evolution object
-  local packages=()
-  while IFS= read -r pkg; do
-    [[ -n "$pkg" ]] && packages+=("$pkg")
-  done < <(read_host_packages "$slug")
+  # Read containers from the evolution object
+  local containers_json
+  containers_json=$(read_containers "$slug")
 
-  [[ ${#packages[@]} -gt 0 ]] || die "no host_packages found in evolution/$slug"
+  local num_containers
+  num_containers=$(echo "$containers_json" | jq 'length')
+  [[ "$num_containers" -gt 0 ]] || die "no containers found in evolution/$slug"
 
-  # Validate package names
-  validate_package_names "${packages[@]}"
-
-  # Check package count limit
+  # Check container count limit
   local max
-  max=$(get_max_packages)
-  if [[ ${#packages[@]} -gt $max ]]; then
-    die "too many packages (${#packages[@]} > max $max). Increase evolution.max_packages_per_evolution in nazar.yaml"
+  max=$(get_max_containers)
+  if [[ "$num_containers" -gt "$max" ]]; then
+    die "too many containers ($num_containers > max $max). Increase evolution.max_containers_per_evolution in nazar.yaml"
   fi
+
+  # Validate all containers first
+  local container_names=()
+  for ((i = 0; i < num_containers; i++)); do
+    local name image
+    name=$(echo "$containers_json" | jq -r ".[$i].name")
+    image=$(echo "$containers_json" | jq -r ".[$i].image")
+    validate_container "$name" "$image"
+    container_names+=("$name")
+  done
 
   # Interactive approval
   echo ""
-  echo "The following packages will be installed:"
-  for pkg in "${packages[@]}"; do
-    echo "  - $pkg"
+  echo "The following containers will be deployed:"
+  for ((i = 0; i < num_containers; i++)); do
+    local name image
+    name=$(echo "$containers_json" | jq -r ".[$i].name")
+    image=$(echo "$containers_json" | jq -r ".[$i].image")
+    echo "  - $name ($image)"
   done
   echo ""
 
   if [[ "${NAZAR_EVOLVE_YES:-}" == "1" ]]; then
     info "Auto-approved (NAZAR_EVOLVE_YES=1)"
   else
-    read -r -p "Install these packages? [y/N] " confirm
+    read -r -p "Deploy these containers? [y/N] " confirm
     [[ "$confirm" =~ ^[Yy]$ ]] || { info "Aborted."; exit 0; }
   fi
 
-  # Ensure evolve directory exists
+  # Ensure directories exist
   mkdir -p "$NAZAR_EVOLVE_DIR"
+  mkdir -p "$QUADLET_DIR"
 
-  # Record pre-install snapshot number
-  local pre_snapshot
-  pre_snapshot=$(snapper list --columns number | tail -1 | tr -d ' ')
-
-  info "Pre-install snapshot: $pre_snapshot"
-  info "Installing packages via transactional-update..."
-
-  # Install packages atomically
-  if [[ "${NAZAR_DRY_RUN:-}" == "1" ]]; then
-    info "[dry-run] Would run: transactional-update pkg install ${packages[*]}"
-  else
-    sudo transactional-update pkg install "${packages[@]}"
-  fi
-
-  # Write pending state (survives reboot)
-  local pending_file="${NAZAR_EVOLVE_DIR}/pending.yaml"
-  cat > "$pending_file" <<EOF
-slug: ${slug}
-packages:
-$(printf '  - %s\n' "${packages[@]}")
-pre_snapshot: ${pre_snapshot}
-started: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
-EOF
-
-  info "Pending state written to: $pending_file"
+  # Generate Quadlet files for each container
+  for ((i = 0; i < num_containers; i++)); do
+    local name image volumes_json env_json
+    name=$(echo "$containers_json" | jq -r ".[$i].name")
+    image=$(echo "$containers_json" | jq -r ".[$i].image")
+    volumes_json=$(echo "$containers_json" | jq ".[$i].volumes // []")
+    env_json=$(echo "$containers_json" | jq ".[$i].environment // {}")
+    generate_quadlet "$name" "$image" "$volumes_json" "$env_json"
+  done
 
   if [[ "${NAZAR_DRY_RUN:-}" == "1" ]]; then
-    info "[dry-run] Would reboot to apply snapshot"
-  else
-    info "Rebooting to apply new snapshot..."
-    sudo reboot
+    info "[dry-run] Would run: systemctl daemon-reload and start services"
+    return
   fi
-}
 
-cmd_resume() {
-  local pending_file="${NAZAR_EVOLVE_DIR}/pending.yaml"
-  [[ -f "$pending_file" ]] || die "no pending evolution found at $pending_file"
+  # Reload systemd and start services
+  sudo systemctl daemon-reload
 
-  info "Resuming evolution after reboot..."
+  local all_healthy=true
+  for name in "${container_names[@]}"; do
+    info "Starting ${name}.service..."
+    sudo systemctl start "${name}.service"
 
-  local slug packages_raw pre_snapshot
-  slug=$(yq -r '.slug' "$pending_file")
-  pre_snapshot=$(yq -r '.pre_snapshot' "$pending_file")
-
-  # Read packages as array
-  local packages=()
-  while IFS= read -r pkg; do
-    [[ -n "$pkg" ]] && packages+=("$pkg")
-  done < <(yq -r '.packages[]' "$pending_file")
-
-  info "Evolution: $slug"
-  info "Packages: ${packages[*]}"
-  info "Pre-install snapshot: $pre_snapshot"
-
-  # Verify each package is installed
-  local failed=()
-  for pkg in "${packages[@]}"; do
-    if rpm -q "$pkg" >/dev/null 2>&1; then
-      info "  OK: $pkg installed"
-    else
-      warn "  MISSING: $pkg not found"
-      failed+=("$pkg")
+    if ! health_check "$name"; then
+      all_healthy=false
+      break
     fi
   done
 
-  if [[ ${#failed[@]} -gt 0 ]]; then
-    warn "Verification failed for ${#failed[@]} package(s): ${failed[*]}"
-    warn "Rolling back to snapshot $pre_snapshot..."
-    sudo snapper rollback "$pre_snapshot"
-    rm -f "$pending_file"
+  if [[ "$all_healthy" == "true" ]]; then
+    info "All containers healthy."
 
-    # Update evolution object status to rejected
+    "$NAZAR_OBJECT_CMD" update evolution "$slug" \
+      --status=applied --agent=hermes 2>/dev/null || true
+
+    info "Evolution '$slug' applied successfully."
+  else
+    warn "Health check failed. Rolling back Quadlet files..."
+
+    for name in "${container_names[@]}"; do
+      sudo systemctl stop "${name}.service" 2>/dev/null || true
+      rm -f "${QUADLET_DIR}/${name}.container"
+    done
+    sudo systemctl daemon-reload
+
     "$NAZAR_OBJECT_CMD" update evolution "$slug" \
       --status=rejected --agent=hermes 2>/dev/null || true
 
-    die "Rollback complete. Reboot to restore previous state."
+    die "Evolution '$slug' failed health check and was rolled back."
   fi
-
-  info "All packages verified successfully."
-
-  # Update evolution object to applied
-  "$NAZAR_OBJECT_CMD" update evolution "$slug" \
-    --status=applied --agent=hermes 2>/dev/null || true
-
-  # Clean up pending state
-  rm -f "$pending_file"
-
-  info "Evolution '$slug' applied successfully."
 }
 
 cmd_rollback() {
   local slug="${1:-}"
   [[ -n "$slug" ]] || die "usage: nazar-evolve rollback <slug>"
 
-  # Check for pending state first
-  local pending_file="${NAZAR_EVOLVE_DIR}/pending.yaml"
-  local pre_snapshot=""
+  info "Reading evolution object: $slug"
 
-  if [[ -f "$pending_file" ]]; then
-    local pending_slug
-    pending_slug=$(yq -r '.slug' "$pending_file")
-    if [[ "$pending_slug" == "$slug" ]]; then
-      pre_snapshot=$(yq -r '.pre_snapshot' "$pending_file")
+  local containers_json
+  containers_json=$(read_containers "$slug")
+
+  local num_containers
+  num_containers=$(echo "$containers_json" | jq 'length')
+  [[ "$num_containers" -gt 0 ]] || die "no containers found in evolution/$slug"
+
+  for ((i = 0; i < num_containers; i++)); do
+    local name
+    name=$(echo "$containers_json" | jq -r ".[$i].name")
+
+    info "Stopping ${name}.service..."
+    if [[ "${NAZAR_DRY_RUN:-}" == "1" ]]; then
+      info "[dry-run] Would stop ${name}.service and remove Quadlet file"
+    else
+      sudo systemctl stop "${name}.service" 2>/dev/null || true
+      rm -f "${QUADLET_DIR}/${name}.container"
+      info "Removed Quadlet: ${QUADLET_DIR}/${name}.container"
     fi
+  done
+
+  if [[ "${NAZAR_DRY_RUN:-}" != "1" ]]; then
+    sudo systemctl daemon-reload
   fi
-
-  if [[ -z "$pre_snapshot" ]]; then
-    die "no pending evolution found for '$slug'. Manual rollback: snapper list, then snapper rollback <number>"
-  fi
-
-  info "Rolling back evolution '$slug' to snapshot $pre_snapshot..."
-
-  if [[ "${NAZAR_DRY_RUN:-}" == "1" ]]; then
-    info "[dry-run] Would run: snapper rollback $pre_snapshot"
-  else
-    sudo snapper rollback "$pre_snapshot"
-  fi
-
-  rm -f "$pending_file"
 
   "$NAZAR_OBJECT_CMD" update evolution "$slug" \
     --status=rejected --agent=hermes 2>/dev/null || true
 
-  info "Rollback complete. Reboot to restore previous state."
+  info "Evolution '$slug' rolled back."
 }
 
 cmd_status() {
   local slug="${1:-}"
 
   if [[ -n "$slug" ]]; then
-    # Show specific evolution status
     local file="${NAZAR_OBJECTS_DIR}/evolution/${slug}.md"
     if [[ -f "$file" ]]; then
       "$NAZAR_OBJECT_CMD" read evolution "$slug"
     else
       die "evolution object not found: $slug"
     fi
-
-    # Show pending state if exists
-    local pending_file="${NAZAR_EVOLVE_DIR}/pending.yaml"
-    if [[ -f "$pending_file" ]]; then
-      local pending_slug
-      pending_slug=$(yq -r '.slug' "$pending_file")
-      if [[ "$pending_slug" == "$slug" ]]; then
-        echo ""
-        echo "=== Pending State ==="
-        cat "$pending_file"
-      fi
-    fi
   else
-    # Show all evolutions and pending state
     echo "=== Evolution Objects ==="
     "$NAZAR_OBJECT_CMD" list evolution 2>/dev/null || echo "(none)"
-    echo ""
-
-    local pending_file="${NAZAR_EVOLVE_DIR}/pending.yaml"
-    if [[ -f "$pending_file" ]]; then
-      echo "=== Pending Evolution (awaiting reboot) ==="
-      cat "$pending_file"
-    else
-      echo "No pending evolution."
-    fi
   fi
 }
 
@@ -273,16 +312,14 @@ shift 2>/dev/null || true
 
 case "$subcmd" in
   install)   cmd_install "$@" ;;
-  --resume)  cmd_resume ;;
   rollback)  cmd_rollback "$@" ;;
   status)    cmd_status "$@" ;;
   *)
-    echo "Usage: nazar-evolve <install|--resume|rollback|status> [args]" >&2
+    echo "Usage: nazar-evolve <install|rollback|status> [args]" >&2
     echo "" >&2
     echo "Commands:" >&2
-    echo "  install <slug>   Install host_packages from evolution object" >&2
-    echo "  --resume         Post-reboot verification (systemd)" >&2
-    echo "  rollback <slug>  Rollback to pre-install snapshot" >&2
+    echo "  install <slug>   Deploy containers from evolution object" >&2
+    echo "  rollback <slug>  Stop and remove evolution containers" >&2
     echo "  status [slug]    Show evolution state" >&2
     exit 1
     ;;

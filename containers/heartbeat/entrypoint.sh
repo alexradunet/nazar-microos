@@ -5,8 +5,8 @@ set -euo pipefail
 # Runs Pi in print mode with the heartbeat skill to perform a single
 # observation cycle, then exits (container is run as a oneshot by the timer).
 
-SKILLS_DIR="${NAZAR_SKILLS_DIR:-/usr/share/nazar/skills}"
-PERSONA_DIR="${NAZAR_PERSONA_DIR:-/usr/share/nazar/persona}"
+SKILLS_DIR="${NAZAR_SKILLS_DIR:-/usr/local/share/nazar/skills}"
+PERSONA_DIR="${NAZAR_PERSONA_DIR:-/usr/local/share/nazar/persona}"
 
 echo "Nazar heartbeat starting at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 

@@ -26,7 +26,7 @@ Note objects use frontmatter fields:
 ### Create a note
 
 ```bash
-nazar-object create note "microos-gpu-passthrough" --title="MicroOS GPU Passthrough" --area=tech --tags=microos,gpu,virtualization
+nazar-object create note "coreos-gpu-passthrough" --title="CoreOS GPU Passthrough" --area=tech --tags=coreos,gpu,virtualization
 ```
 
 Then append body content by editing the file directly.

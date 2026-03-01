@@ -9,7 +9,7 @@ Contributions are welcome! This guide helps you find the right level of involvem
 | 0 | Docs, persona, skills | Git |
 | 1 | TypeScript, shell scripts | Node.js 22 / bash + yq + jq |
 | 2 | Containerfiles | Podman basics |
-| 3 | KIWI image, Quadlet, CI | MicroOS + systemd knowledge |
+| 3 | Butane/Ignition, Quadlet, CI | CoreOS + systemd knowledge |
 
 ### Tier 0: Docs, Persona, Skills
 
@@ -38,7 +38,7 @@ bash tests/shell/run.sh
 Key files:
 - `packages/nazar-core/src/` — ObjectStore, FrontmatterParser, types
 - `scripts/nazar-object.sh` — Shell CRUD tool
-- `scripts/nazar-setup.sh` — Config → Quadlet generator
+- `scripts/nazar-setup.sh` — Config -> Quadlet generator
 
 ### Tier 2: Containers
 
@@ -54,14 +54,14 @@ Key files:
 - `containers/*/Containerfile`
 - `services/matrix-bridge/` — Matrix bot bridge
 
-### Tier 3: KIWI Image and System
+### Tier 3: Butane/Ignition and System
 
-Full MicroOS image building and systemd integration.
+CoreOS provisioning and systemd integration.
 
 Key files:
-- `image/config.xml` — KIWI image spec
-- `image/config.sh` — Post-install script
-- `image/root/` — Overlay tree baked into image
+- `ignition/nazar.bu` — Butane config (transpiles to Ignition JSON)
+- `ignition/Makefile` — Build and validate Ignition config
+- `ignition/files/` — Config files deployed by Ignition
 - `nazar.yaml.example` — Config template
 - `.github/workflows/` — CI/CD
 
@@ -90,4 +90,7 @@ bash tests/shell/run.sh
 
 # Setup script dry-run
 NAZAR_CONFIG=nazar.yaml.example QUADLET_OUTPUT_DIR=/tmp/q bash scripts/nazar-setup.sh --dry-run
+
+# Butane validation
+make -C ignition validate
 ```

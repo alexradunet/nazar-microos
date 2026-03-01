@@ -54,7 +54,7 @@ Check each mandatory policy:
 
 - **Standards-first**: open standards and portable formats preferred.
 - **Pre-release simplicity**: no legacy code paths, no backward-compatibility shims.
-- **System packages via zypper, app deps via npm**: prefer zypper for system-level tools, npm for Node.js application dependencies.
+- **System packages via rpm-ostree or containers, app deps via npm**: prefer rpm-ostree layering or container images for system-level tools, npm for Node.js application dependencies.
 - **TDD policy**: Red -> Green -> Refactor evidence present.
 - **No unmaintained deps**: npm deps <18 months since last publish.
 - **Interface-first**: domain components implement `@nazar/core/types.ts` interfaces.
@@ -64,9 +64,9 @@ Check each mandatory policy:
 When a change adds or modifies system packages or npm dependencies:
 
 - Invoke the **artifact-reviewer** skill checklist.
-- Verify zypper/npm alternatives were considered appropriately.
+- Verify rpm-ostree/container/npm alternatives were considered appropriately.
 - Verify freshness, security, and maintenance criteria are met.
-- Check `npm audit` for vulnerabilities and `zypper patches` for pending security updates.
+- Check `npm audit` for vulnerabilities and `rpm-ostree upgrade --check` for pending updates.
 
 ## Verdict Decision Tree
 

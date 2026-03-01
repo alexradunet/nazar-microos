@@ -1,6 +1,0 @@
-# Nazar Evolution — restricted sudo for host package management.
-# nazar-agent can ONLY run transactional-update, snapper rollback, and reboot.
-
-nazar-agent ALL=(root) NOPASSWD: /usr/sbin/transactional-update pkg install *
-nazar-agent ALL=(root) NOPASSWD: /usr/bin/snapper rollback *
-nazar-agent ALL=(root) NOPASSWD: /usr/sbin/reboot

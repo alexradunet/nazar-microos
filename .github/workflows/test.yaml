@@ -50,6 +50,16 @@ jobs:
         run: |
           podman run --rm nazar-base node -e "import('./packages/nazar-core/dist/index.js').then(m => { if (typeof m.ObjectStore === 'function') console.log('OK'); else process.exit(1); })"
 
+  butane-validation:
+    name: Butane Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validate Butane config
+        run: |
+          podman run --rm -v "${PWD}:/pwd" -w /pwd/ignition \
+            quay.io/coreos/butane:release --files-dir /pwd --strict nazar.bu > /dev/null
+
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest

@@ -28,10 +28,10 @@ When a user request arrives, classify it:
 ### 2. Route to Evolution Pipeline
 
 - Code changes to Nazar core, services, or packages.
-- MicroOS configuration changes (`nazar.yaml`, modules, Quadlet files).
+- CoreOS configuration changes (`nazar.yaml`, modules, Quadlet files).
 - New skills, object types, or persona changes.
 - Infrastructure changes (systemd services, Podman containers).
-- **Host package needs**: when Nazar detects it needs a system package (e.g. whisper-cpp, ffmpeg), route to host-evolution workflow (see below).
+- **Container evolution needs**: when Nazar detects it needs a new service (e.g. whisper-cpp, ffmpeg), route to container evolution workflow (see below).
 
 ### First-time setup
 
@@ -158,27 +158,29 @@ nazar-object update evolution "<slug>" --status=implementing --agent=hephaestus
 # Append rework notes below frontmatter
 ```
 
-## Host-Evolution Workflow
+## Container Evolution Workflow
 
-When Nazar identifies a need for a system package (e.g. user asks "transcribe this voice note" and whisper-cpp is not installed):
+When Nazar identifies a need for a new containerized service (e.g. user asks "transcribe this voice note" and no STT service is running):
 
 ### Detection
 
-1. Recognize the capability gap (e.g. command not found, missing library).
-2. Search zypper repos to confirm the package exists: `zypper search <package>`.
-3. Create an evolution object with `area: host-packages`.
+1. Recognize the capability gap (e.g. service not available, missing functionality).
+2. Search container registries to confirm the image exists.
+3. Create an evolution object with `area: containers`.
 
 ### Creation
 
 ```bash
 nazar-object create evolution "<slug>" \
   --title="<description>" --status=proposed --agent=hermes \
-  --risk=medium --area=host-packages --host_packages="<package-name>"
+  --risk=medium --area=containers
 ```
+
+Add a `containers` field in the evolution object body with the container spec (name, image, volumes, environment).
 
 ### Pipeline
 
-The standard evolution pipeline runs (planning → implementing → reviewing → conformance → approved), but for host-packages the "implementing" phase is lightweight — just verifying the package exists in repos and documenting what it provides.
+The standard evolution pipeline runs (planning → implementing → reviewing → conformance → approved), but for containers the "implementing" phase is lightweight — just verifying the image exists and documenting what it provides.
 
 ### Installation
 
@@ -187,12 +189,12 @@ After human approval at the `approved` gate:
 ```bash
 # User runs:
 nazar evolve install <slug>
-# → interactive confirmation → transactional-update → reboot → auto-verify
+# → interactive confirmation → Quadlet generation → systemctl start → health check
 ```
 
 ### Post-Install
 
-After successful verification (`nazar-evolve-resume.service` marks it `applied`), Nazar can now use the package. Update capabilities in the persona SKILL.md if the new package adds a persistent capability.
+After successful health check (container marked `applied`), Nazar can now use the service. No reboot needed. Update capabilities in the persona SKILL.md if the new container adds a persistent capability.
 
 ## Stall Detection
 

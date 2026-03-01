@@ -29,7 +29,7 @@ Translate evolution requests into implementation plans aligned with Nazar archit
 - Generate 2-3 candidate approaches.
 - Evaluate each against project rules:
   - Hexagonal architecture / interface-first design
-  - System packages via zypper, app deps via npm
+  - System packages via rpm-ostree or container images, app deps via npm
   - Standards-first and pre-release simplicity
   - TDD-first (tests must be definable before implementation)
 - Select the approach with best simplicity-to-safety ratio.

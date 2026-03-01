@@ -9,7 +9,7 @@ Use this skill when evaluating a new package (system package, npm, or other) for
 
 ## Purpose
 
-Ensure every dependency meets freshness, security, maintenance, and size standards before it enters the project. Follow the principle: system tools via zypper, application dependencies via npm.
+Ensure every dependency meets freshness, security, maintenance, and size standards before it enters the project. Follow the principle: system tools via rpm-ostree or container images, application dependencies via npm.
 
 ## Review Checklist
 
@@ -17,10 +17,10 @@ Ensure every dependency meets freshness, security, maintenance, and size standar
 
 Before adopting any dependency, determine the right source:
 
-- **System-level tools** (CLI utilities, daemons, libraries): prefer zypper/openSUSE packages.
+- **System-level tools** (CLI utilities, daemons, libraries): prefer rpm-ostree layering or container images.
   ```bash
-  zypper search <package>
-  zypper info <package>
+  rpm-ostree install <package>     # for host-level tools
+  podman search <image>            # for containerized services
   ```
 - **Node.js application dependencies** (libraries, frameworks): use npm.
   ```bash
@@ -31,9 +31,9 @@ Before adopting any dependency, determine the right source:
 
 ### 2. Freshness
 
-- **System packages**: check the version available in openSUSE repos vs upstream.
+- **System packages**: check the version available in Fedora repos vs upstream.
   ```bash
-  zypper info <package>  # check version
+  rpm-ostree status      # check layered packages
   ```
 - **npm packages**: must have been published within the last 18 months.
   ```bash
@@ -47,9 +47,9 @@ Before adopting any dependency, determine the right source:
   ```bash
   npm audit
   ```
-- **System packages**: check for pending security patches.
+- **System packages**: check for pending security updates.
   ```bash
-  zypper patches --category security
+  rpm-ostree upgrade --check
   ```
 - Check for known CVEs in the package and its transitive dependencies.
 - Any critical or high severity vulnerability is a blocking issue.
@@ -59,7 +59,7 @@ Before adopting any dependency, determine the right source:
 - **Upstream activity**: check the source repository for recent commits (within 12 months).
 - **Maintainer count**: at least 1 active maintainer required.
 - **Issue/PR responsiveness**: review whether the maintainers respond to issues.
-- For system packages, check if the package is in the official openSUSE repositories (vs third-party).
+- For system packages, check if the package is in the official Fedora repositories (vs third-party).
 
 ### 5. Dependency Footprint
 
@@ -94,7 +94,7 @@ Produce a structured review:
 
 ```
 Package: <name>
-Source: <zypper | npm | other>
+Source: <rpm-ostree | container | npm | other>
 Version: <version evaluated>
 
 1. Source: [appropriate | review — reason]

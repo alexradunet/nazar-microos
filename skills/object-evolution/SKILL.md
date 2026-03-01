@@ -17,8 +17,8 @@ Evolution objects use frontmatter fields:
 - `status`: pipeline state (default: proposed)
 - `agent`: current owner — `hermes` | `athena` | `hephaestus` | `themis` | `human`
 - `risk`: `low` | `medium` | `high`
-- `area`: affected area (e.g. system, persona, objects, infra, skills, host-packages)
-- `host_packages`: YAML list of system packages to install (for `area: host-packages` only)
+- `area`: affected area (e.g. system, persona, objects, infra, skills, containers)
+- `containers`: YAML list of containers to deploy (for `area: containers` only)
 - `tags`: comma-separated tags
 - `links`: references to related objects (type/slug)
 
@@ -96,36 +96,43 @@ nazar-object link evolution/add-health-tracking task/research-health-apis
 - Terminal statuses (`applied`, `rejected`) should not transition further.
 - During heartbeat, flag evolutions with `status` not in a terminal state and modification time >24h as `stalled`.
 
-## Host Package Evolution
+## Container Evolution
 
-When `area: host-packages`, the evolution object includes a `host_packages` list of system packages to install on MicroOS.
+When `area: containers`, the evolution object includes a `containers` list of services to deploy via Podman Quadlet.
 
-### Creating a host-package evolution
+### Creating a container evolution
 
 ```bash
 nazar-object create evolution "add-whisper-stt" \
-  --title="Install whisper-cpp for speech-to-text" \
+  --title="Add Whisper C++ speech recognition" \
   --status=proposed --agent=hermes --risk=medium \
-  --area=host-packages --host_packages="whisper-cpp"
+  --area=containers
 ```
 
-For multiple packages, use a YAML list in the body or update via:
+The evolution object body should include a `containers` field in the frontmatter:
 
-```bash
-nazar-object update evolution "add-whisper-stt" --host_packages="whisper-cpp,libwhisper"
+```yaml
+containers:
+  - name: nazar-whisper
+    image: ghcr.io/example/whisper-cpp:latest
+    volumes:
+      - /var/lib/nazar/objects:/data/objects:ro
+    environment:
+      MODEL: base.en
 ```
 
 ### Installation flow
 
 1. Pipeline reaches `approved` status with human approval.
 2. User runs: `nazar evolve install <slug>`
-3. Script reads `host_packages`, shows interactive confirmation, installs via `transactional-update`.
-4. Pending state written to `/var/lib/nazar/evolution/pending.yaml`, system reboots.
-5. `nazar-evolve-resume.service` runs on boot, verifies packages, marks `applied` or triggers rollback.
+3. Script reads `containers`, shows interactive confirmation, generates Quadlet `.container` files.
+4. `systemctl daemon-reload` + `systemctl start` — no reboot needed.
+5. Health check verifies container is running. If unhealthy, Quadlet files are removed automatically.
 
 ### Safety
 
-- Maximum packages per evolution: configurable in `nazar.yaml` (`evolution.max_packages_per_evolution`, default 5).
+- Maximum containers per evolution: configurable in `nazar.yaml` (`evolution.max_containers_per_evolution`, default 5).
 - Interactive approval at install time (y/N prompt).
-- Automatic rollback via `snapper` if post-reboot verification fails.
-- Restricted sudo: `nazar-agent` can only run `transactional-update pkg install`, `snapper rollback`, and `reboot`.
+- Automatic rollback on health check failure (Quadlet files removed, daemon reloaded).
+- Container names must start with `nazar-` (enforced by validation).
+- Restricted sudo: `nazar-agent` can only run `systemctl daemon-reload/start/stop/restart/is-active nazar-*`.

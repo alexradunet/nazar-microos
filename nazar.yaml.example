@@ -33,13 +33,13 @@ modules:
 # --- Pi agent ---
 pi:
   version: "0.55.3"
-  skills_dir: /usr/share/nazar/skills
-  persona_dir: /usr/share/nazar/persona
+  skills_dir: /usr/local/share/nazar/skills
+  persona_dir: /usr/local/share/nazar/persona
 
 # --- Evolution ---
 evolution:
-  # Maximum packages per single host evolution (safety limit)
-  max_packages_per_evolution: 5
+  # Maximum containers per single evolution (safety limit)
+  max_containers_per_evolution: 5
 
 # --- Networking ---
 firewall:
