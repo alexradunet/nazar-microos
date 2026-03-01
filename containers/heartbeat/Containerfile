@@ -1,0 +1,23 @@
+FROM nazar-base
+
+USER root
+
+# Copy shell scripts
+COPY scripts/nazar-object.sh /usr/local/bin/nazar-object
+RUN chmod +x /usr/local/bin/nazar-object
+
+# Copy heartbeat skill and persona
+COPY skills/heartbeat/ /usr/share/nazar/skills/heartbeat/
+COPY persona/ /usr/share/nazar/persona/
+
+# Copy entrypoint
+COPY containers/heartbeat/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+USER nazar
+
+ENV NAZAR_OBJECTS_DIR=/data/objects
+ENV NAZAR_SKILLS_DIR=/usr/share/nazar/skills
+ENV NAZAR_PERSONA_DIR=/usr/share/nazar/persona
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
