@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<image schemaversion="7.4" name="nazar-microos">
+  <description type="system">
+    <author>alexradu.net</author>
+    <contact>alexradunet@users.noreply.github.com</contact>
+    <specification>Nazar AI Companion — openSUSE MicroOS with Podman Quadlet</specification>
+  </description>
+
+  <preferences>
+    <version>1.0.0</version>
+    <packagemanager>zypper</packagemanager>
+    <type image="oem" filesystem="btrfs" firmware="efi"
+          installiso="true" bootpartition="false"
+          devicepersistency="by-uuid">
+      <oemconfig>
+        <oem-swap>true</oem-swap>
+        <oem-swapsize>1024</oem-swapsize>
+      </oemconfig>
+      <size unit="G">8</size>
+    </type>
+  </preferences>
+
+  <users>
+    <user password="!" home="/var/lib/nazar" name="nazar-agent"
+          groups="podman" id="900" shell="/usr/sbin/nologin"/>
+  </users>
+
+  <repository type="rpm-md">
+    <source path="obsrepositories:/"/>
+  </repository>
+
+  <packages type="image">
+    <!-- MicroOS base -->
+    <package name="openSUSE-MicroOS"/>
+    <package name="patterns-microos-base"/>
+    <package name="patterns-microos-basesystem"/>
+    <package name="patterns-microos-defaults"/>
+
+    <!-- Container runtime -->
+    <package name="podman"/>
+    <package name="podman-compose"/>
+    <package name="cni-plugins"/>
+
+    <!-- Tools -->
+    <package name="yq"/>
+    <package name="jq"/>
+    <package name="git-core"/>
+    <package name="curl"/>
+    <package name="nodejs22"/>
+    <package name="vim-small"/>
+    <package name="htop"/>
+    <package name="tmux"/>
+
+    <!-- Networking -->
+    <package name="tailscale"/>
+    <package name="NetworkManager"/>
+    <package name="openssh-server"/>
+
+    <!-- System -->
+    <package name="btrfsprogs"/>
+    <package name="snapper"/>
+    <package name="transactional-update"/>
+    <package name="systemd"/>
+    <package name="grub2-x86_64-efi"/>
+    <package name="shim"/>
+  </packages>
+
+  <packages type="bootstrap">
+    <package name="udev"/>
+    <package name="filesystem"/>
+    <package name="glibc-locale"/>
+    <package name="cracklib-dict-full"/>
+    <package name="ca-certificates"/>
+    <package name="openSUSE-MicroOS-release"/>
+  </packages>
+</image>

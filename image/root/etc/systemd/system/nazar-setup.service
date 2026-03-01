@@ -1,0 +1,14 @@
+[Unit]
+Description=Nazar First-Boot Setup
+ConditionPathExists=!/etc/nazar/.setup-complete
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/nazar apply
+ExecStartPost=/usr/bin/touch /etc/nazar/.setup-complete
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
