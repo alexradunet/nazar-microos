@@ -22,13 +22,16 @@ RUN useradd -m -s /bin/bash nazar
 # Set up workspace
 WORKDIR /app
 
-# Copy package files first for layer caching
+# Copy all workspace package.json files for layer caching, then install all deps
 COPY package.json package-lock.json ./
 COPY packages/nazar-core/package.json packages/nazar-core/
-RUN npm ci --workspace=packages/nazar-core
+COPY services/matrix-bridge/package.json services/matrix-bridge/
+RUN npm ci
 
-# Copy and build nazar-core
+# Copy and build nazar-core (npm ci symlinks node_modules/@nazar/core here)
+# Remove stale tsbuildinfo (tracked in git) so tsc emits fresh dist/
 COPY packages/nazar-core/ packages/nazar-core/
-RUN npm -w packages/nazar-core run build
+RUN rm -f packages/nazar-core/tsconfig.tsbuildinfo \
+  && npm -w packages/nazar-core run build
 
 USER nazar

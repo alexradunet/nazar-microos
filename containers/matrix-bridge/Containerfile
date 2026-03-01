@@ -2,10 +2,6 @@ FROM nazar-base
 
 USER root
 
-# Copy matrix-bridge workspace and install deps
-COPY services/matrix-bridge/package.json services/matrix-bridge/
-RUN npm ci --workspace=services/matrix-bridge
-
 # Copy source and build
 COPY services/matrix-bridge/ services/matrix-bridge/
 RUN npm -w services/matrix-bridge run build
