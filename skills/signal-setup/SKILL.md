@@ -1,3 +1,8 @@
+---
+name: signal-setup
+description: Guide the user through connecting Nazar to Signal messenger via signal-cli.
+---
+
 # Signal Setup Skill
 
 Guide the user through connecting Nazar to Signal messenger via signal-cli.
@@ -16,14 +21,14 @@ Choose one of two options depending on whether you have a dedicated phone number
 # Start signal-cli container interactively for registration
 podman run --rm -it \
   -v /var/lib/nazar/signal-storage:/data/signal-storage:rw,z \
-  ghcr.io/alexradunet/nazar-signal-cli:latest \
+  localhost/nazar-signal-cli:latest \
   --config /data/signal-storage \
   register --number +<YOUR_NUMBER>
 
 # Complete SMS verification
 podman run --rm -it \
   -v /var/lib/nazar/signal-storage:/data/signal-storage:rw,z \
-  ghcr.io/alexradunet/nazar-signal-cli:latest \
+  localhost/nazar-signal-cli:latest \
   --config /data/signal-storage \
   verify --number +<YOUR_NUMBER> <CODE>
 ```
@@ -34,7 +39,7 @@ podman run --rm -it \
 # Generate a QR code link request
 podman run --rm -it \
   -v /var/lib/nazar/signal-storage:/data/signal-storage:rw,z \
-  ghcr.io/alexradunet/nazar-signal-cli:latest \
+  localhost/nazar-signal-cli:latest \
   --config /data/signal-storage \
   link --name "Nazar"
 ```

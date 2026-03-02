@@ -8,7 +8,7 @@ set -euo pipefail
 #
 # Builds containers locally, transfers them via podman save/load,
 # and syncs scripts/persona/skills to the VM. Tags local builds
-# with the same ghcr.io names so Quadlet files work unchanged.
+# with localhost/ names matching the Quadlet files.
 #
 # Usage:
 #   nazar-deploy [--all]       Deploy everything (default)
@@ -110,9 +110,9 @@ deploy_images() {
 
   # Build and deploy each service container
   local containers=(
-    "heartbeat|containers/heartbeat/Containerfile|ghcr.io/alexradunet/nazar-heartbeat:latest"
-    "signal-cli|containers/signal-cli/Containerfile|ghcr.io/alexradunet/nazar-signal-cli:latest"
-    "signal-bridge|containers/signal-bridge/Containerfile|ghcr.io/alexradunet/nazar-signal-bridge:latest"
+    "heartbeat|containers/heartbeat/Containerfile|localhost/nazar-heartbeat:latest"
+    "signal-cli|containers/signal-cli/Containerfile|localhost/nazar-signal-cli:latest"
+    "signal-bridge|containers/signal-bridge/Containerfile|localhost/nazar-signal-bridge:latest"
   )
 
   for entry in "${containers[@]}"; do

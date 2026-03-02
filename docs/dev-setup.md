@@ -65,7 +65,7 @@ nazar deploy --dry-run
 
 1. Builds `nazar-base` from `containers/base/Containerfile`
 2. Builds each service container (heartbeat, signal-cli, signal-bridge)
-3. Tags them as `ghcr.io/alexradunet/nazar-*:latest` (same names the Quadlet files reference)
+3. Tags them as `localhost/nazar-*:latest` (same names the Quadlet files reference)
 4. Transfers via `podman save | ssh sudo podman load`
 5. Restarts the relevant systemd services
 

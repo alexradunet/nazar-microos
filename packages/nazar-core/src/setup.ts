@@ -112,7 +112,7 @@ export function generateQuadletFiles(
     path: path.join(outputDir, "nazar-heartbeat.container"),
     content: renderQuadletContainer({
       name: "nazar-heartbeat",
-      image: "ghcr.io/alexradunet/nazar-heartbeat:latest",
+      image: "localhost/nazar-heartbeat:latest",
       description: "Nazar Heartbeat Service",
       volumes: [
         "/var/lib/nazar/objects:/data/objects:ro,z",
@@ -163,7 +163,7 @@ export function generateQuadletFiles(
     path: path.join(outputDir, "nazar-signal-cli.container"),
     content: renderQuadletContainer({
       name: "nazar-signal-cli",
-      image: "ghcr.io/alexradunet/nazar-signal-cli:latest",
+      image: "localhost/nazar-signal-cli:latest",
       description: "Nazar Signal CLI Daemon",
       volumes: ["/var/lib/nazar/signal-storage:/data/signal-storage:rw,z"],
       environment: { NAZAR_SIGNAL_STORAGE_DIR: "/data/signal-storage" },
@@ -176,7 +176,7 @@ export function generateQuadletFiles(
     path: path.join(outputDir, "nazar-signal-bridge.container"),
     content: renderQuadletContainer({
       name: "nazar-signal-bridge",
-      image: "ghcr.io/alexradunet/nazar-signal-bridge:latest",
+      image: "localhost/nazar-signal-bridge:latest",
       description: "Nazar Signal Bridge",
       volumes: [
         "/var/lib/nazar/objects:/data/objects:rw,z",

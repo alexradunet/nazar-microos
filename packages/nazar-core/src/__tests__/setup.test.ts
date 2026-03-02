@@ -116,7 +116,7 @@ describe("generateQuadletFiles", () => {
     assert.ok(hb);
     assert.ok(hb.content.includes("Description=Nazar Heartbeat Service"));
     assert.ok(
-      hb.content.includes("Image=ghcr.io/alexradunet/nazar-heartbeat:latest"),
+      hb.content.includes("Image=localhost/nazar-heartbeat:latest"),
     );
     assert.ok(hb.content.includes("Type=oneshot"));
     assert.ok(hb.content.includes("Restart=no"));
