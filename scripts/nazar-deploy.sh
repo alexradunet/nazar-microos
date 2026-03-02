@@ -42,7 +42,8 @@ NAZAR_HOST="${NAZAR_HOST:-}"
 NAZAR_SSH_USER="${NAZAR_SSH_USER:-core}"
 DRY_RUN=0
 
-SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+# accept-new: accept on first connect, reject if host key changes (safer than StrictHostKeyChecking=no)
+SSH_OPTS="-o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
 
 remote() {
   if [[ "$DRY_RUN" -eq 1 ]]; then
@@ -54,7 +55,7 @@ remote() {
 }
 
 remote_sudo() {
-  remote "sudo $*"
+  remote sudo "$@"
 }
 
 # --- Parse arguments ---

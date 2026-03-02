@@ -271,12 +271,12 @@ export class ObjectStore implements IObjectStore {
     const pathA = this.objectPath(a.type, a.slug);
     const pathB = this.objectPath(b.type, b.slug);
 
-    // Validate both exist before mutating either (read will throw ENOENT)
-    this.readFileOrThrow(pathA, refA);
-    this.readFileOrThrow(pathB, refB);
+    // Read both files once, validating existence before mutating either
+    const rawA = this.readFileOrThrow(pathA, refA);
+    const rawB = this.readFileOrThrow(pathB, refB);
 
-    this.addLink(pathA, refB);
-    this.addLink(pathB, refA);
+    this.addLink(pathA, rawA, refB);
+    this.addLink(pathB, rawB, refA);
 
     return `linked ${refA} <-> ${refB}`;
   }
@@ -292,8 +292,7 @@ export class ObjectStore implements IObjectStore {
     }
   }
 
-  private addLink(filepath: string, linkRef: string): void {
-    const raw = fs.readFileSync(filepath, "utf-8");
+  private addLink(filepath: string, raw: string, linkRef: string): void {
     const parsed = this.parser.parse(raw);
     const data = parsed.data;
 

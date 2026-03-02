@@ -58,9 +58,6 @@ case "$cmd" in
     echo ""
     echo "=== Container Images ==="
     echo "Pulling latest container images..."
-    podman pull localhost/nazar-heartbeat:latest 2>/dev/null || true
-    podman pull localhost/nazar-signal-cli:latest 2>/dev/null || true
-    podman pull localhost/nazar-signal-bridge:latest 2>/dev/null || true
     podman pull docker.io/syncthing/syncthing:latest 2>/dev/null || true
     podman pull docker.io/tsl0922/ttyd:latest 2>/dev/null || true
     echo "Done. Restart services with: systemctl restart nazar-*"

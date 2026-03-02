@@ -2,19 +2,15 @@
 set -euo pipefail
 
 # Integration test: start signal-bridge container, verify it starts and attempts connection.
-# Requires: podman-compose or docker-compose
+# Requires: podman-compose
 
 cd "$(dirname "$0")"
 
 COMPOSE_CMD=""
 if command -v podman-compose >/dev/null 2>&1; then
   COMPOSE_CMD="podman-compose"
-elif command -v docker-compose >/dev/null 2>&1; then
-  COMPOSE_CMD="docker-compose"
-elif command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
-  COMPOSE_CMD="docker compose"
 else
-  echo "Error: podman-compose or docker-compose not found" >&2
+  echo "Error: podman-compose not found" >&2
   exit 1
 fi
 

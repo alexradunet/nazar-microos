@@ -6,10 +6,12 @@ IMAGE_TAG  := latest
 image:
 	podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f Containerfile .
 
-qcow2: image
+# qcow2 requires the image in root podman storage (bootc-image-builder mounts /var/lib/containers/storage)
+qcow2:
 	@test -f bootc/config.toml || { echo "ERROR: Copy bootc/config.toml.example to bootc/config.toml"; exit 1; }
+	sudo podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f Containerfile .
 	@mkdir -p _output
-	sudo podman run --rm -it --privileged --pull=newer \
+	sudo podman run --rm -i --privileged --pull=newer \
 	  --security-opt label=type:unconfined_t \
 	  -v ./bootc/config.toml:/config.toml:ro \
 	  -v ./_output:/output \

@@ -31,8 +31,7 @@ const DEFAULT_CONFIG: SignalBridgeConfig = {
     .filter(Boolean),
   signalCliHost: process.env.NAZAR_SIGNAL_CLI_HOST || "127.0.0.1",
   signalCliPort: Number(process.env.NAZAR_SIGNAL_CLI_PORT) || 7583,
-  storageDir:
-    process.env.NAZAR_SIGNAL_STORAGE_DIR || "/data/signal-storage",
+  storageDir: process.env.NAZAR_SIGNAL_STORAGE_DIR || "/data/signal-storage",
   piCommand: process.env.NAZAR_PI_COMMAND || "pi",
   piDir: process.env.PI_CODING_AGENT_DIR || `${process.env.HOME}/.pi/agent`,
   repoRoot: process.env.NAZAR_REPO_ROOT || "/var/lib/nazar",
@@ -43,10 +42,7 @@ const DEFAULT_CONFIG: SignalBridgeConfig = {
 
 // --- Pure helpers ---
 
-export function isAllowed(
-  sender: string,
-  config: SignalBridgeConfig,
-): boolean {
+export function isAllowed(sender: string, config: SignalBridgeConfig): boolean {
   if (config.allowedContacts.length === 0) return true;
   return config.allowedContacts.includes(sender);
 }
@@ -72,7 +68,8 @@ interface AgentSession {
   prompt(text: string): Promise<void>;
 }
 
-// One session per contact phone number.
+// One session per contact phone number, bounded to prevent memory leaks.
+const MAX_SESSIONS = 50;
 const sessions = new Map<string, AgentSession>();
 
 async function processWithAgent(
@@ -81,16 +78,16 @@ async function processWithAgent(
   config: SignalBridgeConfig,
 ): Promise<string> {
   // Lazy-load the Pi AgentSession SDK to allow testing without it installed.
-  const {
-    createAgentSession,
-    SessionManager,
-    AuthStorage,
-    ModelRegistry,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } = (await import("@mariozechner/pi-coding-agent")) as any;
+  const { createAgentSession, SessionManager, AuthStorage, ModelRegistry } =
+    (await import("@mariozechner/pi-coding-agent")) as any;
 
   let session = sessions.get(from);
   if (!session) {
+    // Evict oldest session if at capacity
+    if (sessions.size >= MAX_SESSIONS) {
+      const oldest = sessions.keys().next().value;
+      if (oldest !== undefined) sessions.delete(oldest);
+    }
     const { session: s } = await createAgentSession({
       sessionManager: SessionManager.inMemory(),
       authStorage: AuthStorage.create(),
@@ -102,9 +99,10 @@ async function processWithAgent(
     sessions.set(from, session);
   }
 
-  return new Promise<string>((resolve, reject) => {
+  const activeSession = session;
+  const agentPromise = new Promise<string>((resolve, reject) => {
     let accumulated = "";
-    const unsub = session!.subscribe((event: AgentSessionEvent) => {
+    const unsub = activeSession.subscribe((event: AgentSessionEvent) => {
       if (
         event.type === "message_update" &&
         event.assistantMessageEvent?.type === "text_delta"
@@ -120,8 +118,17 @@ async function processWithAgent(
         reject(new Error(event.message));
       }
     });
-    session!.prompt(text).catch(reject);
+    activeSession.prompt(text).catch(reject);
   });
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(
+      () => reject(new Error("Agent response timed out")),
+      config.timeoutMs,
+    );
+  });
+
+  return Promise.race([agentPromise, timeoutPromise]);
 }
 
 // --- Adapter: Signal Bot Channel ---
@@ -163,7 +170,7 @@ export class SignalBotChannel implements MessageChannel {
       method: "send",
       params: { recipient: [to], message: text },
     });
-    this.socket.write(payload + "\n");
+    this.socket.write(`${payload}\n`);
   }
 
   async disconnect(): Promise<void> {
@@ -188,10 +195,16 @@ export class SignalBotChannel implements MessageChannel {
         { host: this.config.signalCliHost, port: this.config.signalCliPort },
         () => {
           this.socket = socket;
+          // Replace the connect-phase error handler with a persistent one
+          socket.removeListener("error", onConnectError);
+          socket.on("error", (err) => {
+            console.error(`signal-cli socket error: ${err.message}`);
+          });
           resolve();
         },
       );
-      socket.on("error", reject);
+      const onConnectError = (err: Error) => reject(err);
+      socket.on("error", onConnectError);
 
       socket.on("data", (chunk: Buffer) => {
         this.lineBuffer += chunk.toString("utf8");

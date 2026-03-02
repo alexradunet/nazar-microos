@@ -23,10 +23,10 @@ RUN chmod 0440 /etc/sudoers.d/core-wheel /etc/sudoers.d/nazar-evolve
 # Tailscale login prompt
 COPY sysconfig/profile.d/tailscale-login.sh /etc/profile.d/tailscale-login.sh
 
-# nazar-core TypeScript CLI
+# nazar-core TypeScript CLI — install deps first for layer caching
 COPY packages/nazar-core/package.json /usr/local/lib/nazar-core/package.json
-COPY packages/nazar-core/dist/ /usr/local/lib/nazar-core/dist/
 RUN cd /usr/local/lib/nazar-core && HOME=/tmp npm install --omit=dev
+COPY packages/nazar-core/dist/ /usr/local/lib/nazar-core/dist/
 RUN ln -s /usr/local/lib/nazar-core/dist/cli.js /usr/local/bin/nazar-core \
     && chmod +x /usr/local/lib/nazar-core/dist/cli.js \
     && printf '#!/usr/bin/env bash\nexec nazar-core object "$@"\n' > /usr/local/bin/nazar-object \

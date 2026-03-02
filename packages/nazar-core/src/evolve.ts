@@ -1,3 +1,4 @@
+import path from "node:path";
 import { configValue, readConfig } from "./config.js";
 import { renderQuadletContainer } from "./setup.js";
 import type {
@@ -54,7 +55,7 @@ export class EvolveManager {
    */
   private generateQuadlets(containers: ContainerSpec[]): GeneratedFile[] {
     return containers.map((spec) => ({
-      path: `${this.quadletDir}/${spec.name}.container`,
+      path: path.join(this.quadletDir, `${spec.name}.container`),
       content: renderQuadletContainer({
         name: spec.name,
         image: spec.image,
@@ -100,8 +101,9 @@ export class EvolveManager {
     let config: NazarConfig;
     try {
       config = readConfig(this.configPath);
-    } catch {
-      // If config can't be loaded, use defaults
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`Warning: config load failed (${msg}), using defaults`);
       config = { hostname: "", primary_user: "" };
     }
 
@@ -161,7 +163,9 @@ export class EvolveManager {
             "stop",
             `${n}.service`,
           ]);
-          await this.executor.removeFile(`${this.quadletDir}/${n}.container`);
+          await this.executor.removeFile(
+            path.join(this.quadletDir, `${n}.container`),
+          );
         }
         await this.executor.exec("sudo", ["systemctl", "daemon-reload"]);
 
@@ -210,7 +214,7 @@ export class EvolveManager {
         `${spec.name}.service`,
       ]);
       await this.executor.removeFile(
-        `${this.quadletDir}/${spec.name}.container`,
+        path.join(this.quadletDir, `${spec.name}.container`),
       );
     }
 

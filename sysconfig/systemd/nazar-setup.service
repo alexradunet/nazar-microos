@@ -13,7 +13,7 @@ ExecStart=/bin/bash -c '\
   test -f /usr/local/share/nazar/persona/BODY.md; \
   test -f /usr/local/share/nazar/persona/FACULTY.md; \
   test -f /usr/local/share/nazar/persona/SKILL.md; \
-  test -d /usr/local/share/nazar/skills && test -n "$(ls /usr/local/share/nazar/skills/)"; \
+  test -d /usr/local/share/nazar/skills; \
   mkdir -p /home/core/.pi/agent; \
   ln -sfn /usr/local/share/nazar/skills /home/core/.pi/agent/skills; \
   ln -sfn /usr/local/share/nazar/persona/SOUL.md /home/core/.pi/agent/SYSTEM.md; \

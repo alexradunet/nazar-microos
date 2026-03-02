@@ -6,9 +6,9 @@ USER root
 RUN printf '#!/usr/bin/env bash\nexec node /app/packages/nazar-core/dist/cli.js object "$@"\n' > /usr/local/bin/nazar-object \
     && chmod +x /usr/local/bin/nazar-object
 
-# Copy heartbeat skill and persona
-COPY skills/heartbeat/ /usr/share/nazar/skills/heartbeat/
-COPY persona/ /usr/share/nazar/persona/
+# Copy heartbeat skill and persona (use /usr/local/share to match OS image convention)
+COPY skills/heartbeat/ /usr/local/share/nazar/skills/heartbeat/
+COPY persona/ /usr/local/share/nazar/persona/
 
 # Copy entrypoint
 COPY containers/heartbeat/entrypoint.sh /usr/local/bin/entrypoint.sh
@@ -17,7 +17,7 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 USER nazar
 
 ENV NAZAR_OBJECTS_DIR=/data/objects
-ENV NAZAR_SKILLS_DIR=/usr/share/nazar/skills
-ENV NAZAR_PERSONA_DIR=/usr/share/nazar/persona
+ENV NAZAR_SKILLS_DIR=/usr/local/share/nazar/skills
+ENV NAZAR_PERSONA_DIR=/usr/local/share/nazar/persona
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

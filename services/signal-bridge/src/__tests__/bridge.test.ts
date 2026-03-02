@@ -11,7 +11,7 @@ import os from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
 import type { SignalBridgeConfig } from "../index.js";
-import { SignalBotChannel, isAllowed, validatePhoneNumber } from "../index.js";
+import { isAllowed, SignalBotChannel, validatePhoneNumber } from "../index.js";
 
 // ---------------------------------------------------------------------------
 // Helpers

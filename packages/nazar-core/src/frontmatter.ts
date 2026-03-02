@@ -9,7 +9,7 @@ export class JsYamlFrontmatterParser implements IFrontmatterParser {
 
     // First line must be ---
     if (lines[0] !== "---") {
-      return { data: {}, content: raw };
+      return { data: {}, content: normalized };
     }
 
     // Scan for closing --- (must be on its own line)
@@ -22,7 +22,7 @@ export class JsYamlFrontmatterParser implements IFrontmatterParser {
     }
 
     if (closingIndex === -1) {
-      return { data: {}, content: raw };
+      return { data: {}, content: normalized };
     }
 
     const yamlStr = lines.slice(1, closingIndex).join("\n");

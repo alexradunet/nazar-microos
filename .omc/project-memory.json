@@ -167,6 +167,283 @@
       "keyFiles": []
     }
   },
-  "hotPaths": [],
+  "hotPaths": [
+    {
+      "path": "",
+      "accessCount": 15,
+      "lastAccessed": 1772462439031,
+      "type": "directory"
+    },
+    {
+      "path": "services/signal-bridge/src/index.ts",
+      "accessCount": 10,
+      "lastAccessed": 1772463064651,
+      "type": "file"
+    },
+    {
+      "path": "scripts/nazar-deploy.sh",
+      "accessCount": 9,
+      "lastAccessed": 1772462912170,
+      "type": "directory"
+    },
+    {
+      "path": "packages/nazar-core/src/evolve.ts",
+      "accessCount": 7,
+      "lastAccessed": 1772462892376,
+      "type": "file"
+    },
+    {
+      "path": "scripts/nazar-vm.sh",
+      "accessCount": 7,
+      "lastAccessed": 1772462917124,
+      "type": "file"
+    },
+    {
+      "path": "scripts/nazar",
+      "accessCount": 7,
+      "lastAccessed": 1772462925643,
+      "type": "directory"
+    },
+    {
+      "path": "packages/nazar-core/src/setup.ts",
+      "accessCount": 6,
+      "lastAccessed": 1772462408805,
+      "type": "directory"
+    },
+    {
+      "path": "Makefile",
+      "accessCount": 6,
+      "lastAccessed": 1772462932551,
+      "type": "directory"
+    },
+    {
+      "path": "skills/signal-setup/SKILL.md",
+      "accessCount": 5,
+      "lastAccessed": 1772462117569,
+      "type": "file"
+    },
+    {
+      "path": "packages/nazar-core/src/cli.ts",
+      "accessCount": 5,
+      "lastAccessed": 1772462859736,
+      "type": "file"
+    },
+    {
+      "path": "containers/signal-cli/Containerfile",
+      "accessCount": 5,
+      "lastAccessed": 1772462903210,
+      "type": "file"
+    },
+    {
+      "path": "tests/integration/run.sh",
+      "accessCount": 5,
+      "lastAccessed": 1772462958648,
+      "type": "file"
+    },
+    {
+      "path": "packages/nazar-core/src/system-executor.ts",
+      "accessCount": 4,
+      "lastAccessed": 1772462808075,
+      "type": "file"
+    },
+    {
+      "path": "packages/nazar-core/src/frontmatter.ts",
+      "accessCount": 4,
+      "lastAccessed": 1772462838977,
+      "type": "file"
+    },
+    {
+      "path": "Containerfile",
+      "accessCount": 4,
+      "lastAccessed": 1772462946138,
+      "type": "file"
+    },
+    {
+      "path": "tests/container/smoke-test.sh",
+      "accessCount": 4,
+      "lastAccessed": 1772462967000,
+      "type": "file"
+    },
+    {
+      "path": "packages/nazar-core/src/__tests__/setup.test.ts",
+      "accessCount": 3,
+      "lastAccessed": 1772462130789,
+      "type": "directory"
+    },
+    {
+      "path": "docs/dev-setup.md",
+      "accessCount": 3,
+      "lastAccessed": 1772462132522,
+      "type": "file"
+    },
+    {
+      "path": "containers/heartbeat/entrypoint.sh",
+      "accessCount": 3,
+      "lastAccessed": 1772462748093,
+      "type": "file"
+    },
+    {
+      "path": "packages/nazar-core/src/object-store.ts",
+      "accessCount": 3,
+      "lastAccessed": 1772462824369,
+      "type": "file"
+    },
+    {
+      "path": "containers/heartbeat/Containerfile",
+      "accessCount": 3,
+      "lastAccessed": 1772462908675,
+      "type": "file"
+    },
+    {
+      "path": "sysconfig/systemd/nazar-setup.service",
+      "accessCount": 3,
+      "lastAccessed": 1772462950644,
+      "type": "file"
+    },
+    {
+      "path": "sysconfig/sudoers.d/nazar-evolve",
+      "accessCount": 3,
+      "lastAccessed": 1772462973322,
+      "type": "file"
+    },
+    {
+      "path": "sysconfig/nazar.yaml.default",
+      "accessCount": 2,
+      "lastAccessed": 1772462419192,
+      "type": "file"
+    },
+    {
+      "path": "containers",
+      "accessCount": 2,
+      "lastAccessed": 1772462429197,
+      "type": "directory"
+    },
+    {
+      "path": "sysconfig/profile.d/tailscale-login.sh",
+      "accessCount": 2,
+      "lastAccessed": 1772462434082,
+      "type": "file"
+    },
+    {
+      "path": "packages/nazar-core/src/config.ts",
+      "accessCount": 2,
+      "lastAccessed": 1772462736024,
+      "type": "file"
+    },
+    {
+      "path": "skills/heartbeat/SKILL.md",
+      "accessCount": 1,
+      "lastAccessed": 1772461455578,
+      "type": "file"
+    },
+    {
+      "path": "skills/object-note/SKILL.md",
+      "accessCount": 1,
+      "lastAccessed": 1772461456180,
+      "type": "file"
+    },
+    {
+      "path": "skills/object-evolution/SKILL.md",
+      "accessCount": 1,
+      "lastAccessed": 1772462079859,
+      "type": "directory"
+    },
+    {
+      "path": "packages/nazar-core/package.json",
+      "accessCount": 1,
+      "lastAccessed": 1772462338715,
+      "type": "file"
+    },
+    {
+      "path": "services/signal-bridge/package.json",
+      "accessCount": 1,
+      "lastAccessed": 1772462338907,
+      "type": "file"
+    },
+    {
+      "path": "package.json",
+      "accessCount": 1,
+      "lastAccessed": 1772462340694,
+      "type": "file"
+    },
+    {
+      "path": "nazar.yaml.example",
+      "accessCount": 1,
+      "lastAccessed": 1772462341036,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 1,
+      "lastAccessed": 1772462346335,
+      "type": "file"
+    },
+    {
+      "path": "CLAUDE.md",
+      "accessCount": 1,
+      "lastAccessed": 1772462346564,
+      "type": "file"
+    },
+    {
+      "path": "packages/nazar-core/src/types.ts",
+      "accessCount": 1,
+      "lastAccessed": 1772462407081,
+      "type": "file"
+    },
+    {
+      "path": "packages/nazar-core/src/index.ts",
+      "accessCount": 1,
+      "lastAccessed": 1772462407495,
+      "type": "file"
+    },
+    {
+      "path": "packages/nazar-core/src/testing/pi-mock.ts",
+      "accessCount": 1,
+      "lastAccessed": 1772462411600,
+      "type": "file"
+    },
+    {
+      "path": "packages/nazar-core/src/testing/test-message-channel.ts",
+      "accessCount": 1,
+      "lastAccessed": 1772462412054,
+      "type": "file"
+    },
+    {
+      "path": "packages/nazar-core/src/testing/fixtures/pi-scenarios.ts",
+      "accessCount": 1,
+      "lastAccessed": 1772462412504,
+      "type": "file"
+    },
+    {
+      "path": "containers/base/Containerfile",
+      "accessCount": 1,
+      "lastAccessed": 1772462416640,
+      "type": "file"
+    },
+    {
+      "path": "containers/signal-bridge/Containerfile",
+      "accessCount": 1,
+      "lastAccessed": 1772462417550,
+      "type": "file"
+    },
+    {
+      "path": "sysconfig/SYSTEM.md",
+      "accessCount": 1,
+      "lastAccessed": 1772462419716,
+      "type": "file"
+    },
+    {
+      "path": "sysconfig",
+      "accessCount": 1,
+      "lastAccessed": 1772462426672,
+      "type": "directory"
+    },
+    {
+      "path": "sysconfig/sudoers.d/core-wheel",
+      "accessCount": 1,
+      "lastAccessed": 1772462433312,
+      "type": "file"
+    }
+  ],
   "userDirectives": []
 }

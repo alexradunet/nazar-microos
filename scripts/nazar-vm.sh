@@ -96,7 +96,7 @@ Copy bootc/config.toml.example to bootc/config.toml and add your SSH public key.
   # Generate QCOW2 via bootc-image-builder
   info "Generating QCOW2 disk image..."
   mkdir -p "$PROJECT_ROOT/_output"
-  sudo -n podman run --rm -it --privileged --pull=newer \
+  sudo -n podman run --rm -i --privileged --pull=newer \
     --security-opt label=type:unconfined_t \
     -v "$BOOTC_CONFIG":/config.toml:ro \
     -v "$PROJECT_ROOT/_output":/output \
@@ -110,7 +110,7 @@ Copy bootc/config.toml.example to bootc/config.toml and add your SSH public key.
 
   # Copy VM disk to libvirt images dir (qemu user needs access)
   local libvirt_dir="/var/lib/libvirt/images"
-  local vm_disk="$libvirt_dir/nazar-dev.qcow2"
+  local vm_disk="$libvirt_dir/${VM_NAME}.qcow2"
 
   info "Creating VM disk..."
   sudo -n cp "$qcow2_file" "$vm_disk"
@@ -186,7 +186,7 @@ cmd_ssh() {
   ip=$(get_vm_ip)
   [[ -n "$ip" ]] || die "Could not determine VM IP. Is the VM still booting?"
 
-  exec ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+  exec ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null \
     "core@${ip}" "$@"
 }
 

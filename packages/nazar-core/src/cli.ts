@@ -46,6 +46,18 @@ function parseArgs(argv: string[]): ParsedArgs {
   return { command, subcommand, positional, flags, boolFlags };
 }
 
+function printRefs(
+  refs: { type: string; slug: string; title?: string }[],
+): void {
+  for (const ref of refs) {
+    if (ref.title) {
+      console.log(`${ref.type}/${ref.slug}  ${ref.title}`);
+    } else {
+      console.log(`${ref.type}/${ref.slug}`);
+    }
+  }
+}
+
 // --- Env defaults ---
 
 const NAZAR_CONFIG = process.env.NAZAR_CONFIG ?? "/etc/nazar/nazar.yaml";
@@ -103,13 +115,7 @@ function objectCmd(parsed: ParsedArgs): void {
         if (parsed.flags[key]) filters[key] = parsed.flags[key];
       }
       const refs = store.list(type, filters);
-      for (const ref of refs) {
-        if (ref.title) {
-          console.log(`${ref.type}/${ref.slug}  ${ref.title}`);
-        } else {
-          console.log(`${ref.type}/${ref.slug}`);
-        }
-      }
+      printRefs(refs);
       break;
     }
     case "update": {
@@ -136,13 +142,7 @@ function objectCmd(parsed: ParsedArgs): void {
         die("usage: nazar-core object search <pattern>");
       }
       const refs = store.search(pattern);
-      for (const ref of refs) {
-        if (ref.title) {
-          console.log(`${ref.type}/${ref.slug}  ${ref.title}`);
-        } else {
-          console.log(`${ref.type}/${ref.slug}`);
-        }
-      }
+      printRefs(refs);
       break;
     }
     case "link": {

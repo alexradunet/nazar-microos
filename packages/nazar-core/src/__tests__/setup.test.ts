@@ -115,9 +115,7 @@ describe("generateQuadletFiles", () => {
     const hb = files.find((f) => f.path.endsWith("nazar-heartbeat.container"));
     assert.ok(hb);
     assert.ok(hb.content.includes("Description=Nazar Heartbeat Service"));
-    assert.ok(
-      hb.content.includes("Image=localhost/nazar-heartbeat:latest"),
-    );
+    assert.ok(hb.content.includes("Image=localhost/nazar-heartbeat:latest"));
     assert.ok(hb.content.includes("Type=oneshot"));
     assert.ok(hb.content.includes("Restart=no"));
     assert.ok(hb.content.includes("ReadOnly=true"));
