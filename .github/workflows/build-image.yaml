@@ -55,21 +55,27 @@ jobs:
           podman push ${{ env.IMAGE_PREFIX }}/nazar-matrix-bridge:${{ github.sha }}
           podman push ${{ env.IMAGE_PREFIX }}/nazar-matrix-bridge:latest
 
-  validate-ignition:
-    name: Validate and Publish Ignition Config
+  build-os-image:
+    name: Build and Push OS Image
     runs-on: ubuntu-latest
     needs: [build-containers]
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v5
-      - name: Transpile Butane to Ignition
-        run: |
-          podman run --rm -v "${PWD}:/pwd" -w /pwd/ignition \
-            quay.io/coreos/butane:release --files-dir /pwd \
-            --pretty --strict nazar.bu > ignition/nazar.ign
-      - name: Validate JSON output
-        run: jq . ignition/nazar.ign > /dev/null
-      - name: Upload Ignition artifact
-        uses: actions/upload-artifact@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
-          name: nazar-ignition
-          path: ignition/nazar.ign
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push nazar-os
+        run: |
+          podman build -t ${{ env.IMAGE_PREFIX }}/nazar-os:${{ github.sha }} \
+            -t ${{ env.IMAGE_PREFIX }}/nazar-os:latest \
+            -f Containerfile .
+          podman push ${{ env.IMAGE_PREFIX }}/nazar-os:${{ github.sha }}
+          podman push ${{ env.IMAGE_PREFIX }}/nazar-os:latest

@@ -1,6 +1,6 @@
 # Nazar Dev Setup
 
-Local development uses a Fedora CoreOS VM managed via libvirt. Two scripts handle the workflow:
+Local development uses a Fedora bootc VM managed via libvirt. Two scripts handle the workflow:
 
 - **`nazar vm`** — VM lifecycle (runs on the **host**, needs libvirt)
 - **`nazar deploy`** — Build and push code to the VM (runs from **toolbox**, only needs SSH + podman)
@@ -16,7 +16,8 @@ Local development uses a Fedora CoreOS VM managed via libvirt. Two scripts handl
 ### 1. Provide your SSH key
 
 ```bash
-cp ~/.ssh/id_ed25519.pub ignition/files/authorized_keys
+cp bootc/config.toml.example bootc/config.toml
+# Edit bootc/config.toml and add your SSH public key
 ```
 
 This file is gitignored — each developer provides their own key.
@@ -28,27 +29,12 @@ nazar vm create
 ```
 
 This will:
-- Download the latest Fedora CoreOS QCOW2 image (cached for reuse)
-- Build the Ignition config via `make -C ignition`
+- Build the bootc OS image via `podman build`
+- Generate a QCOW2 disk via `bootc-image-builder`
 - Create a 20GB VM with 2 vCPUs and 2GB RAM
-- Boot the VM with the Ignition config applied
+- Boot the VM — it's ready immediately (all packages baked into the image)
 
-### 3. Wait for provisioning
-
-First boot takes ~5 minutes. The VM will:
-1. Layer RPMs (yq, jq, tailscale, etc.) via `nazar-rpm-layer.service`
-2. Reboot after RPM layering
-3. Run `nazar apply` via `nazar-setup.service` to generate Quadlet files and start services
-
-Check progress:
-```bash
-nazar vm ssh
-# On the VM:
-journalctl -f -u nazar-rpm-layer.service
-journalctl -f -u nazar-setup.service
-```
-
-### 4. Configure deploy target
+### 3. Configure deploy target
 
 ```bash
 nazar vm ip
@@ -122,9 +108,9 @@ On the VM, run:
 nazar update
 ```
 
-This pulls the latest images from GHCR, overwriting any locally-deployed dev builds. Then restart services:
+This updates the OS via `bootc update` and pulls the latest container images from GHCR. Reboot to apply OS updates:
 ```bash
-sudo systemctl restart nazar-*
+sudo systemctl reboot
 ```
 
 ## Troubleshooting
@@ -134,7 +120,6 @@ sudo systemctl restart nazar-*
 - Start it if needed: `sudo virsh net-start default`
 
 ### SSH connection refused
-- The VM may still be provisioning — wait a few minutes after `create`
 - Check VM console: `sudo virsh console nazar-dev` (Ctrl+] to exit)
 
 ### Deploy fails with "NAZAR_HOST not set"

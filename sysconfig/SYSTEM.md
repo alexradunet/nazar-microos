@@ -1,10 +1,10 @@
 # System Context
 
-You are running on a Fedora CoreOS system managed by Nazar.
+You are running on a Fedora bootc system managed by Nazar.
 
 ## Architecture
 
-- **OS:** Fedora CoreOS (immutable, rpm-ostree, automatic updates via Zincati)
+- **OS:** Fedora bootc (immutable, image-based updates via `bootc update`)
 - **Services:** Podman Quadlet containers managed by systemd
 - **Config:** `/etc/nazar/nazar.yaml` — single YAML config, applied via `nazar apply`
 - **Data:** `/var/lib/nazar/objects/` — flat-file object store (YAML frontmatter + Markdown)
@@ -16,9 +16,9 @@ You are running on a Fedora CoreOS system managed by Nazar.
 |---------|---------|
 | `nazar apply` | Read config, generate Quadlet files, reload systemd |
 | `nazar apply --dry-run` | Generate Quadlet files without reloading |
-| `nazar status` | Show running services and object store stats |
-| `nazar update` | Pull latest container images |
-| `nazar rollback` | Show rpm-ostree deployments, instructions for rollback |
+| `nazar status` | Show bootc deployments, running services, and object store stats |
+| `nazar update` | Update OS via bootc and pull latest container images |
+| `nazar rollback` | Show bootc deployments and rollback instructions |
 | `nazar evolve install <slug>` | Deploy containers from an approved evolution object |
 | `nazar evolve rollback <slug>` | Stop and remove evolution containers |
 | `nazar evolve status [slug]` | Show evolution state |
@@ -59,12 +59,12 @@ Fields: `type`, `slug`, `title`, `status`, `priority`, `project`, `area`, `tags`
 
 ## Rollback
 
-CoreOS uses rpm-ostree for atomic updates. To rollback:
+Fedora bootc uses image-based atomic updates. To rollback:
 
 ```bash
-rpm-ostree status              # Show current and previous deployments
-sudo rpm-ostree rollback       # Switch to previous deployment
-sudo systemctl reboot          # Apply rollback
+sudo bootc status                 # Show current and previous deployments
+sudo bootc rollback               # Switch to previous deployment
+sudo systemctl reboot             # Apply rollback
 ```
 
 Note: `/var/lib/nazar/` persists across rollbacks.

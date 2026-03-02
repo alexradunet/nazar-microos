@@ -5,8 +5,6 @@ data/objects/
 *.raw
 *.raw.xz
 *.tsbuildinfo
-*.ign
 .nazar-deploy.env
-ignition/files/authorized_keys
-ignition/nazar-dev.qcow2
-ignition/fedora-coreos-*
+_output/
+bootc/config.toml

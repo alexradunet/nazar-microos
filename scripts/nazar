@@ -7,7 +7,7 @@ set -euo pipefail
 #   nazar apply [--dry-run]    Apply config, generate Quadlet files, reload systemd
 #   nazar status               Show running services and object store stats
 #   nazar update               Pull latest container images
-#   nazar rollback             Show rpm-ostree deployments and rollback instructions
+#   nazar rollback             Show bootc deployments and rollback instructions
 #   nazar deploy [flags]       Deploy changes to dev VM
 #   nazar vm <cmd>             Dev VM lifecycle (create/start/stop/destroy/ssh)
 #   nazar evolve <cmd> ...     Container evolution lifecycle
@@ -28,6 +28,9 @@ case "$cmd" in
     ;;
 
   status)
+    echo "=== bootc Status ==="
+    sudo bootc status 2>/dev/null || echo "(bootc not available)"
+    echo ""
     echo "=== Nazar Services ==="
     systemctl list-units 'nazar-*' --no-pager 2>/dev/null || echo "(no nazar services found)"
     echo ""
@@ -48,6 +51,12 @@ case "$cmd" in
     ;;
 
   update)
+    echo "=== OS Update ==="
+    echo "Checking for bootc OS updates..."
+    sudo bootc update 2>/dev/null || echo "(bootc update not available — running outside bootc?)"
+    echo "Note: OS updates take effect after reboot (sudo systemctl reboot)"
+    echo ""
+    echo "=== Container Images ==="
     echo "Pulling latest container images..."
     podman pull ghcr.io/alexradunet/nazar-heartbeat:latest 2>/dev/null || true
     podman pull ghcr.io/alexradunet/nazar-matrix-bridge:latest 2>/dev/null || true
@@ -58,11 +67,11 @@ case "$cmd" in
     ;;
 
   rollback)
-    echo "=== rpm-ostree Deployments ==="
-    rpm-ostree status 2>/dev/null || echo "(rpm-ostree not available)"
+    echo "=== bootc Deployments ==="
+    sudo bootc status 2>/dev/null || echo "(bootc not available)"
     echo ""
     echo "To rollback the OS to a previous deployment:"
-    echo "  sudo rpm-ostree rollback"
+    echo "  sudo bootc rollback"
     echo "  sudo systemctl reboot"
     echo ""
     echo "To rollback a container evolution:"

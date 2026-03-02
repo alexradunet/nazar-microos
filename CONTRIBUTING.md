@@ -9,7 +9,7 @@ Contributions are welcome! This guide helps you find the right level of involvem
 | 0 | Docs, persona, skills | Git |
 | 1 | TypeScript, shell scripts | Node.js 22 / bash + yq + jq |
 | 2 | Containerfiles | Podman basics |
-| 3 | Butane/Ignition, Quadlet, CI | CoreOS + systemd knowledge |
+| 3 | Containerfile, bootc, Quadlet, CI | bootc + systemd knowledge |
 
 ### Tier 0: Docs, Persona, Skills
 
@@ -54,14 +54,15 @@ Key files:
 - `containers/*/Containerfile`
 - `services/matrix-bridge/` — Matrix bot bridge
 
-### Tier 3: Butane/Ignition and System
+### Tier 3: Containerfile, bootc, and System
 
-CoreOS provisioning and systemd integration.
+OS image building and systemd integration.
 
 Key files:
-- `ignition/nazar.bu` — Butane config (transpiles to Ignition JSON)
-- `ignition/Makefile` — Build and validate Ignition config
-- `ignition/files/` — Config files deployed by Ignition
+- `Containerfile` — bootc OS image (packages, scripts, config baked in)
+- `sysconfig/` — systemd sysusers, tmpfiles, sudoers, service units
+- `bootc/config.toml.example` — SSH key config for bootc-image-builder
+- `Makefile` — Build OS image and QCOW2 disk
 - `nazar.yaml.example` — Config template
 - `.github/workflows/` — CI/CD
 
@@ -91,6 +92,6 @@ bash tests/shell/run.sh
 # Setup script dry-run
 NAZAR_CONFIG=nazar.yaml.example QUADLET_OUTPUT_DIR=/tmp/q bash scripts/nazar-setup.sh --dry-run
 
-# Butane validation
-make -C ignition validate
+# Build bootc OS image
+make image
 ```

@@ -3,6 +3,9 @@ set -euo pipefail
 
 # nazar-deploy.sh — Deploy code changes to a dev VM over SSH.
 #
+# Dev-iteration tool for quick code pushes. Primary deployment is via
+# bootc image rebuild (make image / nazar vm create).
+#
 # Builds containers locally, transfers them via podman save/load,
 # and syncs scripts/persona/skills to the VM. Tags local builds
 # with the same ghcr.io names so Quadlet files work unchanged.

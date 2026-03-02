@@ -3,11 +3,11 @@ set -euo pipefail
 
 # nazar-vm.sh — Local dev VM lifecycle management via libvirt.
 #
-# Manages a Fedora CoreOS VM for local development and testing.
+# Manages a Fedora bootc VM for local development and testing.
 # Runs on the HOST (not inside a toolbox).
 #
 # Usage:
-#   nazar-vm create    Download FCOS, generate Ignition, create VM
+#   nazar-vm create    Build OS image, generate QCOW2, create VM
 #   nazar-vm start     Start the VM
 #   nazar-vm stop      Gracefully shut down the VM
 #   nazar-vm destroy   Remove VM and its storage
@@ -21,6 +21,9 @@ VM_VCPUS="${NAZAR_VM_VCPUS:-2}"
 VM_DISK_SIZE="${NAZAR_VM_DISK_SIZE:-20G}"
 VIRSH_URI="qemu:///system"
 
+IMAGE_NAME="localhost/nazar-os"
+IMAGE_TAG="latest"
+
 # --- Helpers ---
 
 die() { echo "ERROR: $*" >&2; exit 1; }
@@ -30,10 +33,8 @@ warn() { echo "WARNING: $*" >&2; }
 # Resolve project root (parent of scripts/)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-IGNITION_DIR="$PROJECT_ROOT/ignition"
-[[ -d "$IGNITION_DIR" ]] || die "Not in a nazar project — missing ignition/ directory: $IGNITION_DIR"
-mkdir -p "$IGNITION_DIR/files"
-AUTH_KEYS="$IGNITION_DIR/files/authorized_keys"
+
+BOOTC_CONFIG="$PROJECT_ROOT/bootc/config.toml"
 
 # Cache sudo credentials once upfront, then use sudo -n everywhere
 ensure_sudo() {
@@ -78,57 +79,40 @@ wait_for_ip() {
 cmd_create() {
   ensure_sudo
   vm_exists && die "VM '$VM_NAME' already exists. Run 'nazar vm destroy' first."
-  if [[ ! -f "$AUTH_KEYS" ]]; then
-    local pubkey
-    pubkey=$(find ~/.ssh -maxdepth 1 -name '*.pub' -print -quit 2>/dev/null || true)
-    if [[ -n "$pubkey" ]]; then
-      info "Auto-copying SSH public key: $pubkey"
-      cp "$pubkey" "$AUTH_KEYS"
-    else
-      die "SSH key not found: $AUTH_KEYS
-No ~/.ssh/*.pub keys detected. Create one with: ssh-keygen -t ed25519"
-    fi
-  fi
 
-  # Download FCOS QCOW2 if not already present
-  local qcow2_file
-  qcow2_file=$(find "$IGNITION_DIR" -name 'fedora-coreos-*.qcow2' -print -quit 2>/dev/null || true)
+  [[ -f "$BOOTC_CONFIG" ]] || die "SSH key config not found: $BOOTC_CONFIG
+Copy bootc/config.toml.example to bootc/config.toml and add your SSH public key."
 
-  if [[ -z "$qcow2_file" ]]; then
-    info "Downloading Fedora CoreOS QCOW2..."
-    podman run --rm --security-opt label=disable -v "$IGNITION_DIR:/data" -w /data \
-      quay.io/coreos/coreos-installer:release \
-      download -s stable -p qemu -f qcow2.xz --decompress -C /data
-    qcow2_file=$(find "$IGNITION_DIR" -name 'fedora-coreos-*.qcow2' -print -quit)
-    [[ -n "$qcow2_file" ]] || die "FCOS download failed — no QCOW2 found"
-  else
-    info "Using existing FCOS image: $(basename "$qcow2_file")"
-  fi
+  # Build the bootc OS image
+  info "Building bootc OS image..."
+  cd "$PROJECT_ROOT"
+  podman build -t "${IMAGE_NAME}:${IMAGE_TAG}" -f Containerfile . \
+    || die "OS image build failed"
 
-  # Build Ignition config (runs butane in a container, same as Makefile)
-  info "Building Ignition config..."
-  podman run --rm --security-opt label=disable -v "$PROJECT_ROOT:/pwd" -w /pwd/ignition \
-    quay.io/coreos/butane:release --files-dir /pwd \
-    --pretty --strict nazar.bu > "$IGNITION_DIR/nazar.ign" \
-    || die "Ignition build failed"
+  # Generate QCOW2 via bootc-image-builder
+  info "Generating QCOW2 disk image..."
+  mkdir -p "$PROJECT_ROOT/_output"
+  sudo -n podman run --rm -it --privileged --pull=newer \
+    --security-opt label=type:unconfined_t \
+    -v "$BOOTC_CONFIG":/config.toml:ro \
+    -v "$PROJECT_ROOT/_output":/output \
+    -v /var/lib/containers/storage:/var/lib/containers/storage \
+    quay.io/centos-bootc/bootc-image-builder:latest \
+    --type qcow2 --config /config.toml "${IMAGE_NAME}:${IMAGE_TAG}" \
+    || die "QCOW2 generation failed"
 
-  local ign_file="$IGNITION_DIR/nazar.ign"
-  [[ -f "$ign_file" ]] || die "Ignition file not found: $ign_file"
+  local qcow2_file="$PROJECT_ROOT/_output/qcow2/disk.qcow2"
+  [[ -f "$qcow2_file" ]] || die "QCOW2 file not found: $qcow2_file"
 
-  # Copy VM disk to libvirt images dir (qemu user needs access) and embed Ignition
+  # Copy VM disk to libvirt images dir (qemu user needs access)
   local libvirt_dir="/var/lib/libvirt/images"
   local vm_disk="$libvirt_dir/nazar-dev.qcow2"
 
-  info "Creating VM disk from base image..."
+  info "Creating VM disk..."
   sudo -n cp "$qcow2_file" "$vm_disk"
   sudo -n qemu-img resize "$vm_disk" "$VM_DISK_SIZE"
 
-  # Copy Ignition to libvirt dir and set SELinux context so qemu can read it
-  local vm_ign="$libvirt_dir/nazar.ign"
-  sudo -n cp "$ign_file" "$vm_ign"
-  sudo -n chcon -t svirt_image_t "$vm_ign" 2>/dev/null || true
-
-  # Create VM (use --sysinfo fwcfg for reliable Ignition delivery)
+  # Create VM
   info "Creating VM '$VM_NAME'..."
   sudo -n virt-install --connect "$VIRSH_URI" \
     --name "$VM_NAME" \
@@ -137,9 +121,8 @@ No ~/.ssh/*.pub keys detected. Create one with: ssh-keygen -t ed25519"
     --import \
     --graphics none \
     --disk "path=$vm_disk" \
-    --os-variant fedora-coreos-stable \
+    --os-variant fedora-unknown \
     --network network=default \
-    --sysinfo type=fwcfg,entry0.name=opt/com.coreos/config,entry0.file="$vm_ign" \
     --noautoconsole
 
   info "VM '$VM_NAME' created and starting."
@@ -148,8 +131,7 @@ No ~/.ssh/*.pub keys detected. Create one with: ssh-keygen -t ed25519"
   ip=$(wait_for_ip)
   info "VM IP: $ip"
   info ""
-  info "The VM is provisioning (RPM layering + nazar apply)."
-  info "This takes ~5 minutes on first boot. SSH in with:"
+  info "VM is ready. SSH in with:"
   info "  nazar vm ssh"
 }
 
@@ -187,9 +169,6 @@ cmd_destroy() {
 
   info "Removing VM and storage..."
   virsh_cmd undefine --remove-all-storage "$VM_NAME" 2>/dev/null || true
-
-  # Clean up ignition copy from libvirt dir
-  sudo -n rm -f /var/lib/libvirt/images/nazar.ign
 
   info "VM '$VM_NAME' destroyed."
 }
@@ -257,7 +236,7 @@ case "$subcmd" in
     echo "Usage: nazar-vm <create|start|stop|destroy|ssh|ip|status>" >&2
     echo "" >&2
     echo "Commands:" >&2
-    echo "  create   Download FCOS, generate Ignition, create VM" >&2
+    echo "  create   Build OS image, generate QCOW2, create VM" >&2
     echo "  start    Start the VM" >&2
     echo "  stop     Gracefully shut down the VM" >&2
     echo "  destroy  Remove VM and its storage" >&2

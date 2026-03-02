@@ -1,15 +1,13 @@
 [Unit]
 Description=Nazar First-Boot Setup
-ConditionPathExists=/etc/nazar/.rpm-layer-complete
 ConditionPathExists=!/etc/nazar/.setup-complete
-After=network-online.target
+After=network-online.target systemd-sysusers.service systemd-tmpfiles-setup.service
 Wants=network-online.target
 
 [Service]
 Type=oneshot
 ExecStart=/bin/bash -c '\
   set -e; \
-  /usr/bin/npm install -g @mariozechner/pi-coding-agent; \
   /usr/local/bin/nazar apply; \
   test -f /usr/local/share/nazar/persona/SOUL.md; \
   test -f /usr/local/share/nazar/persona/BODY.md; \
@@ -22,7 +20,7 @@ ExecStart=/bin/bash -c '\
   chown -R core:core /home/core/.pi'
 ExecStartPost=/usr/bin/touch /etc/nazar/.setup-complete
 RemainAfterExit=yes
-TimeoutStartSec=300
+TimeoutStartSec=120
 
 [Install]
 WantedBy=multi-user.target

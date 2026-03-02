@@ -1,0 +1,4 @@
+[[customizations.user]]
+name = "core"
+groups = ["wheel", "sudo"]
+key = "ssh-ed25519 AAAA... your-key-here"
