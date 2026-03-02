@@ -21,6 +21,9 @@ COPY sysconfig/sudoers.d/core-wheel /etc/sudoers.d/core-wheel
 COPY sysconfig/sudoers.d/nazar-evolve /etc/sudoers.d/nazar-evolve
 RUN chmod 0440 /etc/sudoers.d/core-wheel /etc/sudoers.d/nazar-evolve
 
+# Dev registry config (insecure pull from host for bootc upgrade)
+COPY sysconfig/registries.conf.d/ /etc/containers/registries.conf.d/
+
 # Tailscale login prompt
 COPY sysconfig/profile.d/tailscale-login.sh /etc/profile.d/tailscale-login.sh
 

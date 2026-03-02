@@ -71,6 +71,57 @@ nazar deploy --dry-run
 
 Since local builds use the same image tags as production, Quadlet files work unchanged. To restore production images, run `nazar update` on the VM.
 
+## OS Image Iteration
+
+For OS-level changes (root `Containerfile`, system packages, sysconfig), use `bootc upgrade` instead of rebuilding the entire VM. Only changed layers are transferred (~1-2 min vs 10+ min).
+
+### One-time: start the local registry
+
+```bash
+make registry
+```
+
+This runs a local OCI registry on port 5000. It persists across reboots (`--restart=always`).
+
+### All-in-one: build, push, and upgrade the VM
+
+```bash
+nazar deploy --os
+```
+
+This will:
+1. Build the OS image (`podman build`)
+2. Push to the local registry (`localhost:5000`)
+3. SSH into the VM and run `bootc switch` (first time) or `bootc upgrade` (subsequent)
+4. Prompt to reboot the VM
+
+### Manual workflow
+
+```bash
+make push              # Build OS image + push to local registry
+nazar vm upgrade       # SSH into VM, bootc upgrade, prompt reboot
+```
+
+### Rollback
+
+If something breaks after a `bootc upgrade`:
+
+```bash
+nazar vm ssh -- 'sudo bootc rollback && sudo systemctl reboot'
+```
+
+The previous OS deployment is preserved and can be instantly restored.
+
+### Note: existing VMs
+
+VMs created before the insecure registry config was added to the `Containerfile` need either:
+- A full rebuild: `nazar vm destroy && nazar vm create`
+- Or manually copy the config: `nazar vm ssh -- 'sudo mkdir -p /etc/containers/registries.conf.d && sudo tee /etc/containers/registries.conf.d/nazar-dev-registry.conf <<EOF
+[[registry]]
+location = "192.168.122.1:5000"
+insecure = true
+EOF'`
+
 ## VM Management
 
 Run these from the **host** terminal (needs libvirt):
@@ -80,6 +131,7 @@ nazar vm status    # Show VM state and IP
 nazar vm ssh       # SSH into the VM
 nazar vm stop      # Graceful shutdown
 nazar vm start     # Start a stopped VM
+nazar vm upgrade   # bootc upgrade and optionally reboot
 nazar vm destroy   # Remove VM and all storage
 ```
 
@@ -90,6 +142,9 @@ nazar vm destroy   # Remove VM and all storage
 ```bash
 NAZAR_HOST=192.168.122.x   # VM IP (from: nazar vm ip)
 NAZAR_SSH_USER=core         # SSH user (default: core)
+
+# NAZAR_REGISTRY_HOST=192.168.122.1   # Host IP as seen from VM (auto-detected if unset)
+# NAZAR_REGISTRY_PORT=5000             # Local registry port (default: 5000)
 ```
 
 ### VM defaults (environment variables)

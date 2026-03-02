@@ -13,6 +13,7 @@ set -euo pipefail
 #   nazar-vm destroy   Remove VM and its storage
 #   nazar-vm ssh       SSH into the VM as core user
 #   nazar-vm ip        Show the VM's IP address
+#   nazar-vm upgrade   bootc upgrade the VM and optionally reboot
 #   nazar-vm status    Show VM state
 
 VM_NAME="${NAZAR_VM_NAME:-nazar-dev}"
@@ -204,6 +205,35 @@ cmd_ip() {
   echo "$ip"
 }
 
+cmd_upgrade() {
+  ensure_sudo
+  vm_exists || die "VM '$VM_NAME' does not exist."
+  vm_running || die "VM '$VM_NAME' is not running. Start it with: nazar vm start"
+
+  local ip
+  ip=$(get_vm_ip)
+  [[ -n "$ip" ]] || die "Could not determine VM IP. Is the VM still booting?"
+
+  local ssh_opts="-o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+
+  info "Running bootc upgrade on VM..."
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "core@${ip}" sudo bootc upgrade \
+    || die "bootc upgrade failed. Has the VM been switched to a registry image? Try: nazar deploy --os"
+
+  info ""
+  info "Upgrade staged. A reboot is required to apply."
+  read -r -p "Reboot VM now? [Y/n] " confirm
+  if [[ ! "$confirm" =~ ^[Nn]$ ]]; then
+    info "Rebooting VM..."
+    # shellcheck disable=SC2086
+    ssh $ssh_opts "core@${ip}" sudo systemctl reboot || true
+    info "VM is rebooting. Wait ~30s then reconnect with: nazar vm ssh"
+  else
+    info "Skipped reboot. Apply later with: nazar vm ssh -- sudo systemctl reboot"
+  fi
+}
+
 cmd_status() {
   ensure_sudo
   if ! vm_exists; then
@@ -238,9 +268,10 @@ case "$subcmd" in
   destroy) cmd_destroy ;;
   ssh)     cmd_ssh "$@" ;;
   ip)      cmd_ip ;;
+  upgrade) cmd_upgrade ;;
   status)  cmd_status ;;
   *)
-    echo "Usage: nazar-vm <create|start|stop|destroy|ssh|ip|status>" >&2
+    echo "Usage: nazar-vm <create|start|stop|destroy|ssh|ip|upgrade|status>" >&2
     echo "" >&2
     echo "Commands:" >&2
     echo "  create   Build OS image, generate QCOW2, create VM" >&2
@@ -249,6 +280,7 @@ case "$subcmd" in
     echo "  destroy  Remove VM and its storage" >&2
     echo "  ssh      SSH into the VM as core user" >&2
     echo "  ip       Show the VM's IP address" >&2
+    echo "  upgrade  bootc upgrade the VM and optionally reboot" >&2
     echo "  status   Show VM state" >&2
     exit 1
     ;;

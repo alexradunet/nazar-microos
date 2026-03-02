@@ -1,7 +1,10 @@
 IMAGE_NAME := localhost/nazar-os
 IMAGE_TAG  := latest
 
-.PHONY: image qcow2 chunked-oci containers clean
+REGISTRY_PORT := 5000
+REGISTRY_IMAGE := localhost:$(REGISTRY_PORT)/nazar-os:$(IMAGE_TAG)
+
+.PHONY: image qcow2 chunked-oci containers registry push clean
 
 image:
 	podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f Containerfile .
@@ -32,6 +35,23 @@ chunked-oci:
 	  --format=ociarchive \
 	  $(IMAGE_NAME):$(IMAGE_TAG) \
 	  _output/nazar-os-chunked.ociarchive
+
+registry:
+	@if podman container exists nazar-registry 2>/dev/null; then \
+	  if [ "$$(podman inspect --format '{{.State.Running}}' nazar-registry)" = "true" ]; then \
+	    echo "Registry already running on port $(REGISTRY_PORT)"; \
+	  else \
+	    podman start nazar-registry; \
+	  fi; \
+	else \
+	  podman run -d --name nazar-registry -p $(REGISTRY_PORT):5000 \
+	    --restart=always -v nazar-registry-data:/var/lib/registry \
+	    docker.io/library/registry:2; \
+	fi
+
+push: image registry
+	podman tag $(IMAGE_NAME):$(IMAGE_TAG) $(REGISTRY_IMAGE)
+	podman push --tls-verify=false $(REGISTRY_IMAGE)
 
 clean:
 	rm -rf _output/

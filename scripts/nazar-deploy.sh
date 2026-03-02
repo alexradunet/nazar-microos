@@ -16,12 +16,15 @@ set -euo pipefail
 #   nazar-deploy --scripts     Sync shell scripts only
 #   nazar-deploy --persona     Sync persona files only
 #   nazar-deploy --skills      Sync skills only
+#   nazar-deploy --os          Build OS image, push to local registry, bootc upgrade VM
 #   nazar-deploy --check       Health check only
 #   nazar-deploy --dry-run     Show what would be done
 #
 # Environment / .nazar-deploy.env:
-#   NAZAR_HOST       VM IP or hostname (required)
-#   NAZAR_SSH_USER   SSH user (default: core)
+#   NAZAR_HOST            VM IP or hostname (required)
+#   NAZAR_SSH_USER        SSH user (default: core)
+#   NAZAR_REGISTRY_HOST   Host IP as seen from VM (auto-detected if unset)
+#   NAZAR_REGISTRY_PORT   Local registry port (default: 5000)
 
 # Resolve project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -40,6 +43,8 @@ ENV_FILE="$PROJECT_ROOT/.nazar-deploy.env"
 
 NAZAR_HOST="${NAZAR_HOST:-}"
 NAZAR_SSH_USER="${NAZAR_SSH_USER:-core}"
+NAZAR_REGISTRY_HOST="${NAZAR_REGISTRY_HOST:-}"
+NAZAR_REGISTRY_PORT="${NAZAR_REGISTRY_PORT:-5000}"
 DRY_RUN=0
 
 # accept-new: accept on first connect, reject if host key changes (safer than StrictHostKeyChecking=no)
@@ -65,6 +70,7 @@ DEPLOY_IMAGES=0
 DEPLOY_SCRIPTS=0
 DEPLOY_PERSONA=0
 DEPLOY_SKILLS=0
+DEPLOY_OS=0
 DEPLOY_CHECK=0
 
 for arg in "$@"; do
@@ -74,10 +80,11 @@ for arg in "$@"; do
     --scripts)   DEPLOY_SCRIPTS=1 ;;
     --persona)   DEPLOY_PERSONA=1 ;;
     --skills)    DEPLOY_SKILLS=1 ;;
+    --os)        DEPLOY_OS=1 ;;
     --check)     DEPLOY_CHECK=1 ;;
     --dry-run)   DRY_RUN=1 ;;
     --help|-h)
-      echo "Usage: nazar-deploy [--all|--images|--scripts|--persona|--skills|--check] [--dry-run]"
+      echo "Usage: nazar-deploy [--all|--images|--scripts|--persona|--skills|--os|--check] [--dry-run]"
       exit 0
       ;;
     *) die "unknown argument: $arg" ;;
@@ -87,7 +94,7 @@ done
 # Default to --all if no specific targets given
 if [[ "$DEPLOY_IMAGES" -eq 0 && "$DEPLOY_SCRIPTS" -eq 0 && \
       "$DEPLOY_PERSONA" -eq 0 && "$DEPLOY_SKILLS" -eq 0 && \
-      "$DEPLOY_CHECK" -eq 0 ]]; then
+      "$DEPLOY_OS" -eq 0 && "$DEPLOY_CHECK" -eq 0 ]]; then
   DEPLOY_ALL=1
 fi
 
@@ -238,6 +245,83 @@ deploy_skills() {
   info "Skills sync complete."
 }
 
+deploy_os() {
+  info "=== OS Image Deploy (bootc) ==="
+
+  cd "$PROJECT_ROOT"
+
+  # Build and push OS image to local registry
+  info "Building OS image and pushing to local registry..."
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    info "[dry-run] make push"
+  else
+    make push || die "Failed to build/push OS image. Is the registry running? Try: make registry"
+  fi
+
+  # Determine registry host IP as seen from the VM
+  local registry_host="$NAZAR_REGISTRY_HOST"
+  if [[ -z "$registry_host" ]]; then
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      info "[dry-run] Auto-detecting host IP from VM (ip route show default)"
+      registry_host="192.168.122.1"
+    else
+      registry_host=$(remote "ip route show default | awk '/default/ {print \$3}'") \
+        || die "Failed to detect host IP from VM. Set NAZAR_REGISTRY_HOST manually."
+      [[ -n "$registry_host" ]] || die "Could not determine host IP from VM default route. Set NAZAR_REGISTRY_HOST."
+      info "Detected host IP from VM: $registry_host"
+    fi
+  fi
+
+  local registry_ref="${registry_host}:${NAZAR_REGISTRY_PORT}/nazar-os:latest"
+
+  # Check current bootc status to determine switch vs upgrade
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    info "[dry-run] Checking bootc status on VM..."
+    info "[dry-run] Would run: bootc switch or bootc upgrade to $registry_ref"
+    info "[dry-run] Would prompt to reboot VM"
+    return
+  fi
+
+  local current_image
+  current_image=$(remote_sudo "bootc status --format=json" 2>/dev/null \
+    | grep -o '"image":"[^"]*"' | head -1 | cut -d'"' -f4) || current_image=""
+
+  if [[ "$current_image" == *"${registry_host}:${NAZAR_REGISTRY_PORT}"* ]]; then
+    info "VM already tracking local registry. Running bootc upgrade..."
+    remote_sudo "bootc upgrade" \
+      || die "bootc upgrade failed. Check VM connectivity to ${registry_ref}"
+  else
+    info "Switching VM to local registry image: $registry_ref"
+    remote_sudo "bootc switch --transport registry ${registry_ref}" \
+      || {
+        warn "bootc switch failed. If this is a TLS error, the VM may not have the insecure registry config."
+        warn ""
+        warn "Fix options:"
+        warn "  1. Recreate the VM: nazar vm destroy && nazar vm create"
+        warn "  2. Manually add the config:"
+        warn "     nazar vm ssh -- 'sudo mkdir -p /etc/containers/registries.conf.d && sudo tee /etc/containers/registries.conf.d/nazar-dev-registry.conf <<EOF"
+        warn "[[registry]]"
+        warn "location = \"${registry_host}:${NAZAR_REGISTRY_PORT}\""
+        warn "insecure = true"
+        warn "EOF'"
+        die "bootc switch failed"
+      }
+  fi
+
+  info ""
+  info "OS image staged. A reboot is required to apply."
+  read -r -p "Reboot VM now? [Y/n] " confirm
+  if [[ ! "$confirm" =~ ^[Nn]$ ]]; then
+    info "Rebooting VM..."
+    remote_sudo "systemctl reboot" || true
+    info "VM is rebooting. Wait ~30s then reconnect with: nazar vm ssh"
+  else
+    info "Skipped reboot. Apply later with: nazar vm ssh -- sudo systemctl reboot"
+  fi
+
+  info "OS deploy complete."
+}
+
 health_check() {
   info "=== Health Check ==="
 
@@ -298,6 +382,7 @@ else
   [[ "$DEPLOY_SCRIPTS" -eq 1 ]] && deploy_scripts
   [[ "$DEPLOY_PERSONA" -eq 1 ]] && deploy_persona
   [[ "$DEPLOY_SKILLS" -eq 1 ]] && deploy_skills
+  [[ "$DEPLOY_OS" -eq 1 ]] && deploy_os
   [[ "$DEPLOY_CHECK" -eq 1 ]] && health_check
 fi
 
