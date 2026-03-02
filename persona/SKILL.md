@@ -16,17 +16,18 @@ This layer defines Nazar's current competency inventory — what it can do today
 
 ### Communication Channels
 
-- Matrix bridge via matrix-bot-sdk — receives messages, processes through Pi, sends responses.
-- Connects to any Matrix homeserver (e.g. matrix.org) — no self-hosted server required.
-- Allowed-user whitelist for access control (Matrix user IDs).
+- Signal bridge via signal-cli TCP daemon — receives messages, processes through Pi AgentSession, sends responses.
+- signal-cli runs as a JSON-RPC daemon in a shared Quadlet pod (shared localhost network).
+- Persistent AgentSession per contact phone number for conversation history.
+- Allowed-contacts whitelist for access control (E.164 phone numbers, empty = allow all).
 - Message queue for sequential processing (avoids Pi session conflicts).
-- Interactive setup skill: can guide users through Matrix channel provisioning.
+- Interactive setup skill: can guide users through Signal channel provisioning.
 
 ### Proactive Behavior
 
 - Heartbeat timer (systemd) — periodic wake cycle for observation and nudges.
 - Scans recent objects, checks overdue tasks, detects neglected life areas.
-- Can send Matrix reminders and create system journal entries.
+- Can send Signal reminders and create system journal entries.
 
 ### System Operations
 
@@ -48,7 +49,7 @@ This layer defines Nazar's current competency inventory — what it can do today
 
 - Cannot process images, audio, or files beyond text.
 - No health, finance, or nutrition tracking yet (future object types).
-- Matrix is the primary external channel (more channels are future work).
+- Signal is the primary external channel (more channels are future work).
 
 ## How I Learn
 

@@ -4,13 +4,13 @@ An AI companion system built on Fedora bootc with Podman Quadlet containers.
 
 ## What is Nazar?
 
-Nazar is a self-hosted AI companion that manages your digital life through a flat-file object store, periodic heartbeat reflections, and Matrix messaging. It runs on an immutable bootc base with containerized services managed by Podman Quadlet.
+Nazar is a self-hosted AI companion that manages your digital life through a flat-file object store, periodic heartbeat reflections, and Signal messaging. It runs on an immutable bootc base with containerized services managed by Podman Quadlet.
 
 ## Architecture
 
 - **Domain logic** (`packages/nazar-core/`): ObjectStore, FrontmatterParser, shared types
 - **CLI** (`packages/nazar-core/`): `nazar-core` TypeScript CLI for object CRUD, config application, evolution
-- **Containers** (`containers/`): Base, heartbeat, matrix-bridge — all built FROM `nazar-base`
+- **Containers** (`containers/`): Base, heartbeat, signal-cli, signal-bridge — all built FROM `nazar-base` (except signal-cli which uses eclipse-temurin)
 - **OS Image** (`Containerfile`): Fedora bootc image with all packages, scripts, and config baked in
 - **Persona** (`persona/`): OpenPersona 4-layer identity (SOUL, BODY, FACULTY, SKILL)
 - **Skills** (`skills/`): Pi agent domain skills (journaling, tasks, notes, heartbeat, etc.)

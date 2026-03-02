@@ -1,11 +1,11 @@
 services:
-  matrix-bridge:
-    image: nazar-matrix-bridge
+  signal-bridge:
+    image: nazar-signal-bridge
     container_name: nazar-test-bridge
     environment:
-      NAZAR_MATRIX_HOMESERVER: https://matrix.org
-      NAZAR_MATRIX_ACCESS_TOKEN: test-token
+      NAZAR_SIGNAL_PHONE: "+12345678901"
       NAZAR_OBJECTS_DIR: /data/objects
+      NAZAR_SIGNAL_STORAGE_DIR: /data/signal-storage
     volumes:
       - bridge-data:/data
 

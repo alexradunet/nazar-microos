@@ -46,12 +46,13 @@ Build and test container images.
 ```bash
 podman build -t nazar-base -f containers/base/Containerfile .
 podman build -t nazar-heartbeat -f containers/heartbeat/Containerfile .
-podman build -t nazar-matrix-bridge -f containers/matrix-bridge/Containerfile .
+podman build -t nazar-signal-cli -f containers/signal-cli/Containerfile .
+podman build -t nazar-signal-bridge -f containers/signal-bridge/Containerfile .
 ```
 
 Key files:
 - `containers/*/Containerfile`
-- `services/matrix-bridge/` — Matrix bot bridge
+- `services/signal-bridge/` — Signal bridge (signal-cli TCP → Pi AgentSession)
 
 ### Tier 3: Containerfile, bootc, and System
 

@@ -47,13 +47,21 @@ jobs:
           podman push ${{ env.IMAGE_PREFIX }}/nazar-heartbeat:${{ github.sha }}
           podman push ${{ env.IMAGE_PREFIX }}/nazar-heartbeat:latest
 
-      - name: Build and push nazar-matrix-bridge
+      - name: Build and push nazar-signal-cli
         run: |
-          podman build -t ${{ env.IMAGE_PREFIX }}/nazar-matrix-bridge:${{ github.sha }} \
-            -t ${{ env.IMAGE_PREFIX }}/nazar-matrix-bridge:latest \
-            -f containers/matrix-bridge/Containerfile .
-          podman push ${{ env.IMAGE_PREFIX }}/nazar-matrix-bridge:${{ github.sha }}
-          podman push ${{ env.IMAGE_PREFIX }}/nazar-matrix-bridge:latest
+          podman build -t ${{ env.IMAGE_PREFIX }}/nazar-signal-cli:${{ github.sha }} \
+            -t ${{ env.IMAGE_PREFIX }}/nazar-signal-cli:latest \
+            -f containers/signal-cli/Containerfile .
+          podman push ${{ env.IMAGE_PREFIX }}/nazar-signal-cli:${{ github.sha }}
+          podman push ${{ env.IMAGE_PREFIX }}/nazar-signal-cli:latest
+
+      - name: Build and push nazar-signal-bridge
+        run: |
+          podman build -t ${{ env.IMAGE_PREFIX }}/nazar-signal-bridge:${{ github.sha }} \
+            -t ${{ env.IMAGE_PREFIX }}/nazar-signal-bridge:latest \
+            -f containers/signal-bridge/Containerfile .
+          podman push ${{ env.IMAGE_PREFIX }}/nazar-signal-bridge:${{ github.sha }}
+          podman push ${{ env.IMAGE_PREFIX }}/nazar-signal-bridge:latest
 
   build-os-image:
     name: Build and Push OS Image

@@ -11,9 +11,9 @@ heartbeat:
 ttyd:
   port: 7681
 
-matrix:
-  homeserver_url: https://matrix.org
-  allowed_users: []
+signal:
+  phone_number: ""
+  allowed_contacts: []
 
 pi:
   skills_dir: /usr/local/share/nazar/skills

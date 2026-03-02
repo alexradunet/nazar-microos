@@ -111,7 +111,8 @@ deploy_images() {
   # Build and deploy each service container
   local containers=(
     "heartbeat|containers/heartbeat/Containerfile|ghcr.io/alexradunet/nazar-heartbeat:latest"
-    "matrix-bridge|containers/matrix-bridge/Containerfile|ghcr.io/alexradunet/nazar-matrix-bridge:latest"
+    "signal-cli|containers/signal-cli/Containerfile|ghcr.io/alexradunet/nazar-signal-cli:latest"
+    "signal-bridge|containers/signal-bridge/Containerfile|ghcr.io/alexradunet/nazar-signal-bridge:latest"
   )
 
   for entry in "${containers[@]}"; do
@@ -135,7 +136,7 @@ deploy_images() {
     info "Restarting nazar services on VM..."
     remote_sudo "systemctl daemon-reload"
     remote_sudo "systemctl try-restart nazar-heartbeat.timer" || warn "heartbeat timer restart failed"
-    remote_sudo "systemctl try-restart nazar-matrix-bridge.service" || warn "matrix-bridge restart failed"
+    remote_sudo "systemctl try-restart nazar-signal-bridge.service" || warn "signal-bridge restart failed"
   fi
 
   info "Image deploy complete."
@@ -240,7 +241,7 @@ health_check() {
 
   local services=(
     "nazar-heartbeat.timer"
-    "nazar-matrix-bridge.service"
+    "nazar-signal-bridge.service"
   )
 
   local all_ok=true

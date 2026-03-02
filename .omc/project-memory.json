@@ -1,0 +1,172 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1772460874771,
+  "projectRoot": "/var/home/alex/Development/nazar-microos",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      },
+      {
+        "name": "C/C++",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "Makefile"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "npm run build",
+    "testCommand": "npm test",
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {
+      "build": "tsc --build",
+      "clean": "tsc --build --clean",
+      "test": "npm test --workspaces --if-present",
+      "check": "biome check",
+      "check:fix": "biome check --fix"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": true,
+    "workspaces": [
+      "packages/*",
+      "services/*"
+    ],
+    "mainDirectories": [
+      "docs",
+      "scripts",
+      "tests"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "_output": {
+      "path": "_output",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1772460874762,
+      "keyFiles": [
+        "manifest-qcow2.json"
+      ]
+    },
+    "bootc": {
+      "path": "bootc",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1772460874763,
+      "keyFiles": [
+        "config.toml",
+        "config.toml.example"
+      ]
+    },
+    "containers": {
+      "path": "containers",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1772460874768,
+      "keyFiles": []
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 1,
+      "lastAccessed": 1772460874768,
+      "keyFiles": [
+        "dev-setup.md"
+      ]
+    },
+    "packages": {
+      "path": "packages",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1772460874769,
+      "keyFiles": []
+    },
+    "persona": {
+      "path": "persona",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1772460874769,
+      "keyFiles": [
+        "BODY.md",
+        "FACULTY.md",
+        "SKILL.md",
+        "SOUL.md"
+      ]
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 3,
+      "lastAccessed": 1772460874770,
+      "keyFiles": [
+        "nazar",
+        "nazar-deploy.sh",
+        "nazar-vm.sh"
+      ]
+    },
+    "services": {
+      "path": "services",
+      "purpose": "Business logic services",
+      "fileCount": 0,
+      "lastAccessed": 1772460874770,
+      "keyFiles": []
+    },
+    "skills": {
+      "path": "skills",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1772460874770,
+      "keyFiles": []
+    },
+    "sysconfig": {
+      "path": "sysconfig",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1772460874770,
+      "keyFiles": [
+        "SYSTEM.md",
+        "nazar.yaml.default"
+      ]
+    },
+    "tests": {
+      "path": "tests",
+      "purpose": "Test files",
+      "fileCount": 0,
+      "lastAccessed": 1772460874770,
+      "keyFiles": []
+    }
+  },
+  "hotPaths": [],
+  "userDirectives": []
+}

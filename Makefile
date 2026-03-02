@@ -20,7 +20,8 @@ qcow2: image
 containers:
 	podman build -t nazar-base -f containers/base/Containerfile .
 	podman build -t ghcr.io/alexradunet/nazar-heartbeat:latest -f containers/heartbeat/Containerfile .
-	podman build -t ghcr.io/alexradunet/nazar-matrix-bridge:latest -f containers/matrix-bridge/Containerfile .
+	podman build -t ghcr.io/alexradunet/nazar-signal-cli:latest -f containers/signal-cli/Containerfile .
+	podman build -t ghcr.io/alexradunet/nazar-signal-bridge:latest -f containers/signal-bridge/Containerfile .
 
 clean:
 	rm -rf _output/

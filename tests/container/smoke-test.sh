@@ -29,7 +29,7 @@ run_test() {
 echo "=== Building containers ==="
 podman build -t nazar-base -f containers/base/Containerfile .
 podman build -t nazar-heartbeat -f containers/heartbeat/Containerfile .
-podman build -t nazar-matrix-bridge -f containers/matrix-bridge/Containerfile .
+podman build -t nazar-signal-bridge -f containers/signal-bridge/Containerfile .
 echo ""
 
 # Test 1: Base image has node
@@ -49,9 +49,9 @@ run_test "nazar-base: @nazar/core importable" \
 run_test "nazar-heartbeat: entrypoint runs" \
   podman run --rm nazar-heartbeat
 
-# Test 5: Matrix bridge container has the built JS
-run_test "nazar-matrix-bridge: dist/index.js exists" \
-  podman run --rm nazar-matrix-bridge test -f services/matrix-bridge/dist/index.js
+# Test 5: Signal bridge container has the built JS
+run_test "nazar-signal-bridge: dist/index.js exists" \
+  podman run --rm nazar-signal-bridge test -f services/signal-bridge/dist/index.js
 
 echo "========================================="
 echo "Results: $passed passed, $failed failed"

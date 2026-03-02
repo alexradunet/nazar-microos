@@ -29,7 +29,9 @@ You are running on a Fedora bootc system managed by Nazar.
 | Service | Image | Purpose |
 |---------|-------|---------|
 | `nazar-heartbeat` | `nazar-heartbeat` | Periodic Pi heartbeat (timer, oneshot) |
-| `nazar-matrix-bridge` | `nazar-matrix-bridge` | Matrix -> Pi print mode bridge |
+| `nazar-signal-pod` | — | Quadlet pod sharing localhost for signal-cli and bridge |
+| `nazar-signal-cli` | `nazar-signal-cli` | signal-cli JSON-RPC TCP daemon |
+| `nazar-signal-bridge` | `nazar-signal-bridge` | Signal -> Pi AgentSession bridge |
 | `nazar-syncthing` | `syncthing` | File sync for object store |
 | `nazar-ttyd` | `ttyd` | Web terminal access |
 

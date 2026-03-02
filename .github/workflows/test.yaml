@@ -33,7 +33,8 @@ jobs:
         run: |
           podman build -t nazar-base -f containers/base/Containerfile .
           podman build -t nazar-heartbeat -f containers/heartbeat/Containerfile .
-          podman build -t nazar-matrix-bridge -f containers/matrix-bridge/Containerfile .
+          podman build -t nazar-signal-cli -f containers/signal-cli/Containerfile .
+          podman build -t nazar-signal-bridge -f containers/signal-bridge/Containerfile .
       - name: Smoke test
         run: |
           podman run --rm nazar-base node -e "import('./packages/nazar-core/dist/index.js').then(m => { if (typeof m.ObjectStore === 'function') console.log('OK'); else process.exit(1); })"
@@ -60,7 +61,8 @@ jobs:
       - name: Build container images
         run: |
           docker build -t nazar-base -f containers/base/Containerfile .
-          docker build -t nazar-matrix-bridge -f containers/matrix-bridge/Containerfile .
+          docker build -t nazar-signal-cli -f containers/signal-cli/Containerfile .
+          docker build -t nazar-signal-bridge -f containers/signal-bridge/Containerfile .
       - name: Run integration tests
         run: |
           if [ -f tests/integration/run.sh ]; then

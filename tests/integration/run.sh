@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Integration test: start matrix-bridge container, verify it starts and attempts connection.
+# Integration test: start signal-bridge container, verify it starts and attempts connection.
 # Requires: podman-compose or docker-compose
 
 cd "$(dirname "$0")"
@@ -25,7 +25,7 @@ cleanup() {
 trap cleanup EXIT
 
 echo "=== Starting bridge ==="
-$COMPOSE_CMD -f compose.yaml up -d matrix-bridge
+$COMPOSE_CMD -f compose.yaml up -d signal-bridge
 
 echo "=== Waiting for bridge container to start ==="
 sleep 5
@@ -44,8 +44,8 @@ else
 fi
 
 # Test 2: Bridge attempted to connect (check logs for startup message)
-logs=$($COMPOSE_CMD -f compose.yaml logs matrix-bridge 2>&1)
-if echo "$logs" | grep -q "Matrix Bridge starting"; then
+logs=$($COMPOSE_CMD -f compose.yaml logs signal-bridge 2>&1)
+if echo "$logs" | grep -q "Signal Bridge starting"; then
   echo "PASS: Bridge attempted startup"
 else
   echo "PASS: Bridge container ran (log format may vary)"

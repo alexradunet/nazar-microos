@@ -1,0 +1,17 @@
+FROM nazar-base
+
+USER root
+COPY services/signal-bridge/ services/signal-bridge/
+RUN npm -w services/signal-bridge run build
+USER nazar
+
+ENV NAZAR_OBJECTS_DIR=/data/objects
+ENV NAZAR_SIGNAL_STORAGE_DIR=/data/signal-storage
+ENV NAZAR_SIGNAL_CLI_HOST=127.0.0.1
+ENV NAZAR_SIGNAL_CLI_PORT=7583
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD test -f /data/signal-storage/healthy \
+    && test "$(find /data/signal-storage/healthy -mmin -1 2>/dev/null)" || exit 1
+
+CMD ["node", "services/signal-bridge/dist/index.js"]

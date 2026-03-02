@@ -64,7 +64,7 @@ nazar deploy --dry-run
 ### What `nazar deploy --images` does
 
 1. Builds `nazar-base` from `containers/base/Containerfile`
-2. Builds each service container (heartbeat, matrix-bridge)
+2. Builds each service container (heartbeat, signal-cli, signal-bridge)
 3. Tags them as `ghcr.io/alexradunet/nazar-*:latest` (same names the Quadlet files reference)
 4. Transfers via `podman save | ssh sudo podman load`
 5. Restarts the relevant systemd services
@@ -127,6 +127,6 @@ sudo systemctl reboot
 - Set `NAZAR_HOST` to the VM IP from `nazar vm ip`
 
 ### Services not starting on VM
-- SSH in and check logs: `journalctl -u nazar-matrix-bridge.service`
+- SSH in and check logs: `journalctl -u nazar-signal-bridge.service`
 - Re-run setup: `sudo nazar apply`
 - Check Quadlet files: `ls /etc/containers/systemd/nazar-*`

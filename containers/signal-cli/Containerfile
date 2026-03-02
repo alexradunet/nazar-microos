@@ -1,0 +1,24 @@
+FROM docker.io/eclipse-temurin:25-jre-slim
+
+ARG SIGNAL_CLI_VERSION=0.14.0
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL \
+  "https://github.com/AsamK/signal-cli/releases/download/v${SIGNAL_CLI_VERSION}/signal-cli-${SIGNAL_CLI_VERSION}.tar.gz" \
+  -o /tmp/signal-cli.tar.gz \
+  && tar -xzf /tmp/signal-cli.tar.gz -C /opt --strip-components=1 \
+  && rm /tmp/signal-cli.tar.gz
+
+ENV PATH="/opt/bin:$PATH"
+ENV NAZAR_SIGNAL_STORAGE_DIR=/data/signal-storage
+
+VOLUME /data/signal-storage
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD signal-cli --version || exit 1
+
+ENTRYPOINT ["signal-cli"]
+CMD ["--config", "/data/signal-storage", "daemon", "--tcp", "127.0.0.1:7583"]

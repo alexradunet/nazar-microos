@@ -87,7 +87,7 @@ Present the available modules with recommended defaults:
 | `ttyd`           | on      | Web terminal (Tailscale-only)    |
 | `objects`        | on      | Object store data directory      |
 | `heartbeat`      | off     | Periodic agent observation cycle |
-| `matrix`         | off     | Matrix messaging channel         |
+| `signal`         | off     | Signal messaging channel         |
 
 Ask: "Which modules would you like to change from these defaults?"
 
@@ -154,7 +154,7 @@ If the apply fails:
 4. Remind the user:
    - "Run `nazar` to start your AI assistant."
    - "Run `nazar apply` to apply future config changes safely."
-   - "Run `nazar --skill ./skills/matrix-setup/SKILL.md` to set up Matrix messaging."
+   - "Run `nazar --skill ./skills/signal-setup/SKILL.md` to set up Signal messaging."
 
 ## Module Configuration Reference
 
@@ -167,7 +167,7 @@ modules:
   ttyd: true
   objects: true
   heartbeat: false
-  matrix: false
+  signal: false
 ```
 
 ## Troubleshooting
