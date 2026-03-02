@@ -105,6 +105,7 @@ describe("generateQuadletFiles", () => {
       "nazar-signal.pod",
       "nazar-signal-cli.container",
       "nazar-signal-bridge.container",
+      "nazar-whatsapp-bridge.container",
       "nazar-syncthing.container",
       "nazar-ttyd.container",
     ]);
@@ -200,6 +201,36 @@ describe("generateQuadletFiles", () => {
     );
     assert.ok(
       bridge.content.includes("PI_CODING_AGENT_DIR=/home/nazar/.pi/agent"),
+    );
+  });
+
+  it("whatsapp-bridge container has correct structure", () => {
+    const files = generateQuadletFiles(baseConfig, "/out");
+    const wa = files.find((f) =>
+      f.path.endsWith("nazar-whatsapp-bridge.container"),
+    );
+    assert.ok(wa);
+    assert.ok(wa.content.includes("Description=Nazar WhatsApp Bridge"));
+    assert.ok(
+      wa.content.includes("Image=localhost/nazar-whatsapp-bridge:latest"),
+    );
+    assert.ok(wa.content.includes("PI_CODING_AGENT_DIR=/home/nazar/.pi/agent"));
+    // Standalone container — no Pod line
+    assert.ok(!wa.content.includes("Pod="));
+  });
+
+  it("whatsapp-bridge emits allowed contacts from config", () => {
+    const config: NazarConfig = {
+      ...baseConfig,
+      whatsapp: { allowed_contacts: ["+1555", "+1666"] },
+    };
+    const files = generateQuadletFiles(config, "/out");
+    const wa = files.find((f) =>
+      f.path.endsWith("nazar-whatsapp-bridge.container"),
+    );
+    assert.ok(wa);
+    assert.ok(
+      wa.content.includes("NAZAR_WHATSAPP_ALLOWED_CONTACTS=+1555,+1666"),
     );
   });
 

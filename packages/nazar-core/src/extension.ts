@@ -50,7 +50,7 @@ const BLOCKED_PATTERNS = [
   /\brm\s+-rf\s+\//, // rm -rf /
   /\bmkfs\b/, // filesystem format
   /\bdd\s+.*of=\/dev\//, // dd to device
-  /\b:\/\)\s*\{/, // fork bomb
+  /:\(\)\s*\{/, // fork bomb
   /\bshutdown\b/, // shutdown
   /\breboot\b/, // reboot
 ];

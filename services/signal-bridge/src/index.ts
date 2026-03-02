@@ -4,7 +4,7 @@
  * Architecture (Ports and Adapters):
  * - Port: MessageChannel interface (from @nazar/core)
  * - Adapter: TCP JSON-RPC connection to signal-cli daemon
- * - Core: Message → AgentSession.prompt() → streaming events → respond
+ * - Core: Message → AgentBridge.processMessage() → streaming events → respond
  *
  * One AgentSession per contact phone number enables persistent conversation
  * history per user. Both containers share localhost via a Quadlet pod.
@@ -13,20 +13,23 @@
 import fs from "node:fs";
 import net from "node:net";
 import path from "node:path";
-import type { AgentConfig, IncomingMessage, MessageChannel } from "@nazar/core";
+import type {
+  BridgeConfig,
+  IncomingMessage,
+  MessageChannel,
+} from "@nazar/core";
+import { AgentBridge, isAllowed, validatePhoneNumber } from "@nazar/core";
+
+// Re-export from @nazar/core for backward compatibility
+export { isAllowed, validatePhoneNumber } from "@nazar/core";
 
 // --- Signal-specific config ---
 
-export interface SignalBridgeConfig extends AgentConfig {
+export interface SignalBridgeConfig extends BridgeConfig {
   phoneNumber: string;
-  allowedContacts: string[];
   signalCliHost: string;
   signalCliPort: number;
   storageDir: string;
-  personaDir: string;
-  systemMdPath: string;
-  piModel?: string;
-  piTransport?: "sse" | "websocket" | "auto";
 }
 
 const DEFAULT_CONFIG: SignalBridgeConfig = {
@@ -39,6 +42,7 @@ const DEFAULT_CONFIG: SignalBridgeConfig = {
   storageDir: process.env.NAZAR_SIGNAL_STORAGE_DIR || "/data/signal-storage",
   personaDir: process.env.NAZAR_PERSONA_DIR || "/usr/local/share/nazar/persona",
   systemMdPath: process.env.NAZAR_SYSTEM_MD || "",
+  channelName: "Signal",
   piCommand: process.env.NAZAR_PI_COMMAND || "pi",
   piDir: process.env.PI_CODING_AGENT_DIR || `${process.env.HOME}/.pi/agent`,
   repoRoot: process.env.NAZAR_REPO_ROOT || "/var/lib/nazar",
@@ -50,169 +54,6 @@ const DEFAULT_CONFIG: SignalBridgeConfig = {
     (process.env.NAZAR_PI_TRANSPORT as "sse" | "websocket" | "auto") ||
     undefined,
 };
-
-// --- Pure helpers ---
-
-export function isAllowed(sender: string, config: SignalBridgeConfig): boolean {
-  if (config.allowedContacts.length === 0) return true;
-  return config.allowedContacts.includes(sender);
-}
-
-/** Validate E.164 phone number format. */
-export function validatePhoneNumber(phone: string): boolean {
-  return /^\+[1-9]\d{6,14}$/.test(phone);
-}
-
-// --- AgentSession integration ---
-// Dynamic import so the module can be tested without the full SDK installed.
-
-type AgentSessionEvent =
-  | {
-      type: "message_update";
-      assistantMessageEvent?: { type: string; delta: string };
-    }
-  | { type: "idle" }
-  | { type: "agent_end" }
-  | { type: "turn_end" }
-  | { type: "error"; message: string }
-  | { type: "auto_compaction_start" }
-  | { type: "auto_compaction_end" };
-
-interface AgentSession {
-  subscribe(cb: (event: AgentSessionEvent) => void): () => void;
-  prompt(text: string): Promise<void>;
-  dispose?(): void;
-  compact?(guidance?: string): Promise<unknown>;
-}
-
-// One session per contact phone number, bounded to prevent memory leaks.
-const MAX_SESSIONS = 50;
-const sessions = new Map<string, AgentSession>();
-
-async function processWithAgent(
-  text: string,
-  from: string,
-  config: SignalBridgeConfig,
-): Promise<string> {
-  // Lazy-load the Pi AgentSession SDK to allow testing without it installed.
-  const {
-    createAgentSession,
-    SessionManager,
-    AuthStorage,
-    ModelRegistry,
-    SettingsManager,
-    DefaultResourceLoader,
-  } = (await import("@mariozechner/pi-coding-agent")) as any;
-  const { getModel } = (await import("@mariozechner/pi-ai")) as any;
-  const { createNazarExtension } = await import("./extension.js");
-  const { loadPersonaPrompt, loadSystemContext } = await import("./persona.js");
-
-  let session = sessions.get(from);
-  if (!session) {
-    // Evict oldest session if at capacity
-    if (sessions.size >= MAX_SESSIONS) {
-      const oldest = sessions.keys().next().value;
-      if (oldest !== undefined) {
-        const evicted = sessions.get(oldest);
-        evicted?.dispose?.();
-        sessions.delete(oldest);
-      }
-    }
-
-    // Shared auth storage instance (item 1)
-    const authStorage = AuthStorage.create();
-
-    // Resolve model from env var (item 3)
-    const model = config.piModel ? getModel(config.piModel) : undefined;
-
-    // Settings with compaction + transport (items 6, 10)
-    const settingsManager = SettingsManager.inMemory({
-      compaction: { enabled: true },
-      ...(config.piTransport ? { transport: config.piTransport } : {}),
-    });
-
-    // Extension factory (item 9)
-    const nazarExtension = createNazarExtension();
-
-    // Load persona and system context for system prompt injection
-    const personaPrompt = loadPersonaPrompt(config.personaDir, "Signal");
-    const systemContext = config.systemMdPath
-      ? loadSystemContext(config.systemMdPath)
-      : "";
-    const appendSystemPrompt = [systemContext, personaPrompt]
-      .filter(Boolean)
-      .join("\n\n");
-
-    // Resource loader with skills + extension (item 7)
-    const cwd = config.repoRoot;
-    const agentDir = config.piDir;
-    const resourceLoader = new DefaultResourceLoader({
-      cwd,
-      agentDir,
-      settingsManager,
-      additionalSkillPaths: [config.skillsDir],
-      extensionFactories: [nazarExtension],
-      noThemes: true,
-      noPromptTemplates: true,
-      ...(appendSystemPrompt ? { appendSystemPrompt } : {}),
-    });
-    await resourceLoader.reload();
-
-    const { session: s } = await createAgentSession({
-      sessionManager: SessionManager.inMemory(),
-      authStorage,
-      modelRegistry: new ModelRegistry(authStorage),
-      settingsManager,
-      resourceLoader,
-      cwd,
-      agentDir,
-      ...(model ? { model } : {}),
-    });
-    session = s as AgentSession;
-    sessions.set(from, session);
-  }
-
-  const activeSession = session;
-  const agentPromise = new Promise<string>((resolve, reject) => {
-    let accumulated = "";
-    const unsub = activeSession.subscribe((event: AgentSessionEvent) => {
-      if (
-        event.type === "message_update" &&
-        event.assistantMessageEvent?.type === "text_delta"
-      ) {
-        accumulated += event.assistantMessageEvent.delta;
-      }
-      if (event.type === "auto_compaction_start") {
-        console.log(`[${from}] Auto-compaction started`);
-      }
-      if (event.type === "auto_compaction_end") {
-        console.log(`[${from}] Auto-compaction completed`);
-      }
-      if (
-        event.type === "idle" ||
-        event.type === "agent_end" ||
-        event.type === "turn_end"
-      ) {
-        unsub();
-        resolve(accumulated.trim() || "(no response)");
-      }
-      if (event.type === "error") {
-        unsub();
-        reject(new Error(event.message));
-      }
-    });
-    activeSession.prompt(text).catch(reject);
-  });
-
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(
-      () => reject(new Error("Agent response timed out")),
-      config.timeoutMs,
-    );
-  });
-
-  return Promise.race([agentPromise, timeoutPromise]);
-}
 
 // --- Adapter: Signal Bot Channel ---
 
@@ -366,7 +207,7 @@ export class SignalBotChannel implements MessageChannel {
 
     if (!from || !text) return;
 
-    if (!isAllowed(from, this.config)) {
+    if (!isAllowed(from, this.config.allowedContacts)) {
       console.log(`Blocked message from unauthorized contact: ${from}`);
       return;
     }
@@ -434,10 +275,9 @@ async function main(): Promise<void> {
     `  Allowed contacts: ${config.allowedContacts.length === 0 ? "all" : config.allowedContacts.join(", ")}`,
   );
 
+  const bridge = new AgentBridge(config);
   const channel = new SignalBotChannel(config);
-  channel.onMessage(async (msg) =>
-    processWithAgent(msg.text, msg.from, config),
-  );
+  channel.onMessage(async (msg) => bridge.processMessage(msg.text, msg.from));
   await channel.connect();
 }
 

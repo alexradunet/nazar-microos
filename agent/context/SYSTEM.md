@@ -32,6 +32,7 @@ You are running on a Fedora bootc system managed by Nazar.
 | `nazar-signal-pod` | — | Quadlet pod sharing localhost for signal-cli and bridge |
 | `nazar-signal-cli` | `nazar-signal-cli` | signal-cli JSON-RPC TCP daemon |
 | `nazar-signal-bridge` | `nazar-signal-bridge` | Signal -> Pi AgentSession bridge |
+| `nazar-whatsapp-bridge` | `nazar-whatsapp-bridge` | WhatsApp -> Pi AgentSession bridge |
 | `nazar-syncthing` | `syncthing` | File sync for object store |
 | `nazar-ttyd` | `ttyd` | Web terminal access |
 

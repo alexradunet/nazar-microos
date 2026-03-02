@@ -213,6 +213,33 @@ export function generateQuadletFiles(
     }),
   });
 
+  // --- WhatsApp Bridge container ---
+  const whatsappContacts: string[] = configValue(
+    config,
+    "whatsapp.allowed_contacts",
+    [],
+  );
+
+  files.push({
+    path: path.join(outputDir, "nazar-whatsapp-bridge.container"),
+    content: renderQuadletContainer({
+      name: "nazar-whatsapp-bridge",
+      image: "localhost/nazar-whatsapp-bridge:latest",
+      description: "Nazar WhatsApp Bridge",
+      volumes: [
+        "/var/lib/nazar/objects:/data/objects:rw,z",
+        "/var/lib/nazar/pi-config:/home/nazar/.pi:rw,z",
+        `${personaDir}:${personaDir}:ro,z`,
+      ],
+      environment: {
+        NAZAR_WHATSAPP_ALLOWED_CONTACTS: whatsappContacts.join(","),
+        NAZAR_SKILLS_DIR: skillsDir,
+        NAZAR_PERSONA_DIR: personaDir,
+        PI_CODING_AGENT_DIR: "/home/nazar/.pi/agent",
+      },
+    }),
+  });
+
   // --- Syncthing ---
   files.push({
     path: path.join(outputDir, "nazar-syncthing.container"),
