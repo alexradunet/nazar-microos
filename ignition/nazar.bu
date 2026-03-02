@@ -205,14 +205,12 @@ systemd:
     # --- First-boot RPM layering ---
     - name: nazar-rpm-layer.service
       enabled: true
-      contents:
-        local: ignition/files/nazar-rpm-layer.service
+      contents_local: ignition/files/nazar-rpm-layer.service
 
     # --- First-boot setup (after RPM layer reboot) ---
     - name: nazar-setup.service
       enabled: true
-      contents:
-        local: ignition/files/nazar-setup.service
+      contents_local: ignition/files/nazar-setup.service
 
     # --- Tailscale ---
     - name: tailscaled.service

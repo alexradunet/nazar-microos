@@ -33,7 +33,12 @@ die() { echo "ERROR: $*" >&2; exit 1; }
 info() { echo ":: $*"; }
 warn() { echo "WARNING: $*" >&2; }
 
-virsh_cmd() { virsh --connect "$VIRSH_URI" "$@"; }
+# Cache sudo credentials once upfront, then use sudo -n everywhere
+ensure_sudo() {
+  sudo -v || die "sudo is required for VM management"
+}
+
+virsh_cmd() { sudo -n virsh --connect "$VIRSH_URI" "$@"; }
 
 vm_exists() { virsh_cmd dominfo "$VM_NAME" &>/dev/null; }
 
@@ -69,6 +74,7 @@ wait_for_ip() {
 # --- Commands ---
 
 cmd_create() {
+  ensure_sudo
   vm_exists && die "VM '$VM_NAME' already exists. Run 'nazar vm destroy' first."
   [[ -f "$AUTH_KEYS" ]] || die "SSH key not found: $AUTH_KEYS
 Copy your public key:  cp ~/.ssh/id_ed25519.pub $AUTH_KEYS"
@@ -79,7 +85,7 @@ Copy your public key:  cp ~/.ssh/id_ed25519.pub $AUTH_KEYS"
 
   if [[ -z "$qcow2_file" ]]; then
     info "Downloading Fedora CoreOS QCOW2..."
-    podman run --rm -v "$IGNITION_DIR:/data" -w /data \
+    podman run --rm --security-opt label=disable -v "$IGNITION_DIR:/data" -w /data \
       quay.io/coreos/coreos-installer:release \
       download -s stable -p qemu -f qcow2.xz --decompress -C /data
     qcow2_file=$(find "$IGNITION_DIR" -name 'fedora-coreos-*.qcow2' -print -quit)
@@ -88,22 +94,29 @@ Copy your public key:  cp ~/.ssh/id_ed25519.pub $AUTH_KEYS"
     info "Using existing FCOS image: $(basename "$qcow2_file")"
   fi
 
-  # Build Ignition config
+  # Build Ignition config (runs butane in a container, same as Makefile)
   info "Building Ignition config..."
-  make -C "$IGNITION_DIR" || die "Ignition build failed"
+  podman run --rm --security-opt label=disable -v "$PROJECT_ROOT:/pwd" -w /pwd/ignition \
+    quay.io/coreos/butane:release --files-dir /pwd \
+    --pretty --strict nazar.bu > "$IGNITION_DIR/nazar.ign" \
+    || die "Ignition build failed"
 
   local ign_file="$IGNITION_DIR/nazar.ign"
   [[ -f "$ign_file" ]] || die "Ignition file not found: $ign_file"
 
-  # Create VM disk from base image
-  local vm_disk="$IGNITION_DIR/nazar-dev.qcow2"
+  # Copy VM disk and ignition to libvirt images dir (qemu user needs access)
+  local libvirt_dir="/var/lib/libvirt/images"
+  local vm_disk="$libvirt_dir/nazar-dev.qcow2"
+  local vm_ign="$libvirt_dir/nazar.ign"
+
   info "Creating VM disk from base image..."
-  cp "$qcow2_file" "$vm_disk"
-  qemu-img resize "$vm_disk" "$VM_DISK_SIZE"
+  sudo -n cp "$qcow2_file" "$vm_disk"
+  sudo -n qemu-img resize "$vm_disk" "$VM_DISK_SIZE"
+  sudo -n cp "$ign_file" "$vm_ign"
 
   # Create VM
   info "Creating VM '$VM_NAME'..."
-  virt-install --connect "$VIRSH_URI" \
+  sudo -n virt-install --connect "$VIRSH_URI" \
     --name "$VM_NAME" \
     --memory "$VM_MEMORY" \
     --vcpus "$VM_VCPUS" \
@@ -112,7 +125,7 @@ Copy your public key:  cp ~/.ssh/id_ed25519.pub $AUTH_KEYS"
     --disk "path=$vm_disk" \
     --os-variant fedora-coreos-stable \
     --network network=default \
-    --qemu-commandline="-fw_cfg name=opt/com.coreos/config,file=$(realpath "$ign_file")" \
+    --qemu-commandline="-fw_cfg name=opt/com.coreos/config,file=$vm_ign" \
     --noautoconsole
 
   info "VM '$VM_NAME' created and starting."
@@ -127,6 +140,7 @@ Copy your public key:  cp ~/.ssh/id_ed25519.pub $AUTH_KEYS"
 }
 
 cmd_start() {
+  ensure_sudo
   vm_exists || die "VM '$VM_NAME' does not exist. Run 'nazar vm create' first."
   vm_running && { info "VM '$VM_NAME' is already running."; return; }
   info "Starting VM '$VM_NAME'..."
@@ -137,6 +151,7 @@ cmd_start() {
 }
 
 cmd_stop() {
+  ensure_sudo
   vm_exists || die "VM '$VM_NAME' does not exist."
   vm_running || { info "VM '$VM_NAME' is not running."; return; }
   info "Shutting down VM '$VM_NAME'..."
@@ -145,6 +160,7 @@ cmd_stop() {
 }
 
 cmd_destroy() {
+  ensure_sudo
   vm_exists || die "VM '$VM_NAME' does not exist."
 
   read -r -p "Destroy VM '$VM_NAME' and remove all storage? [y/N] " confirm
@@ -158,13 +174,14 @@ cmd_destroy() {
   info "Removing VM and storage..."
   virsh_cmd undefine --remove-all-storage "$VM_NAME" 2>/dev/null || true
 
-  # Clean up the disk copy if it still exists
-  rm -f "$IGNITION_DIR/nazar-dev.qcow2"
+  # Clean up ignition copy from libvirt dir
+  sudo -n rm -f /var/lib/libvirt/images/nazar.ign
 
   info "VM '$VM_NAME' destroyed."
 }
 
 cmd_ssh() {
+  ensure_sudo
   vm_exists || die "VM '$VM_NAME' does not exist."
   vm_running || die "VM '$VM_NAME' is not running. Start it with: nazar vm start"
 
@@ -177,6 +194,7 @@ cmd_ssh() {
 }
 
 cmd_ip() {
+  ensure_sudo
   vm_exists || die "VM '$VM_NAME' does not exist."
   vm_running || die "VM '$VM_NAME' is not running."
 
@@ -187,6 +205,7 @@ cmd_ip() {
 }
 
 cmd_status() {
+  ensure_sudo
   if ! vm_exists; then
     echo "VM '$VM_NAME': not created"
     return
