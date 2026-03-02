@@ -7,7 +7,9 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
+ExecStart=/usr/bin/npm install -g @mariozechner/pi-coding-agent
 ExecStart=/usr/local/bin/nazar apply
+ExecStart=/bin/bash -c 'mkdir -p /home/core/.pi/agent && ln -sfn /usr/local/share/nazar/skills /home/core/.pi/agent/skills && ln -sfn /usr/local/share/nazar/persona/SOUL.md /home/core/.pi/agent/SYSTEM.md && chown -R core:core /home/core/.pi'
 ExecStartPost=/usr/bin/touch /etc/nazar/.setup-complete
 RemainAfterExit=yes
 TimeoutStartSec=300

@@ -1,47 +1,27 @@
 # /etc/nazar/nazar.yaml — Nazar system configuration
 # Edit this file, then run: nazar apply
 
-# --- Identity ---
 hostname: nazar-box
 primary_user: alex
 timezone: UTC
 
-# --- Modules ---
-modules:
-  tailscale:
-    enable: true
-  syncthing:
-    enable: true
-  ttyd:
-    enable: true
-    port: 7681
-  desktop:
-    enable: false
-    environment: gnome    # gnome | kde | sway
-  objects:
-    enable: true
-    store_path: /var/lib/nazar/objects
-  heartbeat:
-    enable: true
-    interval: 30m
-  channels:
-    matrix:
-      enable: true
-      homeserver: conduit
-      allowed_users: []
+heartbeat:
+  interval: 30m
 
-# --- Pi agent ---
+ttyd:
+  port: 7681
+
+matrix:
+  homeserver: conduit
+  allowed_users: []
+
 pi:
-  version: "0.55.3"
   skills_dir: /usr/local/share/nazar/skills
   persona_dir: /usr/local/share/nazar/persona
 
-# --- Evolution ---
 evolution:
-  # Maximum containers per single evolution (safety limit)
   max_containers_per_evolution: 5
 
-# --- Networking ---
 firewall:
   restrict_to_tailscale: true
   open_ports: []

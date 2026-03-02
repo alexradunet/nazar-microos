@@ -57,7 +57,7 @@ get_vm_ip() {
 
 wait_for_ip() {
   local timeout=60 elapsed=0
-  info "Waiting for VM to get an IP address..."
+  info "Waiting for VM to get an IP address..." >&2
   while [[ $elapsed -lt $timeout ]]; do
     local ip
     ip=$(get_vm_ip)

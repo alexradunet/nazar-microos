@@ -38,70 +38,37 @@ primary_user="$(yq '.primary_user // ""' "$NAZAR_CONFIG")"
 # --- Validate config schema ---
 yq '.' "$NAZAR_CONFIG" > /dev/null 2>&1 || die "invalid YAML syntax in $NAZAR_CONFIG"
 
-hb_interval="$(yq '.modules.heartbeat.interval // ""' "$NAZAR_CONFIG")"
-if [[ -n "$hb_interval" && "$hb_interval" != "null" ]]; then
-  [[ "$hb_interval" =~ ^[0-9]+[mhd]$ ]] || die "invalid heartbeat interval '$hb_interval' (expected format: 30m, 2h, 1d)"
-fi
-
-ttyd_port="$(yq '.modules.ttyd.port // ""' "$NAZAR_CONFIG")"
-if [[ -n "$ttyd_port" && "$ttyd_port" != "null" ]]; then
-  [[ "$ttyd_port" =~ ^[0-9]+$ ]] || die "invalid ttyd port '$ttyd_port' (must be numeric)"
-fi
-
-matrix_enabled="$(yq '.modules.channels.matrix.enable // "false"' "$NAZAR_CONFIG")"
-if [[ "$matrix_enabled" == "true" ]]; then
-  matrix_homeserver="$(yq '.modules.channels.matrix.homeserver // ""' "$NAZAR_CONFIG")"
-  [[ -n "$matrix_homeserver" && "$matrix_homeserver" != "null" ]] || die "matrix is enabled but 'modules.channels.matrix.homeserver' is missing"
-fi
-
-if [[ "$DRY_RUN" -eq 0 ]]; then
-  [[ -w "$QUADLET_OUTPUT_DIR" ]] || { mkdir -p "$QUADLET_OUTPUT_DIR" 2>/dev/null && [[ -w "$QUADLET_OUTPUT_DIR" ]]; } || die "output directory is not writable: $QUADLET_OUTPUT_DIR"
-fi
-
-# --- Helper: read module config ---
-module_enabled() {
-  local path="$1"
-  local val
-  val="$(yq "$path" "$NAZAR_CONFIG")"
-  [[ "$val" == "true" ]]
-}
-
-module_value() {
+# --- Helper: read config value with default ---
+config_value() {
   local path="$1" default="$2"
   local val
   val="$(yq "$path // \"$default\"" "$NAZAR_CONFIG")"
   echo "$val"
 }
 
+if [[ "$DRY_RUN" -eq 0 ]]; then
+  [[ -w "$QUADLET_OUTPUT_DIR" ]] || { mkdir -p "$QUADLET_OUTPUT_DIR" 2>/dev/null && [[ -w "$QUADLET_OUTPUT_DIR" ]]; } || die "output directory is not writable: $QUADLET_OUTPUT_DIR"
+fi
+
 # --- Create output directory ---
 mkdir -p "$QUADLET_OUTPUT_DIR"
 
-# --- Generate Quadlet files for enabled modules ---
-#
-# NOTE: The following images use :latest tags. For production reproducibility,
-# pin these to specific digests or version tags:
-#   - ghcr.io/alexradunet/nazar-heartbeat:latest
-#   - docker.io/matrixconduit/matrix-conduit:latest
-#   - ghcr.io/alexradunet/nazar-matrix-bridge:latest
-#   - docker.io/syncthing/syncthing:latest
-#   - docker.io/tsl0922/ttyd:latest
+# --- Generate Quadlet files ---
 
 # Heartbeat
-if module_enabled '.modules.heartbeat.enable'; then
-  interval="$(module_value '.modules.heartbeat.interval' '30m')"
-  # Convert interval to OnCalendar format: Xm (minutes), Xh (hours), Xd (daily)
-  if [[ "$interval" =~ ^([0-9]+)m$ ]]; then
-    on_calendar="*:0/${BASH_REMATCH[1]}"
-  elif [[ "$interval" =~ ^([0-9]+)h$ ]]; then
-    on_calendar="*-*-* 0/${BASH_REMATCH[1]}:00:00"
-  elif [[ "$interval" =~ ^([0-9]+)d$ ]]; then
-    on_calendar="*-*-1/${BASH_REMATCH[1]} 00:00:00"
-  else
-    echo "Warning: unrecognized interval '$interval', defaulting to 30m" >&2
-    on_calendar="*:0/30"
-  fi
+interval="$(config_value '.heartbeat.interval' '30m')"
+if [[ "$interval" =~ ^([0-9]+)m$ ]]; then
+  on_calendar="*:0/${BASH_REMATCH[1]}"
+elif [[ "$interval" =~ ^([0-9]+)h$ ]]; then
+  on_calendar="*-*-* 0/${BASH_REMATCH[1]}:00:00"
+elif [[ "$interval" =~ ^([0-9]+)d$ ]]; then
+  on_calendar="*-*-1/${BASH_REMATCH[1]} 00:00:00"
+else
+  echo "Warning: unrecognized interval '$interval', defaulting to 30m" >&2
+  on_calendar="*:0/30"
+fi
 
-  cat > "$QUADLET_OUTPUT_DIR/nazar-heartbeat.container" <<EOF
+cat > "$QUADLET_OUTPUT_DIR/nazar-heartbeat.container" <<EOF
 [Unit]
 Description=Nazar Heartbeat Service
 After=network-online.target
@@ -119,7 +86,7 @@ Type=oneshot
 Restart=no
 EOF
 
-  cat > "$QUADLET_OUTPUT_DIR/nazar-heartbeat.timer" <<EOF
+cat > "$QUADLET_OUTPUT_DIR/nazar-heartbeat.timer" <<EOF
 [Unit]
 Description=Nazar Heartbeat Timer
 
@@ -130,12 +97,10 @@ Persistent=true
 [Install]
 WantedBy=timers.target
 EOF
-  GENERATED_COUNT=$((GENERATED_COUNT + 2))
-fi
+GENERATED_COUNT=$((GENERATED_COUNT + 2))
 
 # Matrix (Conduit + Bridge)
-if module_enabled '.modules.channels.matrix.enable'; then
-  cat > "$QUADLET_OUTPUT_DIR/nazar-conduit.container" <<EOF
+cat > "$QUADLET_OUTPUT_DIR/nazar-conduit.container" <<EOF
 [Unit]
 Description=Nazar Conduit Matrix Homeserver
 After=network-online.target
@@ -156,9 +121,9 @@ Restart=always
 [Install]
 WantedBy=default.target
 EOF
-  GENERATED_COUNT=$((GENERATED_COUNT + 1))
+GENERATED_COUNT=$((GENERATED_COUNT + 1))
 
-  cat > "$QUADLET_OUTPUT_DIR/nazar-matrix-bridge.container" <<EOF
+cat > "$QUADLET_OUTPUT_DIR/nazar-matrix-bridge.container" <<EOF
 [Unit]
 Description=Nazar Matrix Bridge
 After=nazar-conduit.service
@@ -176,12 +141,10 @@ Restart=always
 [Install]
 WantedBy=default.target
 EOF
-  GENERATED_COUNT=$((GENERATED_COUNT + 1))
-fi
+GENERATED_COUNT=$((GENERATED_COUNT + 1))
 
 # Syncthing
-if module_enabled '.modules.syncthing.enable'; then
-  cat > "$QUADLET_OUTPUT_DIR/nazar-syncthing.container" <<EOF
+cat > "$QUADLET_OUTPUT_DIR/nazar-syncthing.container" <<EOF
 [Unit]
 Description=Nazar Syncthing
 After=network-online.target
@@ -201,13 +164,11 @@ Restart=always
 [Install]
 WantedBy=default.target
 EOF
-  GENERATED_COUNT=$((GENERATED_COUNT + 1))
-fi
+GENERATED_COUNT=$((GENERATED_COUNT + 1))
 
 # ttyd
-if module_enabled '.modules.ttyd.enable'; then
-  ttyd_port="$(module_value '.modules.ttyd.port' '7681')"
-  cat > "$QUADLET_OUTPUT_DIR/nazar-ttyd.container" <<EOF
+ttyd_port="$(config_value '.ttyd.port' '7681')"
+cat > "$QUADLET_OUTPUT_DIR/nazar-ttyd.container" <<EOF
 [Unit]
 Description=Nazar Web Terminal (ttyd)
 After=network-online.target
@@ -222,8 +183,7 @@ Restart=always
 [Install]
 WantedBy=default.target
 EOF
-  GENERATED_COUNT=$((GENERATED_COUNT + 1))
-fi
+GENERATED_COUNT=$((GENERATED_COUNT + 1))
 
 # --- Summary ---
 echo "Generated $GENERATED_COUNT Quadlet file(s) in $QUADLET_OUTPUT_DIR"
