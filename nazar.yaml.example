@@ -12,7 +12,7 @@ ttyd:
   port: 7681
 
 matrix:
-  homeserver: conduit
+  homeserver_url: https://matrix.org
   allowed_users: []
 
 pi:

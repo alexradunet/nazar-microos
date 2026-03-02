@@ -38,7 +38,7 @@ const DEFAULT_CONFIG: MatrixBridgeConfig = {
   repoRoot: process.env.NAZAR_REPO_ROOT || `/var/lib/nazar`,
   objectsDir: process.env.NAZAR_OBJECTS_DIR || `/var/lib/nazar/objects`,
   skillsDir: process.env.NAZAR_SKILLS_DIR || `/usr/share/nazar/skills`,
-  homeserverUrl: process.env.NAZAR_MATRIX_HOMESERVER || "http://localhost:6167",
+  homeserverUrl: process.env.NAZAR_MATRIX_HOMESERVER || "",
   accessToken: process.env.NAZAR_MATRIX_ACCESS_TOKEN || "",
   allowedUsers: (process.env.NAZAR_MATRIX_ALLOWED_USERS || "")
     .split(",")
@@ -209,6 +209,13 @@ export function validateMatrixUserId(userId: string): boolean {
 
 async function main(): Promise<void> {
   const config = { ...DEFAULT_CONFIG };
+
+  // Validate homeserver URL
+  if (!config.homeserverUrl) {
+    throw new Error(
+      "NAZAR_MATRIX_HOMESERVER is required (e.g. https://matrix.org)",
+    );
+  }
 
   // Validate access token
   if (!config.accessToken) {

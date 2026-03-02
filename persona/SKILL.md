@@ -17,7 +17,7 @@ This layer defines Nazar's current competency inventory — what it can do today
 ### Communication Channels
 
 - Matrix bridge via matrix-bot-sdk — receives messages, processes through Pi, sends responses.
-- Self-hosted Conduit homeserver — local, private, no federation.
+- Connects to any Matrix homeserver (e.g. matrix.org) — no self-hosted server required.
 - Allowed-user whitelist for access control (Matrix user IDs).
 - Message queue for sequential processing (avoids Pi session conflicts).
 - Interactive setup skill: can guide users through Matrix channel provisioning.

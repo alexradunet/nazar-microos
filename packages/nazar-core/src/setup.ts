@@ -99,7 +99,6 @@ export function generateQuadletFiles(
   outputDir: string,
 ): GeneratedFile[] {
   const files: GeneratedFile[] = [];
-  const hostname = config.hostname;
 
   // --- Heartbeat (.container + .timer) ---
   const interval = configValue(config, "heartbeat.interval", "30m");
@@ -139,25 +138,6 @@ export function generateQuadletFiles(
     ].join("\n"),
   });
 
-  // --- Conduit (Matrix homeserver) ---
-  files.push({
-    path: path.join(outputDir, "nazar-conduit.container"),
-    content: renderQuadletContainer({
-      name: "nazar-conduit",
-      image: "docker.io/matrixconduit/matrix-conduit:latest",
-      description: "Nazar Conduit Matrix Homeserver",
-      volumes: ["/var/lib/nazar/conduit:/var/lib/matrix-conduit:rw,z"],
-      environment: {
-        CONDUIT_SERVER_NAME: hostname,
-        CONDUIT_DATABASE_BACKEND: "rocksdb",
-        CONDUIT_DATABASE_PATH: "/var/lib/matrix-conduit",
-        CONDUIT_PORT: "6167",
-        CONDUIT_CONFIG: "",
-      },
-      publishPorts: ["6167:6167"],
-    }),
-  });
-
   // --- Matrix Bridge ---
   files.push({
     path: path.join(outputDir, "nazar-matrix-bridge.container"),
@@ -165,14 +145,12 @@ export function generateQuadletFiles(
       name: "nazar-matrix-bridge",
       image: "ghcr.io/alexradunet/nazar-matrix-bridge:latest",
       description: "Nazar Matrix Bridge",
-      after: "nazar-conduit.service",
       volumes: [
         "/var/lib/nazar/objects:/data/objects:rw,z",
         "/etc/nazar:/etc/nazar:ro,z",
       ],
       environment: {
         NAZAR_CONFIG: "/etc/nazar/nazar.yaml",
-        MATRIX_HOMESERVER_URL: "http://nazar-conduit:6167",
       },
     }),
   });

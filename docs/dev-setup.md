@@ -127,6 +127,6 @@ sudo systemctl reboot
 - Set `NAZAR_HOST` to the VM IP from `nazar vm ip`
 
 ### Services not starting on VM
-- SSH in and check logs: `journalctl -u nazar-conduit.service`
+- SSH in and check logs: `journalctl -u nazar-matrix-bridge.service`
 - Re-run setup: `sudo nazar apply`
 - Check Quadlet files: `ls /etc/containers/systemd/nazar-*`

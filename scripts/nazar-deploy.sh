@@ -135,7 +135,6 @@ deploy_images() {
     info "Restarting nazar services on VM..."
     remote_sudo "systemctl daemon-reload"
     remote_sudo "systemctl try-restart nazar-heartbeat.timer" || warn "heartbeat timer restart failed"
-    remote_sudo "systemctl try-restart nazar-conduit.service" || warn "conduit restart failed"
     remote_sudo "systemctl try-restart nazar-matrix-bridge.service" || warn "matrix-bridge restart failed"
   fi
 
@@ -241,7 +240,6 @@ health_check() {
 
   local services=(
     "nazar-heartbeat.timer"
-    "nazar-conduit.service"
     "nazar-matrix-bridge.service"
   )
 

@@ -29,7 +29,6 @@ You are running on a Fedora bootc system managed by Nazar.
 | Service | Image | Purpose |
 |---------|-------|---------|
 | `nazar-heartbeat` | `nazar-heartbeat` | Periodic Pi heartbeat (timer, oneshot) |
-| `nazar-conduit` | `matrix-conduit` | Self-hosted Matrix homeserver |
 | `nazar-matrix-bridge` | `nazar-matrix-bridge` | Matrix -> Pi print mode bridge |
 | `nazar-syncthing` | `syncthing` | File sync for object store |
 | `nazar-ttyd` | `ttyd` | Web terminal access |
@@ -40,7 +39,6 @@ You are running on a Fedora bootc system managed by Nazar.
 |------|----------|
 | `/etc/nazar/nazar.yaml` | System configuration |
 | `/var/lib/nazar/objects/` | Object store (journals, tasks, notes, etc.) |
-| `/var/lib/nazar/conduit/` | Conduit Matrix homeserver data |
 | `/etc/containers/systemd/` | Generated Quadlet .container files |
 | `/usr/local/share/nazar/persona/` | OpenPersona identity files |
 | `/usr/local/share/nazar/skills/` | Pi agent skills |

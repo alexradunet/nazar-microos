@@ -92,7 +92,6 @@ describe("generateQuadletFiles", () => {
     assert.deepEqual(names, [
       "nazar-heartbeat.container",
       "nazar-heartbeat.timer",
-      "nazar-conduit.container",
       "nazar-matrix-bridge.container",
       "nazar-syncthing.container",
       "nazar-ttyd.container",
@@ -129,25 +128,13 @@ describe("generateQuadletFiles", () => {
     assert.ok(timer.content.includes("OnCalendar=*-*-* 0/2:00:00"));
   });
 
-  it("conduit uses hostname for server name", () => {
-    const files = generateQuadletFiles(baseConfig, "/out");
-    const conduit = files.find((f) =>
-      f.path.endsWith("nazar-conduit.container"),
-    );
-    assert.ok(conduit);
-    assert.ok(
-      conduit.content.includes("Environment=CONDUIT_SERVER_NAME=nazar-box"),
-    );
-    assert.ok(conduit.content.includes("PublishPort=6167:6167"));
-  });
-
-  it("matrix bridge depends on conduit", () => {
+  it("matrix bridge uses default network dependency", () => {
     const files = generateQuadletFiles(baseConfig, "/out");
     const bridge = files.find((f) =>
       f.path.endsWith("nazar-matrix-bridge.container"),
     );
     assert.ok(bridge);
-    assert.ok(bridge.content.includes("After=nazar-conduit.service"));
+    assert.ok(bridge.content.includes("After=network-online.target"));
   });
 
   it("ttyd uses configured port", () => {
