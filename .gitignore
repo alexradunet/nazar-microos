@@ -1,10 +1,24 @@
+# Dependencies
 node_modules/
+
+# TypeScript build output
 dist/
-.pre-commit-config.yaml
-data/objects/
+*.tsbuildinfo
+
+# Build artifacts
+_output/
+
+# Disk images
 *.raw
 *.raw.xz
-*.tsbuildinfo
+*.qcow2
+
+# Local config (secrets/machine-specific)
 .nazar-deploy.env
-_output/
 bootc/config.toml
+
+# Data directories
+data/
+
+# Legacy
+.pre-commit-config.yaml

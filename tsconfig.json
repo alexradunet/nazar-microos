@@ -1,0 +1,7 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/nazar-core" },
+    { "path": "services/matrix-bridge" }
+  ]
+}
