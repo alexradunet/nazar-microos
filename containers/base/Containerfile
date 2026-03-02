@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 # Create nazar user
-RUN useradd -m -s /bin/bash nazar
+RUN useradd -m -u 900 -s /bin/bash nazar
 
 # Set up workspace
 WORKDIR /app

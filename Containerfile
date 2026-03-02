@@ -39,7 +39,8 @@ RUN ln -s /usr/local/lib/nazar-core/dist/cli.js /usr/local/bin/nazar-core \
 COPY scripts/nazar /usr/local/bin/nazar
 COPY scripts/nazar-vm.sh /usr/local/bin/nazar-vm
 COPY scripts/nazar-deploy.sh /usr/local/bin/nazar-deploy
-RUN chmod 0755 /usr/local/bin/nazar /usr/local/bin/nazar-vm /usr/local/bin/nazar-deploy \
+COPY scripts/nazar-signal-setup.sh /usr/local/bin/nazar-signal-setup
+RUN chmod 0755 /usr/local/bin/nazar /usr/local/bin/nazar-vm /usr/local/bin/nazar-deploy /usr/local/bin/nazar-signal-setup \
     && mkdir -p /etc/nazar /usr/local/share/nazar/persona /usr/local/share/nazar/skills
 
 # Config, docs, persona, skills

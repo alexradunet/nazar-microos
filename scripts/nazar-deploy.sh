@@ -152,6 +152,7 @@ deploy_scripts() {
     "scripts/nazar:/usr/local/bin/nazar"
     "scripts/nazar-vm.sh:/usr/local/bin/nazar-vm"
     "scripts/nazar-deploy.sh:/usr/local/bin/nazar-deploy"
+    "scripts/nazar-signal-setup.sh:/usr/local/bin/nazar-signal-setup"
   )
 
   for entry in "${scripts[@]}"; do

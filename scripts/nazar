@@ -12,6 +12,7 @@ set -euo pipefail
 #   nazar vm <cmd>             Dev VM lifecycle (create/start/stop/destroy/ssh)
 #   nazar evolve <cmd> ...     Container evolution lifecycle
 #   nazar object <cmd> ...     Object store CRUD
+#   nazar signal <cmd>         Signal account setup (check/link/register/verify/accounts)
 #   nazar pi [args]            Launch Pi agent with persona + skills
 #   nazar setup                Interactive first-time setup (Pi with install-nazar skill)
 #   nazar                      Interactive Pi session (no args)
@@ -96,6 +97,10 @@ case "$cmd" in
     exec nazar-core object "$@"
     ;;
 
+  signal)
+    exec nazar-signal-setup "$@"
+    ;;
+
   pi)
     exec pi "$@"
     ;;
@@ -112,7 +117,7 @@ case "$cmd" in
   *)
     echo "Error: unknown command: $cmd" >&2
     echo "" >&2
-    echo "Usage: nazar <apply|status|update|rollback|deploy|vm|evolve|object|pi|setup>" >&2
+    echo "Usage: nazar <apply|status|update|rollback|deploy|vm|evolve|object|signal|pi|setup>" >&2
     exit 1
     ;;
 esac

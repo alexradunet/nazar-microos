@@ -12,7 +12,7 @@ RUN curl -fsSL \
   && tar -xzf /tmp/signal-cli.tar.gz -C /opt --strip-components=1 \
   && rm /tmp/signal-cli.tar.gz
 
-RUN useradd -r -s /sbin/nologin signal
+RUN useradd -r -u 900 -s /sbin/nologin signal
 
 ENV PATH="/opt/bin:$PATH"
 ENV NAZAR_SIGNAL_STORAGE_DIR=/data/signal-storage
