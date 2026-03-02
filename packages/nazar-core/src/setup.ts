@@ -50,6 +50,10 @@ export function renderQuadletContainer(
   lines.push("[Container]");
   lines.push(`Image=${spec.image}`);
 
+  if (spec.pod) {
+    lines.push(`Pod=${spec.pod}`);
+  }
+
   if (spec.volumes) {
     for (const vol of spec.volumes) {
       lines.push(`Volume=${vol}`);
@@ -138,20 +142,51 @@ export function generateQuadletFiles(
     ].join("\n"),
   });
 
-  // --- Matrix Bridge ---
+  // --- Signal Pod ---
   files.push({
-    path: path.join(outputDir, "nazar-matrix-bridge.container"),
+    path: path.join(outputDir, "nazar-signal.pod"),
+    content: [
+      "[Unit]",
+      "Description=Nazar Signal Pod",
+      "After=network-online.target",
+      "",
+      "[Pod]",
+      "",
+      "[Install]",
+      "WantedBy=default.target",
+      "",
+    ].join("\n"),
+  });
+
+  // --- Signal CLI container ---
+  files.push({
+    path: path.join(outputDir, "nazar-signal-cli.container"),
     content: renderQuadletContainer({
-      name: "nazar-matrix-bridge",
-      image: "ghcr.io/alexradunet/nazar-matrix-bridge:latest",
-      description: "Nazar Matrix Bridge",
+      name: "nazar-signal-cli",
+      image: "ghcr.io/alexradunet/nazar-signal-cli:latest",
+      description: "Nazar Signal CLI Daemon",
+      volumes: ["/var/lib/nazar/signal-storage:/data/signal-storage:rw,z"],
+      environment: { NAZAR_SIGNAL_STORAGE_DIR: "/data/signal-storage" },
+      pod: "nazar-signal.pod",
+    }),
+  });
+
+  // --- Signal Bridge container ---
+  files.push({
+    path: path.join(outputDir, "nazar-signal-bridge.container"),
+    content: renderQuadletContainer({
+      name: "nazar-signal-bridge",
+      image: "ghcr.io/alexradunet/nazar-signal-bridge:latest",
+      description: "Nazar Signal Bridge",
       volumes: [
         "/var/lib/nazar/objects:/data/objects:rw,z",
+        "/var/lib/nazar/signal-storage:/data/signal-storage:rw,z",
         "/etc/nazar:/etc/nazar:ro,z",
+        "/var/lib/nazar/pi-config:/home/nazar/.pi:rw,z",
       ],
-      environment: {
-        NAZAR_CONFIG: "/etc/nazar/nazar.yaml",
-      },
+      environment: { NAZAR_CONFIG: "/etc/nazar/nazar.yaml" },
+      pod: "nazar-signal.pod",
+      after: "nazar-signal-cli.service",
     }),
   });
 

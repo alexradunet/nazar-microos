@@ -15,7 +15,7 @@ qcow2: image
 	  -v ./_output:/output \
 	  -v /var/lib/containers/storage:/var/lib/containers/storage \
 	  quay.io/centos-bootc/bootc-image-builder:latest \
-	  --type qcow2 --config /config.toml $(IMAGE_NAME):$(IMAGE_TAG)
+	  --type qcow2 --rootfs xfs --config /config.toml $(IMAGE_NAME):$(IMAGE_TAG)
 
 containers:
 	podman build -t nazar-base -f containers/base/Containerfile .

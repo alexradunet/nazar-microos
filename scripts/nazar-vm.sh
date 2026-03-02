@@ -83,11 +83,15 @@ cmd_create() {
   [[ -f "$BOOTC_CONFIG" ]] || die "SSH key config not found: $BOOTC_CONFIG
 Copy bootc/config.toml.example to bootc/config.toml and add your SSH public key."
 
-  # Build the bootc OS image
+  # Build the bootc OS image (must use sudo podman so the image lands in
+  # system storage, which bootc-image-builder mounts via /var/lib/containers/storage)
   info "Building bootc OS image..."
   cd "$PROJECT_ROOT"
-  podman build -t "${IMAGE_NAME}:${IMAGE_TAG}" -f Containerfile . \
+  sudo -n podman build -t "${IMAGE_NAME}:${IMAGE_TAG}" -f Containerfile . \
     || die "OS image build failed"
+
+  # Refresh sudo credentials (build may have taken longer than the cache timeout)
+  ensure_sudo
 
   # Generate QCOW2 via bootc-image-builder
   info "Generating QCOW2 disk image..."
@@ -98,7 +102,7 @@ Copy bootc/config.toml.example to bootc/config.toml and add your SSH public key.
     -v "$PROJECT_ROOT/_output":/output \
     -v /var/lib/containers/storage:/var/lib/containers/storage \
     quay.io/centos-bootc/bootc-image-builder:latest \
-    --type qcow2 --config /config.toml "${IMAGE_NAME}:${IMAGE_TAG}" \
+    --type qcow2 --rootfs xfs --config /config.toml "${IMAGE_NAME}:${IMAGE_TAG}" \
     || die "QCOW2 generation failed"
 
   local qcow2_file="$PROJECT_ROOT/_output/qcow2/disk.qcow2"

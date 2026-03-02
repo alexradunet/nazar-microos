@@ -65,6 +65,16 @@ describe("renderQuadletContainer", () => {
     assert.ok(content.includes("PublishPort=443:443"));
   });
 
+  it("renders pod membership", () => {
+    const content = renderQuadletContainer({
+      name: "nazar-test",
+      image: "test:latest",
+      description: "Test",
+      pod: "nazar-signal.pod",
+    });
+    assert.ok(content.includes("Pod=nazar-signal.pod"));
+  });
+
   it("renders oneshot service type", () => {
     const content = renderQuadletContainer({
       name: "nazar-test",
@@ -92,7 +102,9 @@ describe("generateQuadletFiles", () => {
     assert.deepEqual(names, [
       "nazar-heartbeat.container",
       "nazar-heartbeat.timer",
-      "nazar-matrix-bridge.container",
+      "nazar-signal.pod",
+      "nazar-signal-cli.container",
+      "nazar-signal-bridge.container",
       "nazar-syncthing.container",
       "nazar-ttyd.container",
     ]);
@@ -128,13 +140,36 @@ describe("generateQuadletFiles", () => {
     assert.ok(timer.content.includes("OnCalendar=*-*-* 0/2:00:00"));
   });
 
-  it("matrix bridge uses default network dependency", () => {
+  it("signal pod file includes [Pod] section", () => {
+    const files = generateQuadletFiles(baseConfig, "/out");
+    const pod = files.find((f) => f.path.endsWith("nazar-signal.pod"));
+    assert.ok(pod);
+    assert.ok(pod.content.includes("[Pod]"));
+    assert.ok(pod.content.includes("WantedBy=default.target"));
+  });
+
+  it("signal-cli container has signal-storage volume", () => {
+    const files = generateQuadletFiles(baseConfig, "/out");
+    const cli = files.find((f) =>
+      f.path.endsWith("nazar-signal-cli.container"),
+    );
+    assert.ok(cli);
+    assert.ok(
+      cli.content.includes(
+        "Volume=/var/lib/nazar/signal-storage:/data/signal-storage:rw,z",
+      ),
+    );
+    assert.ok(cli.content.includes("Pod=nazar-signal.pod"));
+  });
+
+  it("signal-bridge container has After=nazar-signal-cli.service", () => {
     const files = generateQuadletFiles(baseConfig, "/out");
     const bridge = files.find((f) =>
-      f.path.endsWith("nazar-matrix-bridge.container"),
+      f.path.endsWith("nazar-signal-bridge.container"),
     );
     assert.ok(bridge);
-    assert.ok(bridge.content.includes("After=network-online.target"));
+    assert.ok(bridge.content.includes("After=nazar-signal-cli.service"));
+    assert.ok(bridge.content.includes("Pod=nazar-signal.pod"));
   });
 
   it("ttyd uses configured port", () => {

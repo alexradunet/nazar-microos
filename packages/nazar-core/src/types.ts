@@ -92,7 +92,7 @@ export interface NazarConfig {
   timezone?: string;
   heartbeat?: { interval?: string };
   ttyd?: { port?: number };
-  matrix?: { homeserver_url?: string; allowed_users?: string[] };
+  signal?: { phone_number?: string; allowed_contacts?: string[] };
   pi?: { skills_dir?: string; persona_dir?: string };
   evolution?: { max_containers_per_evolution?: number };
   firewall?: { restrict_to_tailscale?: boolean; open_ports?: number[] };
@@ -110,6 +110,7 @@ export interface ContainerSpec {
   image: string;
   volumes?: string[];
   environment?: Record<string, string>;
+  pod?: string;
 }
 
 /** Abstraction over filesystem + process execution for testability. */

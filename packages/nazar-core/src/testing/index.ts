@@ -7,7 +7,6 @@ export {
   NOTE_SCENARIO,
   TASK_CREATE_SCENARIO,
 } from "./fixtures/pi-scenarios.js";
-export { MatrixStubServer } from "./matrix-stub-server.js";
 export type { PiMockCall, PiScenario } from "./pi-mock.js";
 export { ScenarioBasedPiMock } from "./pi-mock.js";
 export type { SentMessage } from "./test-message-channel.js";
