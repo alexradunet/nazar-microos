@@ -26,6 +26,7 @@ done
 
 die() { echo "Error: $*" >&2; exit 1; }
 
+command -v yq >/dev/null || die "yq required"
 [[ -f "$NAZAR_CONFIG" ]] || die "config file not found: $NAZAR_CONFIG"
 
 # --- Validate required fields ---
@@ -47,11 +48,9 @@ config_value() {
 }
 
 if [[ "$DRY_RUN" -eq 0 ]]; then
-  [[ -w "$QUADLET_OUTPUT_DIR" ]] || { mkdir -p "$QUADLET_OUTPUT_DIR" 2>/dev/null && [[ -w "$QUADLET_OUTPUT_DIR" ]]; } || die "output directory is not writable: $QUADLET_OUTPUT_DIR"
+  mkdir -p "$QUADLET_OUTPUT_DIR" 2>/dev/null || true
+  [[ -w "$QUADLET_OUTPUT_DIR" ]] || die "output directory is not writable: $QUADLET_OUTPUT_DIR"
 fi
-
-# --- Create output directory ---
-mkdir -p "$QUADLET_OUTPUT_DIR"
 
 # --- Generate Quadlet files ---
 
@@ -75,8 +74,8 @@ After=network-online.target
 
 [Container]
 Image=ghcr.io/alexradunet/nazar-heartbeat:latest
-Volume=/var/lib/nazar/objects:/data/objects:ro
-Volume=/etc/nazar:/etc/nazar:ro
+Volume=/var/lib/nazar/objects:/data/objects:ro,z
+Volume=/etc/nazar:/etc/nazar:ro,z
 Environment=NAZAR_CONFIG=/etc/nazar/nazar.yaml
 ReadOnly=true
 NoNewPrivileges=true
@@ -107,7 +106,7 @@ After=network-online.target
 
 [Container]
 Image=docker.io/matrixconduit/matrix-conduit:latest
-Volume=/var/lib/nazar/conduit:/var/lib/matrix-conduit:rw
+Volume=/var/lib/nazar/conduit:/var/lib/matrix-conduit:rw,z
 Environment=CONDUIT_SERVER_NAME=${hostname}
 Environment=CONDUIT_DATABASE_BACKEND=rocksdb
 Environment=CONDUIT_DATABASE_PATH=/var/lib/matrix-conduit
@@ -130,8 +129,8 @@ After=nazar-conduit.service
 
 [Container]
 Image=ghcr.io/alexradunet/nazar-matrix-bridge:latest
-Volume=/var/lib/nazar/objects:/data/objects:rw
-Volume=/etc/nazar:/etc/nazar:ro
+Volume=/var/lib/nazar/objects:/data/objects:rw,z
+Volume=/etc/nazar:/etc/nazar:ro,z
 Environment=NAZAR_CONFIG=/etc/nazar/nazar.yaml
 Environment=MATRIX_HOMESERVER_URL=http://nazar-conduit:6167
 
@@ -151,7 +150,7 @@ After=network-online.target
 
 [Container]
 Image=docker.io/syncthing/syncthing:latest
-Volume=/var/lib/nazar:/var/syncthing:rw
+Volume=/var/lib/nazar:/var/syncthing:rw,z
 PublishPort=8384:8384
 PublishPort=22000:22000/tcp
 PublishPort=22000:22000/udp

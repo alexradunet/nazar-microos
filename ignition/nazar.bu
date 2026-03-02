@@ -179,6 +179,12 @@ storage:
       contents:
         local: skills/persona-harvest/SKILL.md
 
+    # --- Tailscale interactive login prompt ---
+    - path: /etc/profile.d/tailscale-login.sh
+      mode: 0644
+      contents:
+        local: ignition/files/tailscale-login.sh
+
     # --- Lingering (enable user services for nazar-agent) ---
     - path: /var/lib/systemd/linger/nazar-agent
       mode: 0644

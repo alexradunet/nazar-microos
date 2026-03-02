@@ -21,17 +21,19 @@ VM_VCPUS="${NAZAR_VM_VCPUS:-2}"
 VM_DISK_SIZE="${NAZAR_VM_DISK_SIZE:-20G}"
 VIRSH_URI="qemu:///system"
 
-# Resolve project root (parent of scripts/)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-IGNITION_DIR="$PROJECT_ROOT/ignition"
-AUTH_KEYS="$IGNITION_DIR/files/authorized_keys"
-
 # --- Helpers ---
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 info() { echo ":: $*"; }
 warn() { echo "WARNING: $*" >&2; }
+
+# Resolve project root (parent of scripts/)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+IGNITION_DIR="$PROJECT_ROOT/ignition"
+[[ -d "$IGNITION_DIR" ]] || die "Not in a nazar project — missing ignition/ directory: $IGNITION_DIR"
+mkdir -p "$IGNITION_DIR/files"
+AUTH_KEYS="$IGNITION_DIR/files/authorized_keys"
 
 # Cache sudo credentials once upfront, then use sudo -n everywhere
 ensure_sudo() {
@@ -76,8 +78,17 @@ wait_for_ip() {
 cmd_create() {
   ensure_sudo
   vm_exists && die "VM '$VM_NAME' already exists. Run 'nazar vm destroy' first."
-  [[ -f "$AUTH_KEYS" ]] || die "SSH key not found: $AUTH_KEYS
-Copy your public key:  cp ~/.ssh/id_ed25519.pub $AUTH_KEYS"
+  if [[ ! -f "$AUTH_KEYS" ]]; then
+    local pubkey
+    pubkey=$(find ~/.ssh -maxdepth 1 -name '*.pub' -print -quit 2>/dev/null || true)
+    if [[ -n "$pubkey" ]]; then
+      info "Auto-copying SSH public key: $pubkey"
+      cp "$pubkey" "$AUTH_KEYS"
+    else
+      die "SSH key not found: $AUTH_KEYS
+No ~/.ssh/*.pub keys detected. Create one with: ssh-keygen -t ed25519"
+    fi
+  fi
 
   # Download FCOS QCOW2 if not already present
   local qcow2_file

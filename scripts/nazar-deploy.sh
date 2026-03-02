@@ -131,9 +131,9 @@ deploy_images() {
   if [[ "$DRY_RUN" -eq 0 ]]; then
     info "Restarting nazar services on VM..."
     remote_sudo "systemctl daemon-reload"
-    remote_sudo "systemctl restart nazar-heartbeat.timer" || warn "heartbeat timer restart failed"
-    remote_sudo "systemctl restart nazar-conduit.service" || warn "conduit restart failed"
-    remote_sudo "systemctl restart nazar-matrix-bridge.service" || warn "matrix-bridge restart failed"
+    remote_sudo "systemctl try-restart nazar-heartbeat.timer" || warn "heartbeat timer restart failed"
+    remote_sudo "systemctl try-restart nazar-conduit.service" || warn "conduit restart failed"
+    remote_sudo "systemctl try-restart nazar-matrix-bridge.service" || warn "matrix-bridge restart failed"
   fi
 
   info "Image deploy complete."
@@ -163,7 +163,7 @@ deploy_scripts() {
     else
       # shellcheck disable=SC2086
       cat "$src_path" | ssh $SSH_OPTS "${NAZAR_SSH_USER}@${NAZAR_HOST}" \
-        "sudo tee $dest > /dev/null && sudo chmod 755 $dest"
+        "sudo tee \"$dest\" > /dev/null && sudo chmod 755 \"$dest\""
       info "  $src -> $dest"
     fi
   done
@@ -175,6 +175,7 @@ deploy_persona() {
   info "=== Syncing persona files ==="
 
   cd "$PROJECT_ROOT"
+  [[ -d "$PROJECT_ROOT/persona" ]] || { warn "persona/ directory not found, skipping"; return; }
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
     info "[dry-run] tar persona/ | ssh ... sudo tar -xf - -C /usr/local/share/nazar/persona/"
@@ -193,6 +194,7 @@ deploy_skills() {
   info "=== Syncing skills ==="
 
   cd "$PROJECT_ROOT"
+  [[ -d "$PROJECT_ROOT/skills" ]] || { warn "skills/ directory not found, skipping"; return; }
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
     info "[dry-run] tar skills/ | ssh ... sudo tar -xf - -C /usr/local/share/nazar/skills/"
@@ -224,13 +226,20 @@ health_check() {
     fi
 
     local status
-    status=$(remote "systemctl is-active $svc" 2>/dev/null) || status="inactive"
-    if [[ "$status" == "active" ]]; then
-      info "  OK: $svc"
-    else
-      warn "  FAIL: $svc ($status)"
-      all_ok=false
-    fi
+    status=$(remote "systemctl is-active $svc" 2>/dev/null) || status="unknown"
+    case "$status" in
+      active|activating)
+        info "  OK: $svc ($status)" ;;
+      inactive)
+        warn "  INACTIVE: $svc (exists but not running)"
+        all_ok=false ;;
+      unknown)
+        warn "  NOT FOUND: $svc (unit does not exist)"
+        all_ok=false ;;
+      *)
+        warn "  FAIL: $svc ($status)"
+        all_ok=false ;;
+    esac
   done
 
   if [[ "$DRY_RUN" -eq 0 ]]; then
