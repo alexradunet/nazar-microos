@@ -16,8 +16,8 @@ Local development uses a Fedora bootc VM managed via libvirt. Two scripts handle
 ### 1. Provide your SSH key
 
 ```bash
-cp bootc/config.toml.example bootc/config.toml
-# Edit bootc/config.toml and add your SSH public key
+cp os/bootc/config.toml.example os/bootc/config.toml
+# Edit os/bootc/config.toml and add your SSH public key
 ```
 
 This file is gitignored — each developer provides their own key.
@@ -73,7 +73,7 @@ Since local builds use the same image tags as production, Quadlet files work unc
 
 ## OS Image Iteration
 
-For OS-level changes (root `Containerfile`, system packages, sysconfig), use `bootc upgrade` instead of rebuilding the entire VM. Only changed layers are transferred (~1-2 min vs 10+ min).
+For OS-level changes (`os/Containerfile`, system packages, sysconfig), use `bootc upgrade` instead of rebuilding the entire VM. Only changed layers are transferred (~1-2 min vs 10+ min).
 
 ### One-time: start the local registry
 
@@ -114,7 +114,7 @@ The previous OS deployment is preserved and can be instantly restored.
 
 ### Note: existing VMs
 
-VMs created before the insecure registry config was added to the `Containerfile` need either:
+VMs created before the insecure registry config was added to `os/Containerfile` need either:
 - A full rebuild: `nazar vm destroy && nazar vm create`
 - Or manually copy the config: `nazar vm ssh -- 'sudo mkdir -p /etc/containers/registries.conf.d && sudo tee /etc/containers/registries.conf.d/nazar-dev-registry.conf <<EOF
 [[registry]]

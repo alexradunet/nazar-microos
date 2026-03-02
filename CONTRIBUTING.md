@@ -15,8 +15,8 @@ Contributions are welcome! This guide helps you find the right level of involvem
 
 Edit markdown files. No build tools needed.
 
-- `persona/` — OpenPersona identity (SOUL, BODY, FACULTY, SKILL)
-- `skills/*/SKILL.md` — Pi agent skills
+- `agent/persona/` — OpenPersona identity (SOUL, BODY, FACULTY, SKILL)
+- `agent/skills/*/SKILL.md` — Pi agent skills
 - `docs/` — Project documentation
 - `README.md`, `CONTRIBUTING.md`
 
@@ -59,9 +59,9 @@ Key files:
 OS image building and systemd integration.
 
 Key files:
-- `Containerfile` — bootc OS image (packages, scripts, config baked in)
-- `sysconfig/` — systemd sysusers, tmpfiles, sudoers, service units
-- `bootc/config.toml.example` — SSH key config for bootc-image-builder
+- `os/Containerfile` — bootc OS image (packages, scripts, config baked in)
+- `os/sysconfig/` — systemd sysusers, tmpfiles, sudoers, service units
+- `os/bootc/config.toml.example` — SSH key config for bootc-image-builder
 - `Makefile` — Build OS image and QCOW2 disk
 - `nazar.yaml.example` — Config template
 - `.github/workflows/` — CI/CD

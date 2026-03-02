@@ -7,16 +7,16 @@ REGISTRY_IMAGE := localhost:$(REGISTRY_PORT)/nazar-os:$(IMAGE_TAG)
 .PHONY: image qcow2 chunked-oci containers registry push clean
 
 image:
-	podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f Containerfile .
+	podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f os/Containerfile .
 
 # qcow2 requires the image in root podman storage (bootc-image-builder mounts /var/lib/containers/storage)
 qcow2:
-	@test -f bootc/config.toml || { echo "ERROR: Copy bootc/config.toml.example to bootc/config.toml"; exit 1; }
-	sudo podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f Containerfile .
+	@test -f os/bootc/config.toml || { echo "ERROR: Copy os/bootc/config.toml.example to os/bootc/config.toml"; exit 1; }
+	sudo podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f os/Containerfile .
 	@mkdir -p _output
 	sudo podman run --rm -i --privileged --pull=newer \
 	  --security-opt label=type:unconfined_t \
-	  -v ./bootc/config.toml:/config.toml:ro \
+	  -v ./os/bootc/config.toml:/config.toml:ro \
 	  -v ./_output:/output \
 	  -v /var/lib/containers/storage:/var/lib/containers/storage \
 	  quay.io/centos-bootc/bootc-image-builder:latest \
@@ -29,7 +29,7 @@ containers:
 	podman build -t localhost/nazar-signal-bridge:latest -f containers/signal-bridge/Containerfile .
 
 chunked-oci:
-	podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f Containerfile .
+	podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f os/Containerfile .
 	@mkdir -p _output
 	rpm-ostree compose image \
 	  --format=ociarchive \

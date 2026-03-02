@@ -35,7 +35,7 @@ warn() { echo "WARNING: $*" >&2; }
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-BOOTC_CONFIG="$PROJECT_ROOT/bootc/config.toml"
+BOOTC_CONFIG="$PROJECT_ROOT/os/bootc/config.toml"
 
 # Cache sudo credentials once upfront, then use sudo -n everywhere
 ensure_sudo() {
@@ -82,13 +82,13 @@ cmd_create() {
   vm_exists && die "VM '$VM_NAME' already exists. Run 'nazar vm destroy' first."
 
   [[ -f "$BOOTC_CONFIG" ]] || die "SSH key config not found: $BOOTC_CONFIG
-Copy bootc/config.toml.example to bootc/config.toml and add your SSH public key."
+Copy os/bootc/config.toml.example to os/bootc/config.toml and add your SSH public key."
 
   # Build the bootc OS image (must use sudo podman so the image lands in
   # system storage, which bootc-image-builder mounts via /var/lib/containers/storage)
   info "Building bootc OS image..."
   cd "$PROJECT_ROOT"
-  sudo -n podman build -t "${IMAGE_NAME}:${IMAGE_TAG}" -f Containerfile . \
+  sudo -n podman build -t "${IMAGE_NAME}:${IMAGE_TAG}" -f os/Containerfile . \
     || die "OS image build failed"
 
   # Refresh sudo credentials (build may have taken longer than the cache timeout)

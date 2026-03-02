@@ -10,9 +10,10 @@ Nazar — self-hosted AI companion on Fedora bootc. Podman Quadlet containers, s
 - **Shell scripts**: `scripts/` — bash CLI tools (nazar router, deploy, vm)
 - **nazar-core CLI**: `nazar-core object|setup|evolve` — TypeScript CLI replacing yq/jq bash scripts
 - **Containers**: `containers/{base,heartbeat,signal-cli,signal-bridge}` — all build FROM nazar-base
-- **OS image**: Root `Containerfile` — Fedora bootc 42
-- **Persona**: `persona/` — OpenPersona 4-layer (SOUL, BODY, FACULTY, SKILL)
-- **Skills**: `skills/*/SKILL.md` — Pi agent domain skills
+- **OS image**: `os/Containerfile` — Fedora bootc 42
+- **Agent**: `agent/persona/` — OpenPersona 4-layer (SOUL, BODY, FACULTY, SKILL)
+- **Agent**: `agent/skills/*/SKILL.md` — Pi agent domain skills
+- **Agent**: `agent/context/` — System context for agent prompts (SYSTEM.md, APPEND_SYSTEM.md)
 - **Config**: `nazar.yaml` applied by `nazar-core setup` → Podman Quadlet files
 
 ## Build and Test
@@ -40,4 +41,4 @@ make containers                # build service containers
 - Use `Dockerfile` naming — always `Containerfile`
 - Use `docker` CLI — always `podman`
 - Add pnpm or yarn — npm workspaces only
-- Commit `.nazar-deploy.env` or `bootc/config.toml`
+- Commit `.nazar-deploy.env` or `os/bootc/config.toml`

@@ -21,7 +21,7 @@ You are an expert nazarOS deployment and VM operations engineer with deep knowle
 - **Monorepo**: npm workspaces — `packages/nazar-core` (shared library), `services/signal-bridge` (Signal bot)
 - **Shell scripts**: `scripts/` — bash CLI tools (`nazar` router, `nazar deploy`, `nazar vm`)
 - **Containers**: `containers/{base,heartbeat,signal-cli,signal-bridge}` — all build FROM nazar-base
-- **OS image**: Root `Containerfile` — Fedora bootc 42
+- **OS image**: `os/Containerfile` — Fedora bootc 42
 - **Config**: `nazar.yaml` applied by `nazar-core setup` → generates Podman Quadlet files
 - **Quadlet Pod Pattern**: `.pod` file + `Pod=name.pod` in each container's `[Container]` section for shared network namespace
 - **Build commands**: `make image` (bootc OS image), `make containers` (service containers)

@@ -11,9 +11,10 @@ Nazar is a self-hosted AI companion that manages your digital life through a fla
 - **Domain logic** (`packages/nazar-core/`): ObjectStore, FrontmatterParser, shared types
 - **CLI** (`packages/nazar-core/`): `nazar-core` TypeScript CLI for object CRUD, config application, evolution
 - **Containers** (`containers/`): Base, heartbeat, signal-cli, signal-bridge — all built FROM `nazar-base` (except signal-cli which uses eclipse-temurin)
-- **OS Image** (`Containerfile`): Fedora bootc image with all packages, scripts, and config baked in
-- **Persona** (`persona/`): OpenPersona 4-layer identity (SOUL, BODY, FACULTY, SKILL)
-- **Skills** (`skills/`): Pi agent domain skills (journaling, tasks, notes, heartbeat, etc.)
+- **OS Image** (`os/Containerfile`): Fedora bootc image with all packages, scripts, and config baked in
+- **Persona** (`agent/persona/`): OpenPersona 4-layer identity (SOUL, BODY, FACULTY, SKILL)
+- **Skills** (`agent/skills/`): Pi agent domain skills (journaling, tasks, notes, heartbeat, etc.)
+- **Context** (`agent/context/`): System context for agent prompts
 - **Config** (`nazar.yaml`): Single YAML file replacing NixOS typed options
 
 ## Quick Start
@@ -28,7 +29,7 @@ npm run check                      # Biome lint + format check
 
 ### For deployment
 
-1. Copy `bootc/config.toml.example` to `bootc/config.toml` and add your SSH public key
+1. Copy `os/bootc/config.toml.example` to `os/bootc/config.toml` and add your SSH public key
 2. Build the OS image: `make image`
 3. Generate a QCOW2 disk: `make qcow2`
 4. Boot the VM: `nazar vm create`

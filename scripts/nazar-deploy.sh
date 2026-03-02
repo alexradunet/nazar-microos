@@ -7,7 +7,7 @@ set -euo pipefail
 # bootc image rebuild (make image / nazar vm create).
 #
 # Builds containers locally, transfers them via podman save/load,
-# and syncs scripts/persona/skills to the VM. Tags local builds
+# and syncs scripts/agent content to the VM. Tags local builds
 # with localhost/ names matching the Quadlet files.
 #
 # Usage:
@@ -211,14 +211,14 @@ deploy_persona() {
   info "=== Syncing persona files ==="
 
   cd "$PROJECT_ROOT"
-  [[ -d "$PROJECT_ROOT/persona" ]] || { warn "persona/ directory not found, skipping"; return; }
+  [[ -d "$PROJECT_ROOT/agent/persona" ]] || { warn "agent/persona/ directory not found, skipping"; return; }
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    info "[dry-run] tar persona/ | ssh ... sudo tar -xf - -C /usr/local/share/nazar/persona/"
+    info "[dry-run] tar agent/persona/ | ssh ... sudo tar -xf - -C /usr/local/share/nazar/persona/"
     return
   fi
 
-  tar -cf - -C "$PROJECT_ROOT/persona" . | \
+  tar -cf - -C "$PROJECT_ROOT/agent/persona" . | \
     # shellcheck disable=SC2086
     ssh $SSH_OPTS "${NAZAR_SSH_USER}@${NAZAR_HOST}" \
     "sudo tar -xf - -C /usr/local/share/nazar/persona/"
@@ -230,14 +230,14 @@ deploy_skills() {
   info "=== Syncing skills ==="
 
   cd "$PROJECT_ROOT"
-  [[ -d "$PROJECT_ROOT/skills" ]] || { warn "skills/ directory not found, skipping"; return; }
+  [[ -d "$PROJECT_ROOT/agent/skills" ]] || { warn "agent/skills/ directory not found, skipping"; return; }
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    info "[dry-run] tar skills/ | ssh ... sudo tar -xf - -C /usr/local/share/nazar/skills/"
+    info "[dry-run] tar agent/skills/ | ssh ... sudo tar -xf - -C /usr/local/share/nazar/skills/"
     return
   fi
 
-  tar -cf - -C "$PROJECT_ROOT/skills" . | \
+  tar -cf - -C "$PROJECT_ROOT/agent/skills" . | \
     # shellcheck disable=SC2086
     ssh $SSH_OPTS "${NAZAR_SSH_USER}@${NAZAR_HOST}" \
     "sudo tar -xf - -C /usr/local/share/nazar/skills/"

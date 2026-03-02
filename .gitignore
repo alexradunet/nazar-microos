@@ -15,7 +15,7 @@ _output/
 .omc
 # Local config (secrets/machine-specific)
 .nazar-deploy.env
-bootc/config.toml
+os/bootc/config.toml
 
 # Data directories
 data/
