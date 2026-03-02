@@ -2,9 +2,9 @@ FROM nazar-base
 
 USER root
 
-# Copy shell scripts
-COPY scripts/nazar-object.sh /usr/local/bin/nazar-object
-RUN chmod +x /usr/local/bin/nazar-object
+# nazar-object shim (delegates to nazar-core built in nazar-base)
+RUN printf '#!/usr/bin/env bash\nexec node /app/packages/nazar-core/dist/cli.js object "$@"\n' > /usr/local/bin/nazar-object \
+    && chmod +x /usr/local/bin/nazar-object
 
 # Copy heartbeat skill and persona
 COPY skills/heartbeat/ /usr/share/nazar/skills/heartbeat/

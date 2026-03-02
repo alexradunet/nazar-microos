@@ -45,14 +45,7 @@ run_test "nazar-base: @nazar/core importable" \
     })
   "
 
-# Test 3: Base image has yq and jq
-run_test "nazar-base: yq available" \
-  podman run --rm nazar-base yq --version
-
-run_test "nazar-base: jq available" \
-  podman run --rm nazar-base jq --version
-
-# Test 4: Heartbeat container starts
+# Test 3: Heartbeat container starts
 run_test "nazar-heartbeat: entrypoint runs" \
   podman run --rm nazar-heartbeat
 

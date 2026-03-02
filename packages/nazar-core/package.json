@@ -23,6 +23,9 @@
       ]
     }
   },
+  "bin": {
+    "nazar-core": "dist/cli.js"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",

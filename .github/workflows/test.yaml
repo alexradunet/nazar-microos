@@ -17,19 +17,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm -w packages/nazar-core test
-
-  shell-tests:
-    name: Shell Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - name: Install yq and jq
-        run: |
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.44.1/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
-          sudo apt-get install -y jq
-      - run: bash tests/shell/run.sh
+      - run: npm test
 
   container-tests:
     name: Container Build

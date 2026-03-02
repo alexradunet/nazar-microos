@@ -2,7 +2,7 @@ FROM quay.io/fedora/fedora-bootc:42
 
 # System packages
 RUN dnf install -y \
-      yq jq git-core nodejs22 tailscale vim-minimal htop tmux \
+      git-core nodejs22 tailscale vim-minimal htop tmux \
     && dnf clean all
 
 # Pi coding agent
@@ -23,15 +23,26 @@ RUN chmod 0440 /etc/sudoers.d/core-wheel /etc/sudoers.d/nazar-evolve
 # Tailscale login prompt
 COPY sysconfig/profile.d/tailscale-login.sh /etc/profile.d/tailscale-login.sh
 
+# nazar-core TypeScript CLI (replaces nazar-setup.sh, nazar-object.sh, nazar-evolve.sh)
+COPY packages/nazar-core/package.json /usr/local/lib/nazar-core/package.json
+COPY packages/nazar-core/dist/ /usr/local/lib/nazar-core/dist/
+RUN cd /usr/local/lib/nazar-core && npm install --omit=dev
+RUN ln -s /usr/local/lib/nazar-core/dist/cli.js /usr/local/bin/nazar-core \
+    && chmod +x /usr/local/lib/nazar-core/dist/cli.js
+
+# Compatibility shims (Pi skills may call nazar-object directly)
+RUN printf '#!/usr/bin/env bash\nexec nazar-core object "$@"\n' > /usr/local/bin/nazar-object \
+    && chmod +x /usr/local/bin/nazar-object
+RUN printf '#!/usr/bin/env bash\nexec nazar-core setup "$@"\n' > /usr/local/bin/nazar-setup \
+    && chmod +x /usr/local/bin/nazar-setup
+RUN printf '#!/usr/bin/env bash\nexec nazar-core evolve "$@"\n' > /usr/local/bin/nazar-evolve \
+    && chmod +x /usr/local/bin/nazar-evolve
+
 # CLI scripts
 COPY scripts/nazar /usr/local/bin/nazar
-COPY scripts/nazar-setup.sh /usr/local/bin/nazar-setup
-COPY scripts/nazar-object.sh /usr/local/bin/nazar-object
-COPY scripts/nazar-evolve.sh /usr/local/bin/nazar-evolve
 COPY scripts/nazar-vm.sh /usr/local/bin/nazar-vm
 COPY scripts/nazar-deploy.sh /usr/local/bin/nazar-deploy
-RUN chmod 0755 /usr/local/bin/nazar /usr/local/bin/nazar-setup \
-      /usr/local/bin/nazar-object /usr/local/bin/nazar-evolve \
+RUN chmod 0755 /usr/local/bin/nazar \
       /usr/local/bin/nazar-vm /usr/local/bin/nazar-deploy
 
 # Default config (/etc is mutable — user edits persist across updates)

@@ -8,8 +8,7 @@ import type {
   ObjectRef,
 } from "./types.js";
 
-// Canonical runtime implementation: scripts/nazar-object.sh (used by Pi skills).
-// This TypeScript version serves as a typed reference implementation for tests.
+// Canonical runtime implementation (used by Pi skills via nazar-core CLI).
 export class ObjectStore implements IObjectStore {
   private readonly parser: IFrontmatterParser;
 

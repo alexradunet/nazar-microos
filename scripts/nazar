@@ -24,7 +24,7 @@ shift 2>/dev/null || true
 
 case "$cmd" in
   apply)
-    exec nazar-setup "$@"
+    exec nazar-core setup "$@"
     ;;
 
   status)
@@ -87,11 +87,11 @@ case "$cmd" in
     ;;
 
   evolve)
-    exec nazar-evolve "$@"
+    exec nazar-core evolve "$@"
     ;;
 
   object)
-    exec nazar-object "$@"
+    exec nazar-core object "$@"
     ;;
 
   pi)
