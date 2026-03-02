@@ -135,7 +135,10 @@ Copy bootc/config.toml.example to bootc/config.toml and add your SSH public key.
   ip=$(wait_for_ip)
   info "VM IP: $ip"
   info ""
-  info "VM is ready. SSH in with:"
+  info "Deploying container images to VM..."
+  NAZAR_HOST="$ip" "$PROJECT_ROOT/scripts/nazar-deploy.sh" --images
+  info ""
+  info "VM is ready with all services. SSH in with:"
   info "  nazar vm ssh"
 }
 

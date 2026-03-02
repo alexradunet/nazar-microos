@@ -24,7 +24,12 @@ shift 2>/dev/null || true
 
 case "$cmd" in
   apply)
-    exec nazar-core setup "$@"
+    nazar-core setup "$@"
+    # Reload systemd so it picks up new/changed Quadlet files
+    if [[ ! " $* " =~ " --dry-run " ]]; then
+      sudo systemctl daemon-reload
+      echo "systemd reloaded."
+    fi
     ;;
 
   status)
