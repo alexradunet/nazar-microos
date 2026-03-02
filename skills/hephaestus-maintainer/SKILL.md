@@ -132,4 +132,4 @@ Keep these in mind during implementation:
 - **yq env() for safe injection**: `YQ_VAL="$val" yq -i '.key = env(YQ_VAL)' file`
 - **grep leading dash**: `grep -F "- something"` needs `--` to prevent leading dash being parsed as option.
 - **Glob expansion**: `"${dir}"*.md` needs dir to end with `/` for proper expansion.
-- **rpm-ostree rollback**: CoreOS uses rpm-ostree for atomic OS updates. Test rollback scenarios when modifying system state.
+- **bootc rollback**: The system uses bootc for atomic image-based OS updates. Test rollback scenarios when modifying system state.

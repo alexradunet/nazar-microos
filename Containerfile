@@ -1,11 +1,11 @@
 FROM quay.io/fedora/fedora-bootc:42
 
-# System packages (replaces nazar-rpm-layer.service)
+# System packages
 RUN dnf install -y \
       yq jq git-core nodejs22 tailscale vim-minimal htop tmux \
     && dnf clean all
 
-# Pi coding agent (replaces npm install in nazar-setup.service)
+# Pi coding agent
 RUN npm install -g @mariozechner/pi-coding-agent
 
 # System user + directory definitions (systemd creates at boot)

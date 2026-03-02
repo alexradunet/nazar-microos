@@ -28,7 +28,7 @@ When a user request arrives, classify it:
 ### 2. Route to Evolution Pipeline
 
 - Code changes to Nazar core, services, or packages.
-- CoreOS configuration changes (`nazar.yaml`, modules, Quadlet files).
+- System configuration changes (`nazar.yaml`, modules, Quadlet files).
 - New skills, object types, or persona changes.
 - Infrastructure changes (systemd services, Podman containers).
 - **Container evolution needs**: when Nazar detects it needs a new service (e.g. whisper-cpp, ffmpeg), route to container evolution workflow (see below).

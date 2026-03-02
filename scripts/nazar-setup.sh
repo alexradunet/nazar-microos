@@ -3,7 +3,7 @@ set -euo pipefail
 
 # nazar-setup.sh — Read nazar.yaml, validate, generate Podman Quadlet files.
 #
-# Works on Fedora CoreOS (and any systemd + Podman Quadlet host).
+# Works on Fedora bootc (and any systemd + Podman Quadlet host).
 #
 # Usage:
 #   nazar-setup.sh [--dry-run]

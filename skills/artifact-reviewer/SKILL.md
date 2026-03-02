@@ -9,7 +9,7 @@ Use this skill when evaluating a new package (system package, npm, or other) for
 
 ## Purpose
 
-Ensure every dependency meets freshness, security, maintenance, and size standards before it enters the project. Follow the principle: system tools via rpm-ostree or container images, application dependencies via npm.
+Ensure every dependency meets freshness, security, maintenance, and size standards before it enters the project. Follow the principle: system tools via Containerfile (dnf install) or container images, application dependencies via npm.
 
 ## Review Checklist
 
@@ -17,9 +17,9 @@ Ensure every dependency meets freshness, security, maintenance, and size standar
 
 Before adopting any dependency, determine the right source:
 
-- **System-level tools** (CLI utilities, daemons, libraries): prefer rpm-ostree layering or container images.
+- **System-level tools** (CLI utilities, daemons, libraries): prefer adding to the Containerfile (dnf install) or container images.
   ```bash
-  rpm-ostree install <package>     # for host-level tools
+  # Add to Containerfile: RUN dnf install -y <package>
   podman search <image>            # for containerized services
   ```
 - **Node.js application dependencies** (libraries, frameworks): use npm.
@@ -33,7 +33,7 @@ Before adopting any dependency, determine the right source:
 
 - **System packages**: check the version available in Fedora repos vs upstream.
   ```bash
-  rpm-ostree status      # check layered packages
+  bootc status      # check current image
   ```
 - **npm packages**: must have been published within the last 18 months.
   ```bash
@@ -49,7 +49,7 @@ Before adopting any dependency, determine the right source:
   ```
 - **System packages**: check for pending security updates.
   ```bash
-  rpm-ostree upgrade --check
+  bootc upgrade --check
   ```
 - Check for known CVEs in the package and its transitive dependencies.
 - Any critical or high severity vulnerability is a blocking issue.
@@ -94,7 +94,7 @@ Produce a structured review:
 
 ```
 Package: <name>
-Source: <rpm-ostree | container | npm | other>
+Source: <containerfile | container | npm | other>
 Version: <version evaluated>
 
 1. Source: [appropriate | review — reason]
