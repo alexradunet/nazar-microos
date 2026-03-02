@@ -11,6 +11,7 @@ ENV NAZAR_SIGNAL_CLI_HOST=127.0.0.1
 ENV NAZAR_SIGNAL_CLI_PORT=7583
 ENV NAZAR_PI_MODEL=""
 ENV NAZAR_PI_TRANSPORT=""
+ENV NAZAR_PERSONA_DIR=/usr/local/share/nazar/persona
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
   CMD test -f /data/signal-storage/healthy \

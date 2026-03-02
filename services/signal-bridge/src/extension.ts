@@ -76,7 +76,6 @@ export function createNazarExtension(): ExtensionFactory {
                   `- Host: ${process.env.HOSTNAME || "nazar-box"}`,
                   `- Objects dir: ${process.env.NAZAR_OBJECTS_DIR || "/var/lib/nazar/objects"}`,
                   `- Skills dir: ${process.env.NAZAR_SKILLS_DIR || "/usr/local/share/nazar/skills"}`,
-                  "- You are Nazar, a self-hosted AI companion. Be helpful, concise, and respect system boundaries.",
                 ].join("\n"),
               };
               return { messages: [contextMsg] } satisfies ContextEventResult;

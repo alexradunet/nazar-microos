@@ -27,6 +27,8 @@ function makeConfig(
     signalCliHost: "127.0.0.1",
     signalCliPort: 7583,
     storageDir: path.join(tmpDir, "storage"),
+    personaDir: path.join(tmpDir, "persona"),
+    systemMdPath: "",
     piCommand: "printf",
     piDir: tmpDir,
     repoRoot: tmpDir,

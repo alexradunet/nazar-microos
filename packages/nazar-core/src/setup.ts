@@ -183,6 +183,11 @@ export function generateQuadletFiles(
     "pi.skills_dir",
     "/usr/local/share/nazar/skills",
   );
+  const personaDir = configValue(
+    config,
+    "pi.persona_dir",
+    "/usr/local/share/nazar/persona",
+  );
 
   files.push({
     path: path.join(outputDir, "nazar-signal-bridge.container"),
@@ -194,11 +199,13 @@ export function generateQuadletFiles(
         "/var/lib/nazar/objects:/data/objects:rw,z",
         "/var/lib/nazar/signal-storage:/data/signal-storage:rw,z",
         "/var/lib/nazar/pi-config:/home/nazar/.pi:rw,z",
+        `${personaDir}:${personaDir}:ro,z`,
       ],
       environment: {
         NAZAR_SIGNAL_PHONE: signalPhone,
         NAZAR_SIGNAL_ALLOWED_CONTACTS: signalContacts.join(","),
         NAZAR_SKILLS_DIR: skillsDir,
+        NAZAR_PERSONA_DIR: personaDir,
         PI_CODING_AGENT_DIR: "/home/nazar/.pi/agent",
       },
       pod: "nazar-signal.pod",

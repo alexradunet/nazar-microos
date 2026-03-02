@@ -23,6 +23,8 @@ export interface SignalBridgeConfig extends AgentConfig {
   signalCliHost: string;
   signalCliPort: number;
   storageDir: string;
+  personaDir: string;
+  systemMdPath: string;
   piModel?: string;
   piTransport?: "sse" | "websocket" | "auto";
 }
@@ -35,6 +37,8 @@ const DEFAULT_CONFIG: SignalBridgeConfig = {
   signalCliHost: process.env.NAZAR_SIGNAL_CLI_HOST || "127.0.0.1",
   signalCliPort: Number(process.env.NAZAR_SIGNAL_CLI_PORT) || 7583,
   storageDir: process.env.NAZAR_SIGNAL_STORAGE_DIR || "/data/signal-storage",
+  personaDir: process.env.NAZAR_PERSONA_DIR || "/usr/local/share/nazar/persona",
+  systemMdPath: process.env.NAZAR_SYSTEM_MD || "",
   piCommand: process.env.NAZAR_PI_COMMAND || "pi",
   piDir: process.env.PI_CODING_AGENT_DIR || `${process.env.HOME}/.pi/agent`,
   repoRoot: process.env.NAZAR_REPO_ROOT || "/var/lib/nazar",
@@ -101,6 +105,7 @@ async function processWithAgent(
   } = (await import("@mariozechner/pi-coding-agent")) as any;
   const { getModel } = (await import("@mariozechner/pi-ai")) as any;
   const { createNazarExtension } = await import("./extension.js");
+  const { loadPersonaPrompt, loadSystemContext } = await import("./persona.js");
 
   let session = sessions.get(from);
   if (!session) {
@@ -129,6 +134,15 @@ async function processWithAgent(
     // Extension factory (item 9)
     const nazarExtension = createNazarExtension();
 
+    // Load persona and system context for system prompt injection
+    const personaPrompt = loadPersonaPrompt(config.personaDir, "Signal");
+    const systemContext = config.systemMdPath
+      ? loadSystemContext(config.systemMdPath)
+      : "";
+    const appendSystemPrompt = [systemContext, personaPrompt]
+      .filter(Boolean)
+      .join("\n\n");
+
     // Resource loader with skills + extension (item 7)
     const cwd = config.repoRoot;
     const agentDir = config.piDir;
@@ -140,6 +154,7 @@ async function processWithAgent(
       extensionFactories: [nazarExtension],
       noThemes: true,
       noPromptTemplates: true,
+      ...(appendSystemPrompt ? { appendSystemPrompt } : {}),
     });
     await resourceLoader.reload();
 
@@ -411,6 +426,8 @@ async function main(): Promise<void> {
   console.log(`  signal-cli: ${config.signalCliHost}:${config.signalCliPort}`);
   console.log(`  Pi dir: ${config.piDir}`);
   console.log(`  Objects dir: ${config.objectsDir}`);
+  console.log(`  Persona dir: ${config.personaDir}`);
+  console.log(`  System MD: ${config.systemMdPath || "(none)"}`);
   console.log(`  Pi model: ${config.piModel || "(default)"}`);
   console.log(`  Pi transport: ${config.piTransport || "(default)"}`);
   console.log(

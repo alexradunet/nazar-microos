@@ -44,11 +44,13 @@ COPY scripts/nazar-vm.sh /usr/local/bin/nazar-vm
 COPY scripts/nazar-deploy.sh /usr/local/bin/nazar-deploy
 COPY scripts/nazar-signal-setup.sh /usr/local/bin/nazar-signal-setup
 RUN chmod 0755 /usr/local/bin/nazar /usr/local/bin/nazar-vm /usr/local/bin/nazar-deploy /usr/local/bin/nazar-signal-setup \
-    && mkdir -p /etc/nazar /usr/local/share/nazar/persona /usr/local/share/nazar/skills
+    && mkdir -p /etc/nazar /usr/local/share/nazar/persona /usr/local/share/nazar/skills /usr/local/share/nazar/pi-config/agent
 
 # Config, docs, persona, skills
 COPY sysconfig/nazar.yaml.default /etc/nazar/nazar.yaml
 COPY sysconfig/SYSTEM.md /usr/local/share/nazar/SYSTEM.md
+COPY sysconfig/SYSTEM.md /usr/local/share/nazar/pi-config/agent/SYSTEM.md
+COPY sysconfig/APPEND_SYSTEM.md /usr/local/share/nazar/pi-config/agent/APPEND_SYSTEM.md
 COPY persona/ /usr/local/share/nazar/persona/
 COPY skills/ /usr/local/share/nazar/skills/
 
