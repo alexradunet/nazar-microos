@@ -36,7 +36,7 @@ const DEFAULT_CONFIG: SignalBridgeConfig = {
   piDir: process.env.PI_CODING_AGENT_DIR || `${process.env.HOME}/.pi/agent`,
   repoRoot: process.env.NAZAR_REPO_ROOT || "/var/lib/nazar",
   objectsDir: process.env.NAZAR_OBJECTS_DIR || "/var/lib/nazar/objects",
-  skillsDir: process.env.NAZAR_SKILLS_DIR || "/usr/share/nazar/skills",
+  skillsDir: process.env.NAZAR_SKILLS_DIR || "/usr/local/share/nazar/skills",
   timeoutMs: Number(process.env.NAZAR_SIGNAL_TIMEOUT_MS) || 120_000,
 };
 

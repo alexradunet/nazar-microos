@@ -55,7 +55,7 @@ Check each mandatory policy:
 - **System packages via Containerfile (dnf install) or containers, app deps via npm**: prefer adding to the Containerfile or container images for system-level tools, npm for Node.js application dependencies.
 - **TDD policy**: Red -> Green -> Refactor evidence present.
 - **No unmaintained deps**: npm deps <18 months since last publish.
-- **Interface-first**: domain components implement `@nazar/core/types.ts` interfaces.
+- **Interface-first**: domain components implement `packages/nazar-core/src/types.ts` interfaces.
 
 ### 6. Dependency Review
 
@@ -97,13 +97,13 @@ Any of these trigger fail:
 
 ## Required Output
 
-Produce a review report using `docs/agents/HANDOFF_TEMPLATES.md` section **4) Themis -> Athena (+ Human)**:
+Produce a review report with the following sections:
 
-- Verdict: pass | rework | fail
-- Findings with severity and remediation
-- Policy conformance checks
-- Security review
-- Decision recommendation
+- **Verdict**: pass | rework | fail
+- **Findings** with severity and remediation
+- **Policy conformance** checks
+- **Security review**
+- **Decision recommendation**
 
 ## Rework Findings Format
 

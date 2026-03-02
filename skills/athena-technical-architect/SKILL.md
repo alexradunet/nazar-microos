@@ -36,15 +36,15 @@ Translate evolution requests into implementation plans aligned with Nazar archit
 
 ### 4. Produce Implementation Plan
 
-Output using `docs/agents/HANDOFF_TEMPLATES.md` section **2) Athena -> Hephaestus**:
+Output the following sections:
 
-- Scope (in/out)
-- Design choice + alternatives considered
-- Implementation steps (ordered, with file paths)
-- TDD-first test plan (red/green/refactor)
-- Validation commands
-- Apply + rollback path
-- Done criteria mapping all acceptance criteria
+- **Scope** (in/out)
+- **Design choice** + alternatives considered
+- **Implementation steps** (ordered, with file paths)
+- **TDD-first test plan** (red/green/refactor)
+- **Validation commands**
+- **Apply + rollback path**
+- **Done criteria** mapping all acceptance criteria
 
 ## Conformance Review Workflow
 
@@ -67,12 +67,12 @@ Invoked after Themis review passes, before human approval gate.
 
 ### 4. Produce Final Conformance Summary
 
-Output using `docs/agents/HANDOFF_TEMPLATES.md` section **5) Athena -> Human**:
+Output the following sections:
 
-- Plan conformance (scope match, deviations)
-- Quality gates (tests green, lint clean, reviewer verdict)
-- Risk + rollback
-- Approval recommendation (apply / hold)
+- **Plan conformance** (scope match, deviations)
+- **Quality gates** (tests green, lint clean, reviewer verdict)
+- **Risk + rollback**
+- **Approval recommendation** (apply / hold)
 
 ## Clarification Protocol
 

@@ -48,7 +48,7 @@ Look for:
 Based on observations, choose one of:
 
 - **No action needed**: Log "heartbeat: all clear" and exit.
-- **Reminder**: If Matrix is available, send a brief nudge about overdue tasks.
+- **Reminder**: If Signal is available, send a brief nudge about overdue tasks.
 - **Journal prompt**: Create a system journal entry with observations.
 - **Evolution request**: If a pattern suggests a missing capability, file an evolution request using the Hermes -> Athena handoff template.
 

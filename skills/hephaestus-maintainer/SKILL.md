@@ -61,13 +61,13 @@ npx biome check
 
 ### 6. Produce Change Package
 
-Output using `docs/agents/HANDOFF_TEMPLATES.md` section **3) Hephaestus -> Themis**:
+Output the following sections:
 
-- Summary (what changed and why)
-- TDD evidence (red/green/refactor with concrete test names)
-- Files changed (full paths)
-- Validation results (commands run + output)
-- Risk notes (security + operational)
+- **Summary** (what changed and why)
+- **TDD evidence** (red/green/refactor with concrete test names)
+- **Files changed** (full paths)
+- **Validation results** (commands run + output)
+- **Risk notes** (security + operational)
 
 ## Rework Protocol
 

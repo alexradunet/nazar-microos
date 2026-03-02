@@ -172,6 +172,18 @@ export function generateQuadletFiles(
   });
 
   // --- Signal Bridge container ---
+  const signalPhone = configValue(config, "signal.phone_number", "");
+  const signalContacts: string[] = configValue(
+    config,
+    "signal.allowed_contacts",
+    [],
+  );
+  const skillsDir = configValue(
+    config,
+    "pi.skills_dir",
+    "/usr/local/share/nazar/skills",
+  );
+
   files.push({
     path: path.join(outputDir, "nazar-signal-bridge.container"),
     content: renderQuadletContainer({
@@ -181,10 +193,14 @@ export function generateQuadletFiles(
       volumes: [
         "/var/lib/nazar/objects:/data/objects:rw,z",
         "/var/lib/nazar/signal-storage:/data/signal-storage:rw,z",
-        "/etc/nazar:/etc/nazar:ro,z",
         "/var/lib/nazar/pi-config:/home/nazar/.pi:rw,z",
       ],
-      environment: { NAZAR_CONFIG: "/etc/nazar/nazar.yaml" },
+      environment: {
+        NAZAR_SIGNAL_PHONE: signalPhone,
+        NAZAR_SIGNAL_ALLOWED_CONTACTS: signalContacts.join(","),
+        NAZAR_SKILLS_DIR: skillsDir,
+        PI_CODING_AGENT_DIR: "/home/nazar/.pi/agent",
+      },
       pod: "nazar-signal.pod",
       after: "nazar-signal-cli.service",
     }),

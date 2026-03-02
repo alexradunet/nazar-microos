@@ -170,6 +170,48 @@ describe("generateQuadletFiles", () => {
     assert.ok(bridge.content.includes("Pod=nazar-signal.pod"));
   });
 
+  it("signal-bridge emits NAZAR_SIGNAL_PHONE from config", () => {
+    const config: NazarConfig = {
+      ...baseConfig,
+      signal: {
+        phone_number: "+15551234567",
+        allowed_contacts: ["+1555", "+1666"],
+      },
+    };
+    const files = generateQuadletFiles(config, "/out");
+    const bridge = files.find((f) =>
+      f.path.endsWith("nazar-signal-bridge.container"),
+    );
+    assert.ok(bridge);
+    assert.ok(bridge.content.includes("NAZAR_SIGNAL_PHONE=+15551234567"));
+    assert.ok(
+      bridge.content.includes("NAZAR_SIGNAL_ALLOWED_CONTACTS=+1555,+1666"),
+    );
+  });
+
+  it("signal-bridge emits NAZAR_SKILLS_DIR and PI_CODING_AGENT_DIR", () => {
+    const files = generateQuadletFiles(baseConfig, "/out");
+    const bridge = files.find((f) =>
+      f.path.endsWith("nazar-signal-bridge.container"),
+    );
+    assert.ok(bridge);
+    assert.ok(
+      bridge.content.includes("NAZAR_SKILLS_DIR=/usr/local/share/nazar/skills"),
+    );
+    assert.ok(
+      bridge.content.includes("PI_CODING_AGENT_DIR=/home/nazar/.pi/agent"),
+    );
+  });
+
+  it("signal-bridge does not mount unused /etc/nazar", () => {
+    const files = generateQuadletFiles(baseConfig, "/out");
+    const bridge = files.find((f) =>
+      f.path.endsWith("nazar-signal-bridge.container"),
+    );
+    assert.ok(bridge);
+    assert.ok(!bridge.content.includes("/etc/nazar"));
+  });
+
   it("ttyd uses configured port", () => {
     const files = generateQuadletFiles(baseConfig, "/out");
     const ttyd = files.find((f) => f.path.endsWith("nazar-ttyd.container"));

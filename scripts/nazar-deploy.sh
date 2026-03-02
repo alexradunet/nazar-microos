@@ -137,7 +137,7 @@ deploy_images() {
     info "Restarting nazar services on VM..."
     remote_sudo "systemctl daemon-reload"
     remote_sudo "systemctl try-restart nazar-heartbeat.timer" || warn "heartbeat timer restart failed"
-    remote_sudo "systemctl try-restart nazar-signal-bridge.service" || warn "signal-bridge restart failed"
+    remote_sudo "systemctl try-restart nazar-signal-pod.service" || warn "signal pod restart failed"
   fi
 
   info "Image deploy complete."
@@ -242,6 +242,7 @@ health_check() {
 
   local services=(
     "nazar-heartbeat.timer"
+    "nazar-signal-cli.service"
     "nazar-signal-bridge.service"
   )
 

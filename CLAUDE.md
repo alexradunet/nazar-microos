@@ -6,10 +6,10 @@ Nazar — self-hosted AI companion on Fedora bootc. Podman Quadlet containers, s
 
 ## Architecture
 
-- **Monorepo**: npm workspaces — `packages/nazar-core` (shared library), `services/matrix-bridge` (Matrix bot)
+- **Monorepo**: npm workspaces — `packages/nazar-core` (shared library), `services/signal-bridge` (Signal bot)
 - **Shell scripts**: `scripts/` — bash CLI tools (nazar router, deploy, vm)
 - **nazar-core CLI**: `nazar-core object|setup|evolve` — TypeScript CLI replacing yq/jq bash scripts
-- **Containers**: `containers/{base,heartbeat,matrix-bridge}` — all build FROM nazar-base
+- **Containers**: `containers/{base,heartbeat,signal-cli,signal-bridge}` — all build FROM nazar-base
 - **OS image**: Root `Containerfile` — Fedora bootc 42
 - **Persona**: `persona/` — OpenPersona 4-layer (SOUL, BODY, FACULTY, SKILL)
 - **Skills**: `skills/*/SKILL.md` — Pi agent domain skills

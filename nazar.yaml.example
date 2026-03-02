@@ -12,8 +12,8 @@ ttyd:
   port: 7681
 
 signal:
-  phone_number: ""
-  allowed_contacts: []
+  phone_number: "+15551234567"
+  allowed_contacts: ["+15559876543", "+15558765432"]
 
 pi:
   skills_dir: /usr/local/share/nazar/skills

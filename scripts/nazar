@@ -6,7 +6,7 @@ set -euo pipefail
 # Usage:
 #   nazar apply [--dry-run]    Apply config, generate Quadlet files, reload systemd
 #   nazar status               Show running services and object store stats
-#   nazar update               Pull latest container images
+#   nazar update               Pull latest remote container images (local images via nazar deploy --images)
 #   nazar rollback             Show bootc deployments and rollback instructions
 #   nazar deploy [flags]       Deploy changes to dev VM
 #   nazar vm <cmd>             Dev VM lifecycle (create/start/stop/destroy/ssh)

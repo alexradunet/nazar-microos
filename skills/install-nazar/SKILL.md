@@ -154,7 +154,7 @@ If the apply fails:
 4. Remind the user:
    - "Run `nazar` to start your AI assistant."
    - "Run `nazar apply` to apply future config changes safely."
-   - "Run `nazar --skill ./skills/signal-setup/SKILL.md` to set up Signal messaging."
+   - "Run `nazar pi --skill /usr/local/share/nazar/skills/signal-setup` to set up Signal messaging."
 
 ## Module Configuration Reference
 
