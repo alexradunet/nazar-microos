@@ -4,7 +4,8 @@ FROM quay.io/fedora/fedora-bootc:42@sha256:90c2d851663ec0ebf66121786d9d9e488f8e2
 # System packages
 RUN dnf install -y \
       git-core nodejs22 tailscale vim-minimal htop tmux \
-    && dnf clean all
+    && dnf clean all \
+    && rm -rf /var/log/dnf5.log /var/cache/libdnf5 /var/lib/dnf /var/cache/ldconfig
 
 # Pi coding agent
 RUN HOME=/tmp npm install -g @mariozechner/pi-coding-agent

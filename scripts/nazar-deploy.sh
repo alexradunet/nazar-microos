@@ -113,7 +113,7 @@ deploy_images() {
   if [[ "$DRY_RUN" -eq 1 ]]; then
     info "[dry-run] podman build -t nazar-base -f containers/base/Containerfile ."
   else
-    podman build -t nazar-base -f containers/base/Containerfile .
+    podman build --format docker -t nazar-base -f containers/base/Containerfile .
   fi
 
   # Build and deploy each service container
@@ -133,7 +133,7 @@ deploy_images() {
       continue
     fi
 
-    podman build -t "$full_image" -f "$dockerfile" .
+    podman build --format docker -t "$full_image" -f "$dockerfile" .
 
     info "Transferring ${name} to VM..."
     # shellcheck disable=SC2086
@@ -143,8 +143,8 @@ deploy_images() {
   if [[ "$DRY_RUN" -eq 0 ]]; then
     info "Restarting nazar services on VM..."
     remote_sudo "systemctl daemon-reload"
-    remote_sudo "systemctl try-restart nazar-heartbeat.timer" || warn "heartbeat timer restart failed"
-    remote_sudo "systemctl try-restart nazar-signal-pod.service" || warn "signal pod restart failed"
+    remote_sudo "systemctl try-restart nazar-heartbeat.timer 2>/dev/null" || true
+    remote_sudo "systemctl try-restart nazar-signal-pod.service 2>/dev/null" || true
   fi
 
   info "Image deploy complete."

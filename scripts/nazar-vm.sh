@@ -135,6 +135,16 @@ Copy bootc/config.toml.example to bootc/config.toml and add your SSH public key.
   local ip
   ip=$(wait_for_ip)
   info "VM IP: $ip"
+
+  local ssh_opts="-o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+  info "Waiting for first-boot setup to complete..."
+  local timeout=120 elapsed=0
+  while ! ssh $ssh_opts "core@${ip}" systemctl is-active nazar-setup.service 2>/dev/null | grep -qE "^(active|inactive)$"; do
+    sleep 5
+    elapsed=$((elapsed + 5))
+    [[ $elapsed -ge $timeout ]] && { warn "Timed out waiting for nazar-setup.service"; break; }
+  done
+
   info ""
   info "Deploying container images to VM..."
   NAZAR_HOST="$ip" "$PROJECT_ROOT/scripts/nazar-deploy.sh" --images
