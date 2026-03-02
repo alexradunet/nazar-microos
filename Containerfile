@@ -1,4 +1,5 @@
-FROM quay.io/fedora/fedora-bootc:42
+# To update digest: podman pull quay.io/fedora/fedora-bootc:42 && podman inspect --format '{{.Digest}}'
+FROM quay.io/fedora/fedora-bootc:42@sha256:90c2d851663ec0ebf66121786d9d9e488f8e2ce0ac1554dfc4b65834b731690f
 
 # System packages
 RUN dnf install -y \
@@ -46,6 +47,9 @@ COPY sysconfig/nazar.yaml.default /etc/nazar/nazar.yaml
 COPY sysconfig/SYSTEM.md /usr/local/share/nazar/SYSTEM.md
 COPY persona/ /usr/local/share/nazar/persona/
 COPY skills/ /usr/local/share/nazar/skills/
+
+# Logically-bound container images (pulled on first boot)
+COPY sysconfig/bound-images/ /usr/share/containers/systemd/
 
 # Enable services
 COPY sysconfig/systemd/nazar-setup.service /usr/lib/systemd/system/nazar-setup.service

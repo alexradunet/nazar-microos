@@ -33,6 +33,8 @@ function makeConfig(
     objectsDir: path.join(tmpDir, "objects"),
     skillsDir: path.join(tmpDir, "skills"),
     timeoutMs: 5_000,
+    piModel: undefined,
+    piTransport: undefined,
     ...overrides,
   };
 }

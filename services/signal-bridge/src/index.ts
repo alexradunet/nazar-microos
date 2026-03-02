@@ -22,6 +22,8 @@ export interface SignalBridgeConfig extends AgentConfig {
   signalCliHost: string;
   signalCliPort: number;
   storageDir: string;
+  piModel?: string;
+  piTransport?: "sse" | "websocket" | "auto";
 }
 
 const DEFAULT_CONFIG: SignalBridgeConfig = {
@@ -38,6 +40,10 @@ const DEFAULT_CONFIG: SignalBridgeConfig = {
   objectsDir: process.env.NAZAR_OBJECTS_DIR || "/var/lib/nazar/objects",
   skillsDir: process.env.NAZAR_SKILLS_DIR || "/usr/local/share/nazar/skills",
   timeoutMs: Number(process.env.NAZAR_SIGNAL_TIMEOUT_MS) || 120_000,
+  piModel: process.env.NAZAR_PI_MODEL || undefined,
+  piTransport:
+    (process.env.NAZAR_PI_TRANSPORT as "sse" | "websocket" | "auto") ||
+    undefined,
 };
 
 // --- Pure helpers ---
@@ -61,11 +67,15 @@ type AgentSessionEvent =
       assistantMessageEvent?: { type: string; delta: string };
     }
   | { type: "idle" }
-  | { type: "error"; message: string };
+  | { type: "error"; message: string }
+  | { type: "auto_compaction_start" }
+  | { type: "auto_compaction_end" };
 
 interface AgentSession {
   subscribe(cb: (event: AgentSessionEvent) => void): () => void;
   prompt(text: string): Promise<void>;
+  dispose?(): void;
+  compact?(guidance?: string): Promise<unknown>;
 }
 
 // One session per contact phone number, bounded to prevent memory leaks.
@@ -78,22 +88,67 @@ async function processWithAgent(
   config: SignalBridgeConfig,
 ): Promise<string> {
   // Lazy-load the Pi AgentSession SDK to allow testing without it installed.
-  const { createAgentSession, SessionManager, AuthStorage, ModelRegistry } =
-    (await import("@mariozechner/pi-coding-agent")) as any;
+  const {
+    createAgentSession,
+    SessionManager,
+    AuthStorage,
+    ModelRegistry,
+    SettingsManager,
+    DefaultResourceLoader,
+  } = (await import("@mariozechner/pi-coding-agent")) as any;
+  const { getModel } = (await import("@mariozechner/pi-ai")) as any;
+  const { createNazarExtension } = await import("./extension.js");
 
   let session = sessions.get(from);
   if (!session) {
     // Evict oldest session if at capacity
     if (sessions.size >= MAX_SESSIONS) {
       const oldest = sessions.keys().next().value;
-      if (oldest !== undefined) sessions.delete(oldest);
+      if (oldest !== undefined) {
+        const evicted = sessions.get(oldest);
+        evicted?.dispose?.();
+        sessions.delete(oldest);
+      }
     }
+
+    // Shared auth storage instance (item 1)
+    const authStorage = AuthStorage.create();
+
+    // Resolve model from env var (item 3)
+    const model = config.piModel ? getModel(config.piModel) : undefined;
+
+    // Settings with compaction + transport (items 6, 10)
+    const settingsManager = SettingsManager.inMemory({
+      compaction: { enabled: true },
+      ...(config.piTransport ? { transport: config.piTransport } : {}),
+    });
+
+    // Extension factory (item 9)
+    const nazarExtension = createNazarExtension();
+
+    // Resource loader with skills + extension (item 7)
+    const cwd = config.repoRoot;
+    const agentDir = config.piDir;
+    const resourceLoader = new DefaultResourceLoader({
+      cwd,
+      agentDir,
+      settingsManager,
+      additionalSkillPaths: [config.skillsDir],
+      extensionFactories: [nazarExtension],
+      noThemes: true,
+      noPromptTemplates: true,
+    });
+    await resourceLoader.reload();
+
     const { session: s } = await createAgentSession({
       sessionManager: SessionManager.inMemory(),
-      authStorage: AuthStorage.create(),
-      modelRegistry: new ModelRegistry(AuthStorage.create()),
-      cwd: config.repoRoot,
-      agentDir: config.piDir,
+      authStorage,
+      modelRegistry: new ModelRegistry(authStorage),
+      settingsManager,
+      resourceLoader,
+      cwd,
+      agentDir,
+      ...(model ? { model } : {}),
     });
     session = s as AgentSession;
     sessions.set(from, session);
@@ -108,6 +163,12 @@ async function processWithAgent(
         event.assistantMessageEvent?.type === "text_delta"
       ) {
         accumulated += event.assistantMessageEvent.delta;
+      }
+      if (event.type === "auto_compaction_start") {
+        console.log(`[${from}] Auto-compaction started`);
+      }
+      if (event.type === "auto_compaction_end") {
+        console.log(`[${from}] Auto-compaction completed`);
       }
       if (event.type === "idle") {
         unsub();
@@ -307,6 +368,8 @@ async function main(): Promise<void> {
   console.log(`  signal-cli: ${config.signalCliHost}:${config.signalCliPort}`);
   console.log(`  Pi dir: ${config.piDir}`);
   console.log(`  Objects dir: ${config.objectsDir}`);
+  console.log(`  Pi model: ${config.piModel || "(default)"}`);
+  console.log(`  Pi transport: ${config.piTransport || "(default)"}`);
   console.log(
     `  Allowed contacts: ${config.allowedContacts.length === 0 ? "all" : config.allowedContacts.join(", ")}`,
   );

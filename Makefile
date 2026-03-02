@@ -1,7 +1,7 @@
 IMAGE_NAME := localhost/nazar-os
 IMAGE_TAG  := latest
 
-.PHONY: image qcow2 containers clean
+.PHONY: image qcow2 chunked-oci containers clean
 
 image:
 	podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f Containerfile .
@@ -24,6 +24,14 @@ containers:
 	podman build -t localhost/nazar-heartbeat:latest -f containers/heartbeat/Containerfile .
 	podman build -t localhost/nazar-signal-cli:latest -f containers/signal-cli/Containerfile .
 	podman build -t localhost/nazar-signal-bridge:latest -f containers/signal-bridge/Containerfile .
+
+chunked-oci:
+	podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f Containerfile .
+	@mkdir -p _output
+	rpm-ostree compose image \
+	  --format=ociarchive \
+	  $(IMAGE_NAME):$(IMAGE_TAG) \
+	  _output/nazar-os-chunked.ociarchive
 
 clean:
 	rm -rf _output/

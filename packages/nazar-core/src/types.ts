@@ -83,6 +83,8 @@ export interface AgentConfig {
   objectsDir: string;
   skillsDir: string;
   timeoutMs: number;
+  piModel?: string;
+  piTransport?: "sse" | "websocket" | "auto";
 }
 
 /** Nazar system configuration (nazar.yaml schema). */

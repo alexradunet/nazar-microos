@@ -1,4 +1,4 @@
-FROM docker.io/eclipse-temurin:25-jre-slim
+FROM docker.io/eclipse-temurin:25-jre
 
 ARG SIGNAL_CLI_VERSION=0.14.0
 

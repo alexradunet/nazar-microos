@@ -169,22 +169,34 @@
   },
   "hotPaths": [
     {
+      "path": "services/signal-bridge/src/index.ts",
+      "accessCount": 25,
+      "lastAccessed": 1772466063718,
+      "type": "file"
+    },
+    {
       "path": "",
       "accessCount": 23,
       "lastAccessed": 1772463733933,
       "type": "directory"
     },
     {
-      "path": "services/signal-bridge/src/index.ts",
-      "accessCount": 15,
-      "lastAccessed": 1772464524765,
-      "type": "file"
+      "path": "Makefile",
+      "accessCount": 14,
+      "lastAccessed": 1772466064547,
+      "type": "directory"
     },
     {
       "path": "scripts/nazar-deploy.sh",
       "accessCount": 13,
       "lastAccessed": 1772464508522,
       "type": "directory"
+    },
+    {
+      "path": "packages/nazar-core/src/types.ts",
+      "accessCount": 13,
+      "lastAccessed": 1772465687308,
+      "type": "file"
     },
     {
       "path": "scripts/nazar",
@@ -194,9 +206,21 @@
     },
     {
       "path": "packages/nazar-core/src/setup.ts",
-      "accessCount": 11,
-      "lastAccessed": 1772464491937,
+      "accessCount": 12,
+      "lastAccessed": 1772465108862,
       "type": "directory"
+    },
+    {
+      "path": "containers/signal-cli/Containerfile",
+      "accessCount": 11,
+      "lastAccessed": 1772465492493,
+      "type": "file"
+    },
+    {
+      "path": "Containerfile",
+      "accessCount": 11,
+      "lastAccessed": 1772466064179,
+      "type": "file"
     },
     {
       "path": "scripts/nazar-vm.sh",
@@ -206,8 +230,8 @@
     },
     {
       "path": "skills/signal-setup/SKILL.md",
-      "accessCount": 9,
-      "lastAccessed": 1772463706195,
+      "accessCount": 10,
+      "lastAccessed": 1772465119984,
       "type": "file"
     },
     {
@@ -217,21 +241,27 @@
       "type": "file"
     },
     {
-      "path": "Makefile",
-      "accessCount": 7,
-      "lastAccessed": 1772463356498,
-      "type": "directory"
-    },
-    {
-      "path": "containers/signal-cli/Containerfile",
-      "accessCount": 7,
-      "lastAccessed": 1772463720575,
+      "path": "skills/heartbeat/SKILL.md",
+      "accessCount": 8,
+      "lastAccessed": 1772465228268,
       "type": "file"
     },
     {
-      "path": "packages/nazar-core/src/types.ts",
+      "path": "containers/signal-bridge/Containerfile",
+      "accessCount": 8,
+      "lastAccessed": 1772465991829,
+      "type": "file"
+    },
+    {
+      "path": "packages/nazar-core/src/__tests__/setup.test.ts",
       "accessCount": 7,
-      "lastAccessed": 1772464526030,
+      "lastAccessed": 1772465119257,
+      "type": "directory"
+    },
+    {
+      "path": "sysconfig/nazar.yaml.default",
+      "accessCount": 7,
+      "lastAccessed": 1772465287246,
       "type": "file"
     },
     {
@@ -241,16 +271,16 @@
       "type": "file"
     },
     {
-      "path": "skills/heartbeat/SKILL.md",
+      "path": "containers/heartbeat/Containerfile",
       "accessCount": 6,
-      "lastAccessed": 1772464500972,
+      "lastAccessed": 1772465112021,
       "type": "file"
     },
     {
-      "path": "packages/nazar-core/src/__tests__/setup.test.ts",
+      "path": "services/signal-bridge/src/__tests__/bridge.test.ts",
       "accessCount": 6,
-      "lastAccessed": 1772464546384,
-      "type": "directory"
+      "lastAccessed": 1772466058144,
+      "type": "file"
     },
     {
       "path": "tests/integration/run.sh",
@@ -271,6 +301,12 @@
       "type": "directory"
     },
     {
+      "path": "services/signal-bridge/package.json",
+      "accessCount": 5,
+      "lastAccessed": 1772465214512,
+      "type": "file"
+    },
+    {
       "path": "packages/nazar-core/src/system-executor.ts",
       "accessCount": 4,
       "lastAccessed": 1772462808075,
@@ -283,33 +319,27 @@
       "type": "file"
     },
     {
-      "path": "Containerfile",
-      "accessCount": 4,
-      "lastAccessed": 1772462946138,
-      "type": "file"
-    },
-    {
       "path": "tests/container/smoke-test.sh",
       "accessCount": 4,
       "lastAccessed": 1772462967000,
       "type": "file"
     },
     {
-      "path": "sysconfig/nazar.yaml.default",
-      "accessCount": 4,
-      "lastAccessed": 1772463713759,
-      "type": "file"
-    },
-    {
-      "path": "containers/heartbeat/Containerfile",
-      "accessCount": 4,
-      "lastAccessed": 1772463721539,
-      "type": "file"
-    },
-    {
       "path": "CLAUDE.md",
       "accessCount": 4,
       "lastAccessed": 1772464496000,
+      "type": "file"
+    },
+    {
+      "path": "nazar.yaml.example",
+      "accessCount": 4,
+      "lastAccessed": 1772465109168,
+      "type": "file"
+    },
+    {
+      "path": "containers/base/Containerfile",
+      "accessCount": 4,
+      "lastAccessed": 1772465264063,
       "type": "file"
     },
     {
@@ -343,15 +373,21 @@
       "type": "file"
     },
     {
-      "path": "containers/signal-bridge/Containerfile",
+      "path": "services/signal-bridge/tsconfig.json",
       "accessCount": 3,
-      "lastAccessed": 1772463731694,
+      "lastAccessed": 1772465214689,
       "type": "file"
     },
     {
-      "path": "nazar.yaml.example",
+      "path": "package.json",
       "accessCount": 3,
-      "lastAccessed": 1772464538286,
+      "lastAccessed": 1772465287489,
+      "type": "file"
+    },
+    {
+      "path": "sysconfig/SYSTEM.md",
+      "accessCount": 3,
+      "lastAccessed": 1772465288005,
       "type": "file"
     },
     {
@@ -373,12 +409,6 @@
       "type": "file"
     },
     {
-      "path": "services/signal-bridge/package.json",
-      "accessCount": 2,
-      "lastAccessed": 1772463280048,
-      "type": "file"
-    },
-    {
       "path": "skills/object-evolution/SKILL.md",
       "accessCount": 2,
       "lastAccessed": 1772463701134,
@@ -392,14 +422,8 @@
     },
     {
       "path": "packages/nazar-core/package.json",
-      "accessCount": 1,
-      "lastAccessed": 1772462338715,
-      "type": "file"
-    },
-    {
-      "path": "package.json",
-      "accessCount": 1,
-      "lastAccessed": 1772462340694,
+      "accessCount": 2,
+      "lastAccessed": 1772465115320,
       "type": "file"
     },
     {
@@ -433,18 +457,6 @@
       "type": "file"
     },
     {
-      "path": "containers/base/Containerfile",
-      "accessCount": 1,
-      "lastAccessed": 1772462416640,
-      "type": "file"
-    },
-    {
-      "path": "sysconfig/SYSTEM.md",
-      "accessCount": 1,
-      "lastAccessed": 1772462419716,
-      "type": "file"
-    },
-    {
       "path": "sysconfig",
       "accessCount": 1,
       "lastAccessed": 1772462426672,
@@ -454,18 +466,6 @@
       "path": "sysconfig/sudoers.d/core-wheel",
       "accessCount": 1,
       "lastAccessed": 1772462433312,
-      "type": "file"
-    },
-    {
-      "path": "services/signal-bridge/tsconfig.json",
-      "accessCount": 1,
-      "lastAccessed": 1772463280252,
-      "type": "file"
-    },
-    {
-      "path": "services/signal-bridge/src/__tests__/bridge.test.ts",
-      "accessCount": 1,
-      "lastAccessed": 1772463286525,
       "type": "file"
     }
   ],
