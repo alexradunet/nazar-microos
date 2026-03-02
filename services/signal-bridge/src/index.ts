@@ -12,6 +12,7 @@
 
 import fs from "node:fs";
 import net from "node:net";
+import path from "node:path";
 import type { AgentConfig, IncomingMessage, MessageChannel } from "@nazar/core";
 
 // --- Signal-specific config ---
@@ -67,6 +68,8 @@ type AgentSessionEvent =
       assistantMessageEvent?: { type: string; delta: string };
     }
   | { type: "idle" }
+  | { type: "agent_end" }
+  | { type: "turn_end" }
   | { type: "error"; message: string }
   | { type: "auto_compaction_start" }
   | { type: "auto_compaction_end" };
@@ -170,7 +173,11 @@ async function processWithAgent(
       if (event.type === "auto_compaction_end") {
         console.log(`[${from}] Auto-compaction completed`);
       }
-      if (event.type === "idle") {
+      if (
+        event.type === "idle" ||
+        event.type === "agent_end" ||
+        event.type === "turn_end"
+      ) {
         unsub();
         resolve(accumulated.trim() || "(no response)");
       }
@@ -251,12 +258,49 @@ export class SignalBotChannel implements MessageChannel {
 
     fs.mkdirSync(this.config.storageDir, { recursive: true });
 
-    await new Promise<void>((resolve, reject) => {
+    // Retry with exponential backoff — signal-cli may not be ready yet.
+    const MAX_RETRIES = 10;
+    const BASE_DELAY_MS = 1_000;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        await this.connectOnce(handleMessage);
+        break;
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (attempt === MAX_RETRIES) {
+          throw new Error(
+            `Failed to connect to signal-cli after ${MAX_RETRIES} attempts: ${msg}`,
+          );
+        }
+        const delay = BASE_DELAY_MS * 2 ** (attempt - 1);
+        console.log(
+          `Connection attempt ${attempt}/${MAX_RETRIES} failed (${msg}), retrying in ${delay}ms...`,
+        );
+        await new Promise((r) => setTimeout(r, delay));
+      }
+    }
+
+    console.log(
+      `Connected to signal-cli at ${this.config.signalCliHost}:${this.config.signalCliPort}`,
+    );
+
+    // Write health timestamp for container HEALTHCHECK
+    const healthFile = `${this.config.storageDir}/healthy`;
+    fs.writeFileSync(healthFile, new Date().toISOString());
+    this.healthInterval = setInterval(() => {
+      fs.writeFileSync(healthFile, new Date().toISOString());
+    }, 15_000);
+  }
+
+  private connectOnce(
+    handleMessage: (msg: IncomingMessage) => Promise<string>,
+  ): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
       const socket = net.createConnection(
         { host: this.config.signalCliHost, port: this.config.signalCliPort },
         () => {
           this.socket = socket;
-          // Replace the connect-phase error handler with a persistent one
           socket.removeListener("error", onConnectError);
           socket.on("error", (err) => {
             console.error(`signal-cli socket error: ${err.message}`);
@@ -281,17 +325,6 @@ export class SignalBotChannel implements MessageChannel {
         console.log("signal-cli connection closed");
       });
     });
-
-    console.log(
-      `Connected to signal-cli at ${this.config.signalCliHost}:${this.config.signalCliPort}`,
-    );
-
-    // Write health timestamp for container HEALTHCHECK
-    const healthFile = `${this.config.storageDir}/healthy`;
-    fs.writeFileSync(healthFile, new Date().toISOString());
-    this.healthInterval = setInterval(() => {
-      fs.writeFileSync(healthFile, new Date().toISOString());
-    }, 15_000);
   }
 
   private handleJsonRpcLine(
@@ -360,6 +393,16 @@ async function main(): Promise<void> {
   if (!validatePhoneNumber(config.phoneNumber)) {
     throw new Error(
       `Invalid phone number format: '${config.phoneNumber}' (expected E.164, e.g. +12345678901)`,
+    );
+  }
+
+  // Validate Pi agent config directory has required files
+  const authFile = path.join(config.piDir, "auth.json");
+  if (!fs.existsSync(authFile)) {
+    throw new Error(
+      `Pi agent auth not found at ${authFile}. ` +
+        "Provision it to /var/lib/nazar/pi-config/agent/ on the host " +
+        "(see: nazar signal setup-agent).",
     );
   }
 
