@@ -2,6 +2,8 @@ variant: fcos
 version: 1.6.0
 
 passwd:
+  groups:
+    - name: podman
   users:
     - name: core
       ssh_authorized_keys_local:

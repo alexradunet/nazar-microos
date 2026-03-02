@@ -104,17 +104,20 @@ Copy your public key:  cp ~/.ssh/id_ed25519.pub $AUTH_KEYS"
   local ign_file="$IGNITION_DIR/nazar.ign"
   [[ -f "$ign_file" ]] || die "Ignition file not found: $ign_file"
 
-  # Copy VM disk and ignition to libvirt images dir (qemu user needs access)
+  # Copy VM disk to libvirt images dir (qemu user needs access) and embed Ignition
   local libvirt_dir="/var/lib/libvirt/images"
   local vm_disk="$libvirt_dir/nazar-dev.qcow2"
-  local vm_ign="$libvirt_dir/nazar.ign"
 
   info "Creating VM disk from base image..."
   sudo -n cp "$qcow2_file" "$vm_disk"
   sudo -n qemu-img resize "$vm_disk" "$VM_DISK_SIZE"
-  sudo -n cp "$ign_file" "$vm_ign"
 
-  # Create VM
+  # Copy Ignition to libvirt dir and set SELinux context so qemu can read it
+  local vm_ign="$libvirt_dir/nazar.ign"
+  sudo -n cp "$ign_file" "$vm_ign"
+  sudo -n chcon -t svirt_image_t "$vm_ign" 2>/dev/null || true
+
+  # Create VM (use --sysinfo fwcfg for reliable Ignition delivery)
   info "Creating VM '$VM_NAME'..."
   sudo -n virt-install --connect "$VIRSH_URI" \
     --name "$VM_NAME" \
@@ -125,7 +128,7 @@ Copy your public key:  cp ~/.ssh/id_ed25519.pub $AUTH_KEYS"
     --disk "path=$vm_disk" \
     --os-variant fedora-coreos-stable \
     --network network=default \
-    --qemu-commandline="-fw_cfg name=opt/com.coreos/config,file=$vm_ign" \
+    --sysinfo type=fwcfg,entry0.name=opt/com.coreos/config,entry0.file="$vm_ign" \
     --noautoconsole
 
   info "VM '$VM_NAME' created and starting."
