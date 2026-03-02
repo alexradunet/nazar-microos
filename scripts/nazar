@@ -11,7 +11,7 @@ set -euo pipefail
 #   nazar deploy [flags]       Deploy changes to dev VM
 #   nazar vm <cmd>             Dev VM lifecycle (create/start/stop/destroy/ssh)
 #   nazar evolve <cmd> ...     Container evolution lifecycle
-#   nazar object <cmd> ...     Object store CRUD (nazar-object.sh)
+#   nazar object <cmd> ...     Object store CRUD
 #   nazar pi [args]            Launch Pi agent with persona + skills
 #   nazar setup                Interactive first-time setup (Pi with install-nazar skill)
 #   nazar                      Interactive Pi session (no args)

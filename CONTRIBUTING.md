@@ -7,7 +7,7 @@ Contributions are welcome! This guide helps you find the right level of involvem
 | Tier | Area | What you need |
 |------|------|---------------|
 | 0 | Docs, persona, skills | Git |
-| 1 | TypeScript, shell scripts | Node.js 22 / bash + yq + jq |
+| 1 | TypeScript, shell scripts | Node.js 22 |
 | 2 | Containerfiles | Podman basics |
 | 3 | Containerfile, bootc, Quadlet, CI | bootc + systemd knowledge |
 
@@ -29,16 +29,15 @@ Core domain logic and shell tools.
 npm install
 
 # TypeScript tests
-npm -w packages/nazar-core test
+npm test
 
-# Shell tests (needs yq + jq)
-bash tests/shell/run.sh
+# Lint check
+npm run check
 ```
 
 Key files:
-- `packages/nazar-core/src/` — ObjectStore, FrontmatterParser, types
-- `scripts/nazar-object.sh` — Shell CRUD tool
-- `scripts/nazar-setup.sh` — Config -> Quadlet generator
+- `packages/nazar-core/src/` — ObjectStore, FrontmatterParser, SetupAdapter, EvolutionAdapter
+- `scripts/nazar` — CLI router (delegates to nazar-core)
 
 ### Tier 2: Containers
 
@@ -70,7 +69,7 @@ Key files:
 
 - **TDD first** — Write failing tests before implementation
 - **node:test** for TypeScript tests — zero framework deps
-- **yq-go** for shell YAML, **js-yaml** for TypeScript YAML
+- **js-yaml** for YAML parsing (via nazar-core)
 - **Hexagonal architecture** — Ports (interfaces) and Adapters (implementations)
 - **PARA methodology** — Projects, Areas, Resources, Archives for object organization
 
@@ -83,14 +82,14 @@ Key files:
 ## Testing
 
 ```bash
-# All TypeScript unit tests
-npm -w packages/nazar-core test
+# All tests
+npm test
 
-# All shell tests
-bash tests/shell/run.sh
+# Lint + format check
+npm run check
 
-# Setup script dry-run
-NAZAR_CONFIG=nazar.yaml.example QUADLET_OUTPUT_DIR=/tmp/q bash scripts/nazar-setup.sh --dry-run
+# Setup dry-run
+NAZAR_CONFIG=nazar.yaml.example QUADLET_OUTPUT_DIR=/tmp/q nazar-core setup --dry-run
 
 # Build bootc OS image
 make image

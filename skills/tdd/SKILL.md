@@ -84,9 +84,8 @@ When reporting work, include:
 ## Test Commands
 
 - **TypeScript unit tests**: `npm -w packages/nazar-core test`
-- **Shell tests**: `bash tests/shell/run.sh`
+- **All tests**: `npm test`
 - **Lint check**: `npx biome check`
-- **All tests**: `npm test && bash tests/shell/run.sh`
 
 ## Done Criteria
 
@@ -95,4 +94,4 @@ A task is complete only if all are true:
 - Tests were written first and observed failing.
 - Implementation is minimal and passing.
 - Edge-case/regression coverage exists.
-- Relevant checks passed (`npm test && bash tests/shell/run.sh`).
+- Relevant checks passed (`npm test`).

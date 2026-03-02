@@ -29,18 +29,11 @@ Implement approved evolution plans in controlled development context with strict
   ```bash
   node --version
   npm --version
-  yq --version
   ```
 
 ### 3. Write Failing Tests (Red)
 
 Write tests FIRST, before any production code. Run them to confirm they fail.
-
-**Shell tests** (for scripts, object CRUD):
-
-```bash
-bash tests/shell/run.sh
-```
 
 **TypeScript tests** (for packages/services):
 
@@ -126,10 +119,8 @@ Keep these in mind during implementation:
 
 - **Container evolution is instant**: Container-based evolution via Quadlet does not require a reboot — `systemctl daemon-reload` + `start` is sufficient.
 - **Podman rootless vs root**: Quadlet services may run rootless or as root depending on configuration. Check which context applies.
-- **shell tests need executable bit**: Ensure test scripts have `chmod +x` before running.
 - **npm workspaces**: Use `"*"` not `"workspace:*"` (workspace: is pnpm/yarn syntax).
 - **Frontmatter regex**: Must handle empty YAML — use `([\s\S]*?)` not `([\s\S]*?)\n` before closing `---`.
-- **yq env() for safe injection**: `YQ_VAL="$val" yq -i '.key = env(YQ_VAL)' file`
 - **grep leading dash**: `grep -F "- something"` needs `--` to prevent leading dash being parsed as option.
 - **Glob expansion**: `"${dir}"*.md` needs dir to end with `/` for proper expansion.
 - **bootc rollback**: The system uses bootc for atomic image-based OS updates. Test rollback scenarios when modifying system state.

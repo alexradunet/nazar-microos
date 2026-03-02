@@ -50,7 +50,7 @@ Use this skill when the user wants to set up the Matrix messaging channel on the
    ```
 6. Check if registration is currently enabled in `nazar.yaml`:
    ```bash
-   yq '.channels.matrix.conduit.allowRegistration' /etc/nazar/nazar.yaml
+   grep 'allowRegistration' /etc/nazar/nazar.yaml
    ```
 7. If registration is not enabled, explain why it's needed and show the change:
    - "I need to temporarily enable Matrix account registration to create your accounts."

@@ -149,9 +149,6 @@ deploy_scripts() {
 
   local scripts=(
     "scripts/nazar:/usr/local/bin/nazar"
-    "scripts/nazar-setup.sh:/usr/local/bin/nazar-setup"
-    "scripts/nazar-object.sh:/usr/local/bin/nazar-object"
-    "scripts/nazar-evolve.sh:/usr/local/bin/nazar-evolve"
     "scripts/nazar-vm.sh:/usr/local/bin/nazar-vm"
     "scripts/nazar-deploy.sh:/usr/local/bin/nazar-deploy"
   )
@@ -170,6 +167,33 @@ deploy_scripts() {
       info "  $src -> $dest"
     fi
   done
+
+  info "=== Deploying nazar-core CLI ==="
+
+  info "Building nazar-core..."
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    info "[dry-run] npm -w packages/nazar-core run build"
+    info "[dry-run] tar packages/nazar-core/{dist,package.json} | ssh ... sudo tar -xf -C /usr/local/lib/nazar-core/"
+    info "[dry-run] ssh ... cd /usr/local/lib/nazar-core && npm install --omit=dev"
+    info "[dry-run] ssh ... ln -sf + create shims"
+  else
+    npm -w packages/nazar-core run build
+
+    info "Syncing nazar-core to VM..."
+    tar -cf - -C "$PROJECT_ROOT/packages/nazar-core" dist package.json | \
+      # shellcheck disable=SC2086
+      ssh $SSH_OPTS "${NAZAR_SSH_USER}@${NAZAR_HOST}" \
+      "sudo mkdir -p /usr/local/lib/nazar-core && sudo tar -xf - -C /usr/local/lib/nazar-core/"
+
+    info "Installing nazar-core dependencies on VM..."
+    remote_sudo "cd /usr/local/lib/nazar-core && npm install --omit=dev"
+
+    info "Creating nazar-core symlink and shims..."
+    remote_sudo "ln -sf /usr/local/lib/nazar-core/dist/cli.js /usr/local/bin/nazar-core && chmod +x /usr/local/lib/nazar-core/dist/cli.js"
+    remote_sudo "printf '#!/usr/bin/env bash\nexec nazar-core object \"\$@\"\n' > /usr/local/bin/nazar-object && chmod 755 /usr/local/bin/nazar-object"
+    remote_sudo "printf '#!/usr/bin/env bash\nexec nazar-core setup \"\$@\"\n' > /usr/local/bin/nazar-setup && chmod 755 /usr/local/bin/nazar-setup"
+    remote_sudo "printf '#!/usr/bin/env bash\nexec nazar-core evolve \"\$@\"\n' > /usr/local/bin/nazar-evolve && chmod 755 /usr/local/bin/nazar-evolve"
+  fi
 
   info "Scripts sync complete."
 }

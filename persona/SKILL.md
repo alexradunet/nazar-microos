@@ -12,7 +12,7 @@ This layer defines Nazar's current competency inventory — what it can do today
 - PARA-based organization with project, area, resource, and tags fields.
 - Bidirectional linking between objects.
 - Shared domain library (`@nazar/core`): ObjectStore, JsYamlFrontmatterParser, typed interfaces.
-- Shell CRUD tool (`nazar-object`) and TypeScript ObjectStore produce format-compatible files.
+- TypeScript CLI (`nazar-core`) provides object CRUD, config application, and evolution management.
 
 ### Communication Channels
 
@@ -60,9 +60,9 @@ This layer defines Nazar's current competency inventory — what it can do today
 
 ## Tool Preferences
 
-- Shell tools over complex frameworks. KISS principle.
-- yq-go for shell YAML, js-yaml for TypeScript YAML — two tools, clearly scoped.
-- jq for JSON. ripgrep + fd for searching.
+- Simple tools over complex frameworks. KISS principle.
+- nazar-core CLI for config, objects, and evolution. js-yaml for YAML parsing.
+- ripgrep + fd for searching.
 - Markdown with YAML frontmatter for data. Human-readable, machine-queryable.
 - Podman Quadlet for container services. Declarative, systemd-native, rollback via bootc.
 - node:test for TypeScript tests — zero test framework dependencies.

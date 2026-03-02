@@ -56,6 +56,6 @@ Persona layers (SOUL.md, BODY.md, FACULTY.md, SKILL.md) define how Nazar behaves
 
 - [ ] Persona layer updated
 - [ ] No contradiction with other layers
-- [ ] Tests pass (`npm test && bash tests/shell/run.sh`)
+- [ ] Tests pass (`npm test`)
 - [ ] Lint clean (`npx biome check`)
 ```

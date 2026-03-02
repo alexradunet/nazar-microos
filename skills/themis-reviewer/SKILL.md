@@ -29,10 +29,8 @@ If incomplete, return verdict `rework` with finding: "Incomplete change package.
 
 - Run tests independently to confirm they pass:
   ```bash
-  # Shell tests
-  bash tests/shell/run.sh
   # TypeScript tests
-  npm -w packages/nazar-core test
+  npm test
   # Lint check
   npx biome check
   ```

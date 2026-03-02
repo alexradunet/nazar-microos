@@ -9,7 +9,7 @@ Nazar is a self-hosted AI companion that manages your digital life through a fla
 ## Architecture
 
 - **Domain logic** (`packages/nazar-core/`): ObjectStore, FrontmatterParser, shared types
-- **Shell tools** (`scripts/`): `nazar-object.sh` for flat-file CRUD, `nazar-setup.sh` for config application
+- **CLI** (`packages/nazar-core/`): `nazar-core` TypeScript CLI for object CRUD, config application, evolution
 - **Containers** (`containers/`): Base, heartbeat, matrix-bridge — all built FROM `nazar-base`
 - **OS Image** (`Containerfile`): Fedora bootc image with all packages, scripts, and config baked in
 - **Persona** (`persona/`): OpenPersona 4-layer identity (SOUL, BODY, FACULTY, SKILL)
@@ -22,8 +22,8 @@ Nazar is a self-hosted AI companion that manages your digital life through a fla
 
 ```bash
 npm install
-npm -w packages/nazar-core test    # TypeScript unit tests
-bash tests/shell/run.sh            # Shell tests (needs yq + jq)
+npm test                           # TypeScript unit tests
+npm run check                      # Biome lint + format check
 ```
 
 ### For deployment
