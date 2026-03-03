@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
-import type { NazarConfig } from "@nazar/core";
 import {
   type AgentSessionCapability,
+  bridgeNazarConfig,
   createInitializedRegistry,
 } from "@nazar/core";
 import { loadConfig } from "./config.js";
@@ -34,7 +34,7 @@ async function main(): Promise<void> {
   console.log(`  Pi model: ${config.piModel || "(default)"}`);
   console.log(`  Pi transport: ${config.piTransport || "(default)"}`);
 
-  const registry = await createInitializedRegistry({} as NazarConfig);
+  const registry = await createInitializedRegistry(bridgeNazarConfig());
   const agentSession = registry.get<AgentSessionCapability>("agent-session");
   const bridge = agentSession.createBridge(config);
 

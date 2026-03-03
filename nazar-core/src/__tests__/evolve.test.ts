@@ -80,6 +80,14 @@ class MockSystemExecutor implements ISystemExecutor {
   async fileExists(): Promise<boolean> {
     return false;
   }
+
+  async readDir(dirPath: string): Promise<string[]> {
+    throw Object.assign(new Error(`ENOENT: ${dirPath}`), { code: "ENOENT" });
+  }
+
+  async isDirectory(): Promise<boolean> {
+    return false;
+  }
 }
 
 describe("EvolveManager", () => {

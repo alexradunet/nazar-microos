@@ -11,6 +11,15 @@ export {
 // --- Concrete implementations ---
 export type { BridgeConfig } from "./agent-bridge.js";
 export { AgentBridge, isAllowed, validatePhoneNumber } from "./agent-bridge.js";
+export type { BootstrapOptions, BootstrapResult } from "./bridge-bootstrap.js";
+// --- Bridge bootstrap ---
+export {
+  bootstrapBridge,
+  bridgeNazarConfig,
+  HealthFileReporter,
+  loadBaseBridgeConfig,
+  MessageQueue,
+} from "./bridge-bootstrap.js";
 export { AgentSessionCapability } from "./capabilities/agent-session/index.js";
 export type { CapabilityManifest } from "./capabilities/discovery/index.js";
 export {
@@ -26,6 +35,7 @@ export type {
   CapabilityRegistration,
   CliCommand,
   CoreServices,
+  LeafServices,
 } from "./capability.js";
 export { configValue, readConfig } from "./config.js";
 export {

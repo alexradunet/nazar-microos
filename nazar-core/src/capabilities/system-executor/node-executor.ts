@@ -59,4 +59,18 @@ export class NodeSystemExecutor implements ISystemExecutor {
       return false;
     }
   }
+
+  async readDir(dirPath: string): Promise<string[]> {
+    return fs.readdir(dirPath);
+  }
+
+  async isDirectory(dirPath: string): Promise<boolean> {
+    try {
+      const stat = await fs.stat(dirPath);
+      return stat.isDirectory();
+    } catch (err: unknown) {
+      if ((err as NodeJS.ErrnoException).code === "ENOENT") return false;
+      throw err;
+    }
+  }
 }

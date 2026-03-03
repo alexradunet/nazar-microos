@@ -15,6 +15,11 @@ export class ObjectStoreCapability implements Capability {
   private store?: MarkdownFileStore;
 
   init(config: CapabilityConfig): CapabilityRegistration {
+    if (!config.services.frontmatterParser) {
+      throw new Error(
+        "ObjectStoreCapability requires frontmatterParser service",
+      );
+    }
     const objectsDir =
       process.env.NAZAR_OBJECTS_DIR ?? "/var/lib/nazar/objects";
     this.store = new MarkdownFileStore(

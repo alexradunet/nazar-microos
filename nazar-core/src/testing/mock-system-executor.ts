@@ -19,6 +19,7 @@ export class MockSystemExecutor implements ISystemExecutor {
   existingFiles = new Set<string>();
   fileContents = new Map<string, string>();
   healthyServices = new Set<string>();
+  directories = new Map<string, string[]>();
 
   async exec(
     cmd: string,
@@ -72,6 +73,18 @@ export class MockSystemExecutor implements ISystemExecutor {
     return this.existingFiles.has(filePath);
   }
 
+  async readDir(dirPath: string): Promise<string[]> {
+    const entries = this.directories.get(dirPath);
+    if (entries === undefined) {
+      throw Object.assign(new Error(`ENOENT: ${dirPath}`), { code: "ENOENT" });
+    }
+    return entries;
+  }
+
+  async isDirectory(dirPath: string): Promise<boolean> {
+    return this.directories.has(dirPath);
+  }
+
   /** Test helper: reset all recorded calls. */
   reset(): void {
     this.execCalls = [];
@@ -82,5 +95,6 @@ export class MockSystemExecutor implements ISystemExecutor {
     this.existingFiles.clear();
     this.fileContents.clear();
     this.healthyServices.clear();
+    this.directories.clear();
   }
 }

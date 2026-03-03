@@ -14,6 +14,12 @@ export class EvolutionCapability implements Capability {
   private manager?: EvolveManager;
 
   init(config: CapabilityConfig): CapabilityRegistration {
+    if (!config.services.objectStore) {
+      throw new Error("EvolutionCapability requires objectStore service");
+    }
+    if (!config.services.systemExecutor) {
+      throw new Error("EvolutionCapability requires systemExecutor service");
+    }
     const quadletDir =
       process.env.QUADLET_OUTPUT_DIR ?? "/etc/containers/systemd";
     const configPath = process.env.NAZAR_CONFIG ?? "/etc/nazar/nazar.yaml";

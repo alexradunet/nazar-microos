@@ -57,10 +57,7 @@ export class InMemoryObjectStore implements IObjectStore {
     return { data: { ...obj.data }, content: obj.content };
   }
 
-  list(
-    type: string | null,
-    filters: Record<string, string> = {},
-  ): ObjectRef[] {
+  list(type: string | null, filters: Record<string, string> = {}): ObjectRef[] {
     const results: ObjectRef[] = [];
     for (const [, obj] of this.objects) {
       const d = obj.data;

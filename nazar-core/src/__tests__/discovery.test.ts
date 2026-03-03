@@ -1,6 +1,4 @@
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 import {
@@ -9,7 +7,7 @@ import {
   parseManifest,
   validateManifest,
 } from "../capabilities/discovery/index.js";
-import type { CapabilityConfig, CoreServices } from "../capability.js";
+import type { CapabilityConfig } from "../capability.js";
 import { MockSystemExecutor } from "../testing/mock-system-executor.js";
 
 // --- parseManifest ---
@@ -140,23 +138,20 @@ describe("validateManifest", () => {
 // --- DiscoveryCapability ---
 
 describe("DiscoveryCapability", () => {
-  let tmpDir: string;
-  let capDir: string;
-  let skillsDir: string;
-  const stubConfig: CapabilityConfig = {
-    nazar: { hostname: "test", primary_user: "test" },
-    services: {} as CoreServices,
-  };
+  let executor: MockSystemExecutor;
+  const capDir = "/var/lib/nazar/capabilities";
+  const skillsDir = "/var/lib/nazar/skills";
 
-  beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "nazar-discovery-"));
-    capDir = path.join(tmpDir, "capabilities");
-    skillsDir = path.join(tmpDir, "skills");
-    fs.mkdirSync(capDir, { recursive: true });
-    fs.mkdirSync(skillsDir, { recursive: true });
+  const makeConfig = (): CapabilityConfig => ({
+    nazar: { hostname: "test", primary_user: "test" },
+    services: { systemExecutor: executor },
   });
 
-  const writeManifest = (
+  beforeEach(() => {
+    executor = new MockSystemExecutor();
+  });
+
+  const addManifest = (
     name: string,
     extra?: {
       skills?: string[];
@@ -182,49 +177,56 @@ describe("DiscoveryCapability", () => {
         lines.push(`    description: "${p.description}"`);
       }
     }
-    fs.writeFileSync(path.join(capDir, `${name}.yaml`), lines.join("\n"));
-  };
-
-  const writeSkillDir = (source: string, skillName: string) => {
-    const dir = path.join(skillsDir, source, skillName);
-    fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(
-      path.join(dir, "SKILL.md"),
-      `---\nname: ${skillName}\n---\n# ${skillName}`,
+    // Register file content
+    executor.fileContents.set(
+      path.join(capDir, `${name}.yaml`),
+      lines.join("\n"),
     );
+    // Ensure capDir lists this file
+    const existing = executor.directories.get(capDir) ?? [];
+    existing.push(`${name}.yaml`);
+    executor.directories.set(capDir, existing);
   };
 
-  it("discovers manifests and resolves skill paths", () => {
-    writeManifest("core", { skills: ["nazar-runtime", "object-task"] });
-    writeSkillDir("core", "nazar-runtime");
-    writeSkillDir("core", "object-task");
+  const addSkillDir = (source: string) => {
+    const dir = path.join(skillsDir, source);
+    executor.directories.set(dir, []);
+  };
+
+  it("discovers manifests and resolves skill paths", async () => {
+    addManifest("core", { skills: ["nazar-runtime", "object-task"] });
+    addSkillDir("core");
 
     const cap = new DiscoveryCapability({ capabilitiesDir: capDir, skillsDir });
-    const reg = cap.init(stubConfig);
+    const reg = await cap.init(makeConfig());
 
     assert.ok(reg.skillPaths);
     assert.equal(reg.skillPaths.length, 1);
     assert.ok(reg.skillPaths[0].endsWith("/core"));
   });
 
-  it("returns empty when no manifests exist", () => {
+  it("returns empty when no manifests exist", async () => {
+    executor.directories.set(capDir, []);
+    executor.directories.set(skillsDir, []);
+
     const cap = new DiscoveryCapability({ capabilitiesDir: capDir, skillsDir });
-    const reg = cap.init(stubConfig);
+    const reg = await cap.init(makeConfig());
 
     assert.equal(reg.skillPaths, undefined);
     assert.equal(reg.extensionFactory, undefined);
   });
 
-  it("falls back to scanning skills dir when no manifests", () => {
-    // No manifests, but skills directories exist
-    writeSkillDir("core", "nazar-runtime");
-    writeSkillDir("nazar-whisper", "transcribe-audio");
+  it("falls back to scanning skills dir when no manifests", async () => {
+    // No manifests (capDir doesn't exist), but skills directories exist
+    addSkillDir("core");
+    addSkillDir("nazar-whisper");
+    executor.directories.set(skillsDir, ["core", "nazar-whisper"]);
 
     const cap = new DiscoveryCapability({
-      capabilitiesDir: path.join(tmpDir, "nonexistent"),
+      capabilitiesDir: "/nonexistent/caps",
       skillsDir,
     });
-    const reg = cap.init(stubConfig);
+    const reg = await cap.init(makeConfig());
 
     assert.ok(reg.skillPaths);
     assert.equal(reg.skillPaths.length, 2);
@@ -232,56 +234,61 @@ describe("DiscoveryCapability", () => {
     assert.deepEqual(names, ["core", "nazar-whisper"]);
   });
 
-  it("skips manifests with validation errors", () => {
-    // Write an invalid manifest (wrong apiVersion)
-    fs.writeFileSync(
+  it("skips manifests with validation errors", async () => {
+    // Add invalid manifest
+    executor.fileContents.set(
       path.join(capDir, "bad.yaml"),
       "apiVersion: v2\nkind: Other\nmetadata:\n  name: bad\n  description: bad\n  version: '1'\n",
     );
-    writeManifest("good", { skills: ["skill-a"] });
-    writeSkillDir("good", "skill-a");
+    addManifest("good", { skills: ["skill-a"] });
+    // Add "bad.yaml" to directory listing
+    const existing = executor.directories.get(capDir) ?? [];
+    existing.push("bad.yaml");
+    executor.directories.set(capDir, existing);
+
+    addSkillDir("good");
 
     const cap = new DiscoveryCapability({ capabilitiesDir: capDir, skillsDir });
-    const reg = cap.init(stubConfig);
+    const reg = await cap.init(makeConfig());
 
     assert.ok(reg.skillPaths);
     assert.equal(reg.skillPaths.length, 1);
     assert.ok(reg.skillPaths[0].endsWith("/good"));
   });
 
-  it("skips manifests whose skill directories do not exist", () => {
-    writeManifest("orphan", { skills: ["no-such-skill"] });
-    // Don't create the skills directory
+  it("skips manifests whose skill directories do not exist", async () => {
+    addManifest("orphan", { skills: ["no-such-skill"] });
+    // Don't add the skills directory
 
     const cap = new DiscoveryCapability({ capabilitiesDir: capDir, skillsDir });
-    const reg = cap.init(stubConfig);
+    const reg = await cap.init(makeConfig());
 
     // No skill paths because the directory doesn't exist
     assert.equal(reg.skillPaths, undefined);
   });
 
-  it("discovers multiple capability sources", () => {
-    writeManifest("core", { skills: ["nazar-runtime"] });
-    writeManifest("nazar-whisper", { skills: ["transcribe-audio"] });
-    writeSkillDir("core", "nazar-runtime");
-    writeSkillDir("nazar-whisper", "transcribe-audio");
+  it("discovers multiple capability sources", async () => {
+    addManifest("core", { skills: ["nazar-runtime"] });
+    addManifest("nazar-whisper", { skills: ["transcribe-audio"] });
+    addSkillDir("core");
+    addSkillDir("nazar-whisper");
 
     const cap = new DiscoveryCapability({ capabilitiesDir: capDir, skillsDir });
-    const reg = cap.init(stubConfig);
+    const reg = await cap.init(makeConfig());
 
     assert.ok(reg.skillPaths);
     assert.equal(reg.skillPaths.length, 2);
   });
 
-  it("creates extension factory when provides entries exist", () => {
-    writeManifest("nazar-whisper", {
+  it("creates extension factory when provides entries exist", async () => {
+    addManifest("nazar-whisper", {
       skills: ["transcribe-audio"],
       provides: [{ name: "whisper-stt", description: "Speech-to-text" }],
     });
-    writeSkillDir("nazar-whisper", "transcribe-audio");
+    addSkillDir("nazar-whisper");
 
     const cap = new DiscoveryCapability({ capabilitiesDir: capDir, skillsDir });
-    const reg = cap.init(stubConfig);
+    const reg = await cap.init(makeConfig());
 
     assert.ok(reg.extensionFactory);
     const ext = reg.extensionFactory.create();
@@ -296,22 +303,22 @@ describe("DiscoveryCapability", () => {
     assert.ok(result.messages[0].content.includes("Speech-to-text"));
   });
 
-  it("does not create extension factory when no provides", () => {
-    writeManifest("core", { skills: ["nazar-runtime"] });
-    writeSkillDir("core", "nazar-runtime");
+  it("does not create extension factory when no provides", async () => {
+    addManifest("core", { skills: ["nazar-runtime"] });
+    addSkillDir("core");
 
     const cap = new DiscoveryCapability({ capabilitiesDir: capDir, skillsDir });
-    const reg = cap.init(stubConfig);
+    const reg = await cap.init(makeConfig());
 
     assert.equal(reg.extensionFactory, undefined);
   });
 
-  it("handles nonexistent capabilities directory gracefully", () => {
+  it("handles nonexistent capabilities directory gracefully", async () => {
     const cap = new DiscoveryCapability({
       capabilitiesDir: "/nonexistent/path",
       skillsDir: "/also/nonexistent",
     });
-    const reg = cap.init(stubConfig);
+    const reg = await cap.init(makeConfig());
 
     assert.equal(reg.skillPaths, undefined);
     assert.equal(reg.extensionFactory, undefined);

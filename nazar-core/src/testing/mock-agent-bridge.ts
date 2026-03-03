@@ -1,5 +1,5 @@
-import type { IAgentBridge } from "../ports/agent-bridge.js";
 import type { AgentResponse } from "../capabilities/affordances/parser.js";
+import type { IAgentBridge } from "../ports/agent-bridge.js";
 
 export interface MockCall {
   text: string;

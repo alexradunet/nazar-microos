@@ -1,10 +1,10 @@
-import fs from "node:fs";
 import path from "node:path";
 import type {
   Capability,
   CapabilityConfig,
   CapabilityRegistration,
 } from "../../capability.js";
+import type { ISystemExecutor } from "../../ports/system-executor.js";
 import type { ExtensionFactory } from "../agent-session/extension.js";
 import {
   type CapabilityManifest,
@@ -44,15 +44,20 @@ export class DiscoveryCapability implements Capability {
     this.skillsDir = opts?.skillsDir ?? DEFAULT_SKILLS_DIR;
   }
 
-  init(_config: CapabilityConfig): CapabilityRegistration {
-    const manifests = this.scanManifests();
+  async init(config: CapabilityConfig): Promise<CapabilityRegistration> {
+    if (!config.services.systemExecutor) {
+      throw new Error("DiscoveryCapability requires systemExecutor service");
+    }
+    const executor = config.services.systemExecutor;
+
+    const manifests = await this.scanManifests(executor);
     let skillPaths: string[];
 
     if (manifests.length > 0) {
-      skillPaths = this.resolveSkillPaths(manifests);
+      skillPaths = await this.resolveSkillPaths(executor, manifests);
     } else {
       // Fallback: scan skills directory directly for subdirectories
-      skillPaths = this.scanSkillsDir();
+      skillPaths = await this.scanSkillsDir(executor);
     }
 
     const provides = manifests.flatMap((m) => m.provides ?? []);
@@ -70,12 +75,14 @@ export class DiscoveryCapability implements Capability {
   }
 
   /** Scan capabilities directory for *.yaml manifests. */
-  private scanManifests(): CapabilityManifest[] {
+  private async scanManifests(
+    executor: ISystemExecutor,
+  ): Promise<CapabilityManifest[]> {
     const manifests: CapabilityManifest[] = [];
 
     let entries: string[];
     try {
-      entries = fs.readdirSync(this.capabilitiesDir);
+      entries = await executor.readDir(this.capabilitiesDir);
     } catch {
       return manifests;
     }
@@ -85,7 +92,7 @@ export class DiscoveryCapability implements Capability {
 
       const filePath = path.join(this.capabilitiesDir, entry);
       try {
-        const raw = fs.readFileSync(filePath, "utf-8");
+        const raw = await executor.readFile(filePath);
         const manifest = parseManifest(raw);
         const errors = validateManifest(manifest);
         if (errors.length > 0) {
@@ -108,17 +115,16 @@ export class DiscoveryCapability implements Capability {
    * Resolve skill paths from manifests.
    * Each manifest's skills live under skillsDir/<metadata.name>/.
    */
-  private resolveSkillPaths(manifests: CapabilityManifest[]): string[] {
+  private async resolveSkillPaths(
+    executor: ISystemExecutor,
+    manifests: CapabilityManifest[],
+  ): Promise<string[]> {
     const paths: string[] = [];
 
     for (const manifest of manifests) {
       const base = path.join(this.skillsDir, manifest.metadata.name);
-      try {
-        if (fs.statSync(base).isDirectory()) {
-          paths.push(base);
-        }
-      } catch {
-        // Skills directory doesn't exist for this manifest
+      if (await executor.isDirectory(base)) {
+        paths.push(base);
       }
     }
 
@@ -126,24 +132,20 @@ export class DiscoveryCapability implements Capability {
   }
 
   /** Fallback: scan skills dir for subdirectories when no manifests available. */
-  private scanSkillsDir(): string[] {
+  private async scanSkillsDir(executor: ISystemExecutor): Promise<string[]> {
     const paths: string[] = [];
 
     let entries: string[];
     try {
-      entries = fs.readdirSync(this.skillsDir);
+      entries = await executor.readDir(this.skillsDir);
     } catch {
       return paths;
     }
 
     for (const entry of entries) {
       const full = path.join(this.skillsDir, entry);
-      try {
-        if (fs.statSync(full).isDirectory()) {
-          paths.push(full);
-        }
-      } catch {
-        // skip non-stat-able entries
+      if (await executor.isDirectory(full)) {
+        paths.push(full);
       }
     }
 

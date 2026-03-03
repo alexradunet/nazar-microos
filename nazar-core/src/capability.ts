@@ -14,16 +14,20 @@ import type { NazarConfig } from "./types.js";
 /** Configuration passed to each capability during init. */
 export interface CapabilityConfig {
   nazar: NazarConfig;
-  services: CoreServices;
+  services: Partial<CoreServices>;
 }
 
-/** Shared services available to all capabilities. */
-export interface CoreServices {
-  objectStore: IObjectStore;
+/** Base services from Phase 1 leaf capabilities. */
+export interface LeafServices {
   frontmatterParser: IFrontmatterParser;
-  systemExecutor: ISystemExecutor;
   configReader: IConfigReader;
+  systemExecutor: ISystemExecutor;
   personaLoader: IPersonaLoader;
+}
+
+/** Full services including object store (available after Phase 2+). */
+export interface CoreServices extends LeafServices {
+  objectStore: IObjectStore;
 }
 
 /** CLI command contributed by a capability. */

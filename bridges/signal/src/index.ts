@@ -12,18 +12,17 @@
 
 import fs from "node:fs";
 import net from "node:net";
-import path from "node:path";
 import type {
   BridgeConfig,
   IncomingMessage,
   MessageChannel,
-  NazarConfig,
 } from "@nazar/core";
 import {
-  type AgentSessionCapability,
-  createInitializedRegistry,
-  formatAffordancesAsText,
+  bootstrapBridge,
+  HealthFileReporter,
   isAllowed,
+  loadBaseBridgeConfig,
+  MessageQueue,
   validatePhoneNumber,
 } from "@nazar/core";
 
@@ -39,29 +38,6 @@ export interface SignalBridgeConfig extends BridgeConfig {
   storageDir: string;
 }
 
-const DEFAULT_CONFIG: SignalBridgeConfig = {
-  phoneNumber: process.env.NAZAR_SIGNAL_PHONE || "",
-  allowedContacts: (process.env.NAZAR_SIGNAL_ALLOWED_CONTACTS || "")
-    .split(",")
-    .filter(Boolean),
-  signalCliHost: process.env.NAZAR_SIGNAL_CLI_HOST || "127.0.0.1",
-  signalCliPort: Number(process.env.NAZAR_SIGNAL_CLI_PORT) || 7583,
-  storageDir: process.env.NAZAR_SIGNAL_STORAGE_DIR || "/data/signal-storage",
-  personaDir: process.env.NAZAR_PERSONA_DIR || "/usr/local/share/nazar/persona",
-  systemMdPath: process.env.NAZAR_SYSTEM_MD || "",
-  channelName: "Signal",
-  piCommand: process.env.NAZAR_PI_COMMAND || "pi",
-  piDir: process.env.PI_CODING_AGENT_DIR || `${process.env.HOME}/.pi/agent`,
-  repoRoot: process.env.NAZAR_REPO_ROOT || "/var/lib/nazar",
-  objectsDir: process.env.NAZAR_OBJECTS_DIR || "/var/lib/nazar/objects",
-  skillsDir: process.env.NAZAR_SKILLS_DIR || "/usr/local/share/nazar/skills",
-  timeoutMs: Number(process.env.NAZAR_SIGNAL_TIMEOUT_MS) || 120_000,
-  piModel: process.env.NAZAR_PI_MODEL || undefined,
-  piTransport:
-    (process.env.NAZAR_PI_TRANSPORT as "sse" | "websocket" | "auto") ||
-    undefined,
-};
-
 // --- Adapter: Signal Bot Channel ---
 
 export class SignalBotChannel implements MessageChannel {
@@ -70,33 +46,12 @@ export class SignalBotChannel implements MessageChannel {
   private config: SignalBridgeConfig;
   private socket?: net.Socket;
   private rpcId = 0;
-  private healthInterval?: ReturnType<typeof setInterval>;
-  private processingQueue: Promise<void> = Promise.resolve();
   private lineBuffer = "";
-  private queueDepth = 0;
-  private static readonly MAX_QUEUE_DEPTH = 100;
+  private readonly queue = new MessageQueue();
+  private readonly health = new HealthFileReporter();
 
   constructor(config: SignalBridgeConfig) {
     this.config = config;
-  }
-
-  private enqueue(fn: () => Promise<void>): void {
-    if (this.queueDepth >= SignalBotChannel.MAX_QUEUE_DEPTH) {
-      console.warn(`Queue full (${this.queueDepth} pending), dropping message`);
-      return;
-    }
-    this.queueDepth++;
-    this.processingQueue = this.processingQueue
-      .then(fn)
-      .catch((err) => {
-        console.error(
-          "Queue error:",
-          err instanceof Error ? err.message : String(err),
-        );
-      })
-      .finally(() => {
-        this.queueDepth--;
-      });
   }
 
   onMessage(handler: (msg: IncomingMessage) => Promise<string>): void {
@@ -117,10 +72,7 @@ export class SignalBotChannel implements MessageChannel {
   }
 
   async disconnect(): Promise<void> {
-    if (this.healthInterval) {
-      clearInterval(this.healthInterval);
-      this.healthInterval = undefined;
-    }
+    this.health.stop();
     this.socket?.destroy();
     this.socket = undefined;
   }
@@ -161,12 +113,7 @@ export class SignalBotChannel implements MessageChannel {
       `Connected to signal-cli at ${this.config.signalCliHost}:${this.config.signalCliPort}`,
     );
 
-    // Write health timestamp for container HEALTHCHECK
-    const healthFile = `${this.config.storageDir}/healthy`;
-    fs.writeFileSync(healthFile, new Date().toISOString());
-    this.healthInterval = setInterval(() => {
-      fs.writeFileSync(healthFile, new Date().toISOString());
-    }, 15_000);
+    this.health.start(`${this.config.storageDir}/healthy`);
   }
 
   private connectOnce(
@@ -235,7 +182,7 @@ export class SignalBotChannel implements MessageChannel {
 
     console.log(`Message from ${from}: ${text.substring(0, 50)}...`);
 
-    this.enqueue(async () => {
+    this.queue.enqueue(async () => {
       const incoming: IncomingMessage = {
         from,
         text,
@@ -259,64 +206,38 @@ export class SignalBotChannel implements MessageChannel {
 // --- Main ---
 
 async function main(): Promise<void> {
-  const config = { ...DEFAULT_CONFIG };
-
-  if (!config.phoneNumber) {
-    throw new Error(
-      "NAZAR_SIGNAL_PHONE is required (E.164 format, e.g. +12345678901)",
-    );
-  }
-
-  if (!validatePhoneNumber(config.phoneNumber)) {
-    throw new Error(
-      `Invalid phone number format: '${config.phoneNumber}' (expected E.164, e.g. +12345678901)`,
-    );
-  }
-
-  // Validate Pi agent config directory has required files
-  const authFile = path.join(config.piDir, "auth.json");
-  if (!fs.existsSync(authFile)) {
-    throw new Error(
-      `Pi agent auth not found at ${authFile}. ` +
-        "Provision it to /var/lib/nazar/pi-config/agent/ on the host " +
-        "(see: nazar signal setup-agent).",
-    );
-  }
-
-  console.log("Nazar Signal Bridge starting...");
-  console.log(`  Phone: ${config.phoneNumber}`);
-  console.log(`  signal-cli: ${config.signalCliHost}:${config.signalCliPort}`);
-  console.log(`  Pi dir: ${config.piDir}`);
-  console.log(`  Objects dir: ${config.objectsDir}`);
-  console.log(`  Persona dir: ${config.personaDir}`);
-  console.log(`  System MD: ${config.systemMdPath || "(none)"}`);
-  console.log(`  Pi model: ${config.piModel || "(default)"}`);
-  console.log(`  Pi transport: ${config.piTransport || "(default)"}`);
-  console.log(
-    `  Allowed contacts: ${config.allowedContacts.length === 0 ? "all" : config.allowedContacts.join(", ")}`,
-  );
-
-  const registry = await createInitializedRegistry({} as NazarConfig);
-  const agentSession = registry.get<AgentSessionCapability>("agent-session");
-  const bridge = agentSession.createBridge(config);
-
-  const channel = new SignalBotChannel(config);
-  channel.onMessage(async (msg) => {
-    const response = await bridge.processMessage(msg.text, msg.from);
-    const suffix = formatAffordancesAsText(response.affordances);
-    return suffix ? `${response.text}\n\n${suffix}` : response.text;
-  });
-  await channel.connect();
-
-  const shutdown = async () => {
-    console.log("Shutting down gracefully...");
-    bridge.dispose();
-    await registry.disposeAll();
-    await channel.disconnect();
-    process.exit(0);
+  const config: SignalBridgeConfig = {
+    ...loadBaseBridgeConfig("Signal"),
+    phoneNumber: process.env.NAZAR_SIGNAL_PHONE || "",
+    allowedContacts: (process.env.NAZAR_SIGNAL_ALLOWED_CONTACTS || "")
+      .split(",")
+      .filter(Boolean),
+    signalCliHost: process.env.NAZAR_SIGNAL_CLI_HOST || "127.0.0.1",
+    signalCliPort: Number(process.env.NAZAR_SIGNAL_CLI_PORT) || 7583,
+    storageDir: process.env.NAZAR_SIGNAL_STORAGE_DIR || "/data/signal-storage",
+    timeoutMs: Number(process.env.NAZAR_SIGNAL_TIMEOUT_MS) || 120_000,
   };
-  process.on("SIGTERM", shutdown);
-  process.on("SIGINT", shutdown);
+
+  await bootstrapBridge({
+    config,
+    createChannel: (c) => new SignalBotChannel(c),
+    validate: (c) => {
+      if (!c.phoneNumber) {
+        throw new Error(
+          "NAZAR_SIGNAL_PHONE is required (E.164 format, e.g. +12345678901)",
+        );
+      }
+      if (!validatePhoneNumber(c.phoneNumber)) {
+        throw new Error(
+          `Invalid phone number format: '${c.phoneNumber}' (expected E.164, e.g. +12345678901)`,
+        );
+      }
+    },
+    logExtra: (c) => {
+      console.log(`  Phone: ${c.phoneNumber}`);
+      console.log(`  signal-cli: ${c.signalCliHost}:${c.signalCliPort}`);
+    },
+  });
 }
 
 // Only run main when executed directly (not when imported for tests).

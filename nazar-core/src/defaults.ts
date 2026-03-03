@@ -20,8 +20,7 @@ import { ObjectStoreCapability } from "./capabilities/object-store/index.js";
 import { PersonaCapability } from "./capabilities/persona/index.js";
 import { SetupCapability } from "./capabilities/setup/index.js";
 import { SystemExecutorCapability } from "./capabilities/system-executor/index.js";
-import type { CapabilityConfig, CoreServices } from "./capability.js";
-import type { IObjectStore } from "./ports/object-store.js";
+import type { CapabilityConfig, LeafServices } from "./capability.js";
 import { CapabilityRegistry } from "./registry.js";
 import type { NazarConfig } from "./types.js";
 
@@ -83,11 +82,8 @@ export async function createInitializedRegistry(
     registry.register(cap);
   }
 
-  // Phase 1: Init leaf capabilities (they don't use CoreServices)
-  const stubConfig: CapabilityConfig = {
-    nazar,
-    services: {} as CoreServices,
-  };
+  // Phase 1: Init leaf capabilities (no service dependencies)
+  const phase1Config: CapabilityConfig = { nazar, services: {} };
   for (const name of [
     "frontmatter",
     "config",
@@ -97,29 +93,29 @@ export async function createInitializedRegistry(
     "health",
     "setup",
   ]) {
-    await registry.initCapability(name, stubConfig);
+    await registry.initCapability(name, phase1Config);
   }
 
-  // Phase 2: Build CoreServices from leaf capability instances
-  const services: CoreServices = {
+  // Phase 2: Build leaf services, init capabilities that need them
+  const leafServices: LeafServices = {
     frontmatterParser: frontmatter.getParser(),
     configReader: configCap.getReader(),
     systemExecutor: sysExec.getExecutor(),
     personaLoader: persona.getLoader(),
-    objectStore: null as unknown as IObjectStore,
   };
+  const phase2Config: CapabilityConfig = { nazar, services: leafServices };
 
-  // Phase 3: Init dependent capabilities with full CoreServices
-  const fullConfig: CapabilityConfig = { nazar, services };
+  await registry.initCapability("object-store", phase2Config);
+  await registry.initCapability("discovery", phase2Config);
 
-  await registry.initCapability("object-store", fullConfig);
-  services.objectStore = objectStore.getStore();
+  // Phase 3: Full services (with object store), init dependents
+  const fullServices = { ...leafServices, objectStore: objectStore.getStore() };
+  const phase3Config: CapabilityConfig = { nazar, services: fullServices };
 
-  await registry.initCapability("evolution", fullConfig);
-  await registry.initCapability("discovery", fullConfig);
+  await registry.initCapability("evolution", phase3Config);
 
   agentSession.setRegistry(registry);
-  await registry.initCapability("agent-session", fullConfig);
+  await registry.initCapability("agent-session", phase3Config);
 
   return registry;
 }
