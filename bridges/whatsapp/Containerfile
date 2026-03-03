@@ -1,0 +1,21 @@
+FROM nazar-base
+
+USER root
+# whatsapp-web.js needs Chromium for Puppeteer
+RUN dnf install -y chromium && dnf clean all
+COPY bridges/whatsapp/ bridges/whatsapp/
+RUN npm -w bridges/whatsapp run build
+USER nazar
+
+ENV NAZAR_OBJECTS_DIR=/data/objects
+ENV NAZAR_WHATSAPP_STORAGE_DIR=/data/whatsapp-storage
+ENV NAZAR_PI_MODEL=""
+ENV NAZAR_PI_TRANSPORT=""
+ENV NAZAR_PERSONA_DIR=/usr/local/share/nazar/persona
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD test -f /data/whatsapp-storage/healthy \
+    && test "$(find /data/whatsapp-storage/healthy -mmin -1 2>/dev/null)" || exit 1
+
+CMD ["node", "bridges/whatsapp/dist/index.js"]
