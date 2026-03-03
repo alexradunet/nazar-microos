@@ -4,6 +4,7 @@ import type {
   CapabilityRegistration,
 } from "../../capability.js";
 import type { IPersonaLoader } from "../../ports/persona-loader.js";
+import type { ISystemExecutor } from "../../ports/system-executor.js";
 import type { CapabilityRegistry } from "../../registry.js";
 import { createNazarExtension } from "./extension.js";
 import type { BridgeConfig } from "./pi-agent-bridge.js";
@@ -27,6 +28,7 @@ export class AgentSessionCapability implements Capability {
     "LLM agent session integration with session pooling and extensions";
 
   private personaLoader?: IPersonaLoader;
+  private systemExecutor?: ISystemExecutor;
   private registry?: CapabilityRegistry;
 
   /** Optionally bind a registry so createBridge() can aggregate contributions. */
@@ -36,6 +38,7 @@ export class AgentSessionCapability implements Capability {
 
   init(config: CapabilityConfig): CapabilityRegistration {
     this.personaLoader = config.services.personaLoader;
+    this.systemExecutor = config.services.systemExecutor;
     return {};
   }
 
@@ -47,7 +50,10 @@ export class AgentSessionCapability implements Capability {
     const extensionFactories = this.registry?.getExtensionFactories() ?? [];
     // Add channel-specific Nazar extension
     extensionFactories.push(
-      createNazarExtension({ channelName: config.channelName }),
+      createNazarExtension({
+        channelName: config.channelName,
+        systemExecutor: this.systemExecutor,
+      }),
     );
     const skillPaths = this.registry?.getSkillPaths() ?? [config.skillsDir];
     const personaLoader = this.personaLoader;

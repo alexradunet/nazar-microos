@@ -1,8 +1,24 @@
 /**
  * Nazar Pi extension — adds runtime context, tool guardrails, and compaction guidance.
  *
+ * Hooks into Pi SDK extension events to:
+ * - Inject OS-aware runtime context on every agent turn (context event)
+ * - Block dangerous bash patterns before execution (tool_call event)
+ * - Guide compaction with channel-specific instructions (session_before_compact)
+ * - Log agent and tool lifecycle events for observability
+ *
+ * Does NOT register Pi tools directly — tool registration requires the full
+ * Pi ExtensionAPI which is only available inside the SDK runtime.
+ * For CLI-based tools, see capabilities/object-tools/ and capabilities/os-tools/.
+ * For the AgentBridge that wires this extension, see ./pi-agent-bridge.ts.
+ *
  * Registered via extensionFactories on DefaultResourceLoader.
  */
+
+import type { ISystemExecutor } from "../../ports/system-executor.js";
+import { getBootcStatus } from "../os-tools/bootc.js";
+import { listContainerHealth } from "../os-tools/containers.js";
+import { listNazarServices } from "../os-tools/systemd.js";
 
 interface AgentMessage {
   role: "user" | "assistant";
@@ -62,6 +78,7 @@ export interface ExtensionFactory {
 
 export interface NazarExtensionConfig {
   channelName?: string;
+  systemExecutor?: ISystemExecutor;
 }
 
 /** Dangerous bash patterns that should be blocked in tool calls. */
@@ -113,18 +130,39 @@ export function createNazarExtension(
       return {
         name: "nazar",
 
-        on(event: ExtensionEvent): ExtensionEventResult {
+        async on(event: ExtensionEvent): Promise<ExtensionEventResult> {
           switch (event.type) {
             case "context": {
+              // Reason: context is injected at the start of every agent turn.
+              // It tells the agent what tools are available and where data lives,
+              // so it can make informed decisions without guessing paths or commands.
+              const lines = [
+                "## Nazar Runtime Context",
+                `- Timestamp: ${new Date().toISOString()}`,
+                `- Host: ${process.env.HOSTNAME || "nazar-box"}`,
+                `- Objects dir: ${process.env.NAZAR_OBJECTS_DIR || "/var/lib/nazar/objects"}`,
+                `- Skills dir: ${process.env.NAZAR_SKILLS_DIR || "/usr/local/share/nazar/skills"}`,
+                `- Sessions dir: ${process.env.NAZAR_SESSIONS_DIR || "/var/lib/nazar/sessions"}`,
+                "",
+                "## Available CLI Tools",
+                "Object store: `nazar-core object create|read|list|update|search|link`",
+                "OS inspection: `nazar-core os status|upgrade-check|services|logs|containers|timers`",
+              ];
+
+              if (config?.systemExecutor) {
+                const [osStatus, services, containers] = await Promise.all([
+                  getBootcStatus(config.systemExecutor),
+                  listNazarServices(config.systemExecutor),
+                  listContainerHealth(config.systemExecutor),
+                ]);
+                lines.push("", "## OS Status", osStatus);
+                lines.push("", "## Services", services);
+                lines.push("", "## Containers", containers);
+              }
+
               const contextMsg: AgentMessage = {
                 role: "user",
-                content: [
-                  "## Nazar Runtime Context",
-                  `- Timestamp: ${new Date().toISOString()}`,
-                  `- Host: ${process.env.HOSTNAME || "nazar-box"}`,
-                  `- Objects dir: ${process.env.NAZAR_OBJECTS_DIR || "/var/lib/nazar/objects"}`,
-                  `- Skills dir: ${process.env.NAZAR_SKILLS_DIR || "/usr/local/share/nazar/skills"}`,
-                ].join("\n"),
+                content: lines.join("\n"),
               };
               return { messages: [contextMsg] } satisfies ContextEventResult;
             }

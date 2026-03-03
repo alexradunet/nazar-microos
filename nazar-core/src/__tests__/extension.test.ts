@@ -5,6 +5,81 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createNazarExtension } from "../extension.js";
+import type { ISystemExecutor } from "../ports/system-executor.js";
+
+/** Minimal mock executor that returns canned output for each command. */
+function createMockExecutor(
+  overrides: Record<
+    string,
+    { stdout: string; stderr: string; exitCode: number }
+  > = {},
+): ISystemExecutor {
+  const defaults: Record<
+    string,
+    { stdout: string; stderr: string; exitCode: number }
+  > = {
+    bootc: {
+      stdout: JSON.stringify({
+        status: {
+          booted: {
+            image: {
+              image: { image: "ghcr.io/nazar/os:latest" },
+              version: "42.20260301",
+              timestamp: "2026-03-01T00:00:00Z",
+            },
+          },
+          staged: null,
+          rollback: null,
+        },
+      }),
+      stderr: "",
+      exitCode: 0,
+    },
+    systemctl: {
+      stdout:
+        "nazar-heartbeat.service  loaded active running  Nazar Heartbeat\n1 units listed.",
+      stderr: "",
+      exitCode: 0,
+    },
+    podman: {
+      stdout: JSON.stringify([
+        {
+          Names: ["nazar-heartbeat"],
+          Image: "ghcr.io/nazar/heartbeat:latest",
+          State: "running",
+          Status: "Up 2 hours",
+        },
+      ]),
+      stderr: "",
+      exitCode: 0,
+    },
+  };
+
+  return {
+    async exec(cmd: string, _args: string[]) {
+      return (
+        overrides[cmd] ??
+        defaults[cmd] ?? { stdout: "", stderr: "", exitCode: 0 }
+      );
+    },
+    async readFile() {
+      return "";
+    },
+    async writeFile() {},
+    async removeFile() {},
+    async removeDir() {},
+    async mkdirp() {},
+    async fileExists() {
+      return false;
+    },
+    async readDir() {
+      return [];
+    },
+    async isDirectory() {
+      return false;
+    },
+  };
+}
 
 describe("createNazarExtension", () => {
   it("returns an ExtensionFactory with create()", () => {
@@ -15,12 +90,12 @@ describe("createNazarExtension", () => {
     assert.ok(typeof ext.on === "function");
   });
 
-  it("context event returns runtime context message", () => {
+  it("context event returns runtime context message", async () => {
     const ext = createNazarExtension().create();
-    const result = ext.on({
+    const result = (await ext.on({
       type: "context",
       messages: [],
-    }) as { messages?: { role: string; content: string }[] };
+    })) as { messages?: { role: string; content: string }[] };
     assert.ok(result.messages);
     assert.equal(result.messages.length, 1);
     assert.equal(result.messages[0].role, "user");
@@ -29,7 +104,94 @@ describe("createNazarExtension", () => {
     assert.ok(result.messages[0].content.includes("Host:"));
   });
 
-  it("tool_call event blocks dangerous commands", () => {
+  it("context event includes OS status when systemExecutor is provided", async () => {
+    const ext = createNazarExtension({
+      systemExecutor: createMockExecutor(),
+    }).create();
+    const result = (await ext.on({
+      type: "context",
+      messages: [],
+    })) as { messages?: { role: string; content: string }[] };
+    assert.ok(result.messages);
+    const content = result.messages[0].content;
+    assert.ok(
+      content.includes("## OS Status"),
+      "should include OS Status section",
+    );
+    assert.ok(content.includes("bootc"), "should include bootc output");
+    assert.ok(
+      content.includes("## Services"),
+      "should include Services section",
+    );
+    assert.ok(
+      content.includes("nazar-heartbeat"),
+      "should include service name",
+    );
+    assert.ok(
+      content.includes("## Containers"),
+      "should include Containers section",
+    );
+    assert.ok(content.includes("running"), "should include container state");
+  });
+
+  it("context event skips OS data when systemExecutor is not provided", async () => {
+    const ext = createNazarExtension({ channelName: "signal" }).create();
+    const result = (await ext.on({
+      type: "context",
+      messages: [],
+    })) as { messages?: { role: string; content: string }[] };
+    assert.ok(result.messages);
+    const content = result.messages[0].content;
+    assert.ok(
+      content.includes("Nazar Runtime Context"),
+      "should have static context",
+    );
+    assert.ok(
+      !content.includes("## OS Status"),
+      "should not include OS Status",
+    );
+    assert.ok(!content.includes("## Services"), "should not include Services");
+    assert.ok(
+      !content.includes("## Containers"),
+      "should not include Containers",
+    );
+  });
+
+  it("context event handles OS command failures gracefully", async () => {
+    const failingExecutor = createMockExecutor({
+      bootc: { stdout: "", stderr: "command not found", exitCode: 127 },
+      systemctl: { stdout: "", stderr: "access denied", exitCode: 1 },
+      podman: { stdout: "", stderr: "not installed", exitCode: 127 },
+    });
+    const ext = createNazarExtension({
+      systemExecutor: failingExecutor,
+    }).create();
+    const result = (await ext.on({
+      type: "context",
+      messages: [],
+    })) as { messages?: { role: string; content: string }[] };
+    assert.ok(result.messages, "should still return messages");
+    assert.equal(result.messages.length, 1);
+    const content = result.messages[0].content;
+    assert.ok(
+      content.includes("Nazar Runtime Context"),
+      "should have static context",
+    );
+    assert.ok(
+      content.includes("## OS Status"),
+      "should have OS Status section even on failure",
+    );
+    assert.ok(
+      content.includes("## Services"),
+      "should have Services section even on failure",
+    );
+    assert.ok(
+      content.includes("## Containers"),
+      "should have Containers section even on failure",
+    );
+  });
+
+  it("tool_call event blocks dangerous commands", async () => {
     const ext = createNazarExtension().create();
     const dangerous = [
       "rm -rf /",
@@ -40,11 +202,11 @@ describe("createNazarExtension", () => {
       "reboot",
     ];
     for (const cmd of dangerous) {
-      const result = ext.on({
+      const result = (await ext.on({
         type: "tool_call",
         tool: "bash",
         input: { command: cmd },
-      }) as { block?: boolean; reason?: string };
+      })) as { block?: boolean; reason?: string };
       assert.ok(
         result?.block,
         `Expected '${cmd}' to be blocked but it was not`,
@@ -52,11 +214,11 @@ describe("createNazarExtension", () => {
     }
   });
 
-  it("tool_call event allows safe commands", () => {
+  it("tool_call event allows safe commands", async () => {
     const ext = createNazarExtension().create();
     const safe = ["ls -la", "cat /etc/hostname", "echo hello", "git status"];
     for (const cmd of safe) {
-      const result = ext.on({
+      const result = await ext.on({
         type: "tool_call",
         tool: "bash",
         input: { command: cmd },
@@ -66,11 +228,11 @@ describe("createNazarExtension", () => {
     }
   });
 
-  it("session_before_compact event returns compaction instructions", () => {
+  it("session_before_compact event returns compaction instructions", async () => {
     const ext = createNazarExtension().create();
-    const result = ext.on({
+    const result = (await ext.on({
       type: "session_before_compact",
-    }) as { compaction?: { instructions?: string } };
+    })) as { compaction?: { instructions?: string } };
     assert.ok(result.compaction);
     assert.ok(result.compaction.instructions);
     assert.ok(result.compaction.instructions.includes("Preserve:"));
