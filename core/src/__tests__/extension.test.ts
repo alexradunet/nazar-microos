@@ -42,18 +42,12 @@ describe("createNazarExtension", () => {
       content.includes("## System Inspection"),
       "should include System Inspection section",
     );
-    assert.ok(
-      content.includes("bootc status"),
-      "should mention bootc status",
-    );
+    assert.ok(content.includes("bootc status"), "should mention bootc status");
     assert.ok(
       content.includes("systemctl list-units"),
       "should mention systemctl list-units",
     );
-    assert.ok(
-      content.includes("podman ps"),
-      "should mention podman ps",
-    );
+    assert.ok(content.includes("podman ps"), "should mention podman ps");
     assert.ok(
       content.includes("nazar-core bridge list"),
       "should mention nazar-core bridge list",
@@ -61,7 +55,7 @@ describe("createNazarExtension", () => {
   });
 
   it("context event does not pre-load OS status, services, or containers", async () => {
-    const ext = createNazarExtension({ channelName: "signal" }).create();
+    const ext = createNazarExtension({ channelName: "whatsapp" }).create();
     const result = (await ext.on({
       type: "context",
       messages: [],

@@ -53,9 +53,9 @@ export interface AgentConfig {
  * hostname: nazar-pi
  * primary_user: alex
  * timezone: Europe/Berlin
- * signal:
- *   phone_number: "+4917612345678"
- *   allowed_contacts: ["+4917699999999"]
+ * bridges:
+ *   whatsapp:
+ *     allowed_contacts: ["+4917699999999"]
  * agent:
  *   skills_dir: /usr/local/share/nazar/skills
  *   persona_dir: /usr/local/share/nazar/persona

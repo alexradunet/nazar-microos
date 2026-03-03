@@ -56,7 +56,7 @@ systemctl list-units 'nazar-*' --no-pager
 
 # Show recent logs for a specific service (default: last 50 lines)
 journalctl -u nazar-heartbeat.service --no-pager -n 50
-journalctl -u nazar-signal.service --no-pager -n 100
+journalctl -u nazar-whatsapp-bridge.service --no-pager -n 100
 ```
 
 Use after: a bridge stops responding, user reports missed messages, or a service appears degraded.
@@ -83,7 +83,7 @@ Use after: checking if all containers are healthy, after a reboot, or when a ser
 
 ```bash
 # Restart a nazar-* container (Quadlet containers are systemd units)
-sudo systemctl restart nazar-signal-bridge.service
+sudo systemctl restart nazar-whatsapp-bridge.service
 ```
 
 **Requires user confirmation.** Always use the `confirm` affordance before restarting. Only nazar-* units can be restarted (enforced by sudoers).
@@ -160,8 +160,8 @@ Always include a `confirm` field in affordance JSON before mutations:
 ```json
 {
   "type": "action",
-  "confirm": "Restart container nazar-signal-bridge?",
-  "command": "sudo systemctl restart nazar-signal-bridge.service"
+  "confirm": "Restart container nazar-whatsapp-bridge?",
+  "command": "sudo systemctl restart nazar-whatsapp-bridge.service"
 }
 ```
 
@@ -219,7 +219,7 @@ When `## Pending Evolutions` appears in the runtime context, it lists evolutions
 |---|---|
 | User asks "is everything OK?" | `systemctl list-units 'nazar-*'` + `podman ps --filter name=nazar-` |
 | Missed heartbeat or stale data | `systemctl list-units 'nazar-*'`, `journalctl -u nazar-heartbeat.service` |
-| Signal messages not arriving | `journalctl -u nazar-signal.service --no-pager -n 100` |
+| WhatsApp messages not arriving | `journalctl -u nazar-whatsapp-bridge.service --no-pager -n 100` |
 | User asks about OS version | `bootc status` |
 | User asks about updates | `sudo bootc upgrade --check` |
 | After reboot | `systemctl list-units 'nazar-*'` + `podman ps --filter name=nazar-` + `systemctl list-timers 'nazar-*'` |

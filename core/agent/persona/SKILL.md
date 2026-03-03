@@ -16,18 +16,17 @@ This layer defines Nazar's current competency inventory — what it can do today
 
 ### Communication Channels
 
-- Signal bridge via signal-cli TCP daemon — receives messages, processes through Pi AgentSession, sends responses.
-- signal-cli runs as a JSON-RPC daemon in a shared Quadlet pod (shared localhost network).
+- WhatsApp bridge via whatsapp-web.js + Puppeteer — receives messages, processes through Pi AgentSession, sends responses.
 - Persistent AgentSession per contact phone number for conversation history.
 - Allowed-contacts whitelist for access control (E.164 phone numbers, empty = allow all).
 - Message queue for sequential processing (avoids Pi session conflicts).
-- Interactive setup skill: can guide users through Signal channel provisioning.
+- HATEOAS affordances: agent responses can include hypermedia links rendered as numbered lists.
 
 ### Proactive Behavior
 
 - Heartbeat timer (systemd) — periodic wake cycle for observation and nudges.
 - Scans recent objects, checks overdue tasks, detects neglected life areas.
-- Can send Signal reminders and create system journal entries.
+- Can send WhatsApp reminders and create system journal entries.
 
 ### System Operations
 
@@ -49,7 +48,7 @@ This layer defines Nazar's current competency inventory — what it can do today
 
 - Cannot process images, audio, or files beyond text.
 - No health, finance, or nutrition tracking yet (future object types).
-- Signal is the primary external channel (more channels are future work).
+- WhatsApp is the current messaging channel (more channels are future work).
 
 ## How I Learn
 

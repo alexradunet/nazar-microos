@@ -15,8 +15,6 @@ WORKDIR /app
 # Copy all workspace package.json files for layer caching, then install all deps
 COPY package.json package-lock.json ./
 COPY core/package.json core/
-COPY bridges/signal/package.json bridges/signal/
-COPY bridges/web/package.json bridges/web/
 COPY bridges/whatsapp/package.json bridges/whatsapp/
 RUN npm ci
 

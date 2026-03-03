@@ -85,7 +85,7 @@ Present the available modules with recommended defaults:
 | `tailscale`      | on      | VPN for secure remote access     |
 | `objects`        | on      | Object store data directory      |
 | `heartbeat`      | off     | Periodic agent observation cycle |
-| `signal`         | off     | Signal messaging channel         |
+| `whatsapp`       | off     | WhatsApp messaging channel       |
 
 Ask: "Which modules would you like to change from these defaults?"
 
@@ -152,7 +152,7 @@ If the apply fails:
 4. Remind the user:
    - "Run `nazar` to start your AI assistant."
    - "Run `nazar apply` to apply future config changes safely."
-   - "Run `nazar pi --skill /usr/local/share/nazar/skills/signal-setup` to set up Signal messaging."
+   - "Run `nazar-core bridge install` to set up a messaging bridge."
 
 ## Module Configuration Reference
 
@@ -163,7 +163,7 @@ modules:
   tailscale: true
   objects: true
   heartbeat: false
-  signal: false
+  whatsapp: false
 ```
 
 ## Troubleshooting

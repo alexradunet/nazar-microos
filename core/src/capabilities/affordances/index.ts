@@ -3,32 +3,23 @@ import type {
   CapabilityConfig,
   CapabilityRegistration,
 } from "../../capability.js";
-import { TextAffordanceRenderer } from "./text-renderer.js";
 
 export {
-  type Affordance,
-  type AgentResponse,
-  isAffordance,
-  parseAgentResponse,
-  validateAffordance,
+  type HateoasResponse,
+  isLink,
+  type Link,
+  type ParsedAgentOutput,
+  parseAgentOutput,
+  toHateoasResponse,
+  validateLink,
 } from "./parser.js";
-export { TextAffordanceRenderer } from "./text-renderer.js";
+export { type ResponseRenderer, TextRenderer } from "./text-renderer.js";
 
 export class AffordancesCapability implements Capability {
   readonly name = "affordances";
-  readonly description = "Structured action parsing, validation, and rendering";
-
-  private renderer?: TextAffordanceRenderer;
+  readonly description = "HATEOAS link parsing, validation, and rendering";
 
   init(_config: CapabilityConfig): CapabilityRegistration {
-    this.renderer = new TextAffordanceRenderer();
     return {};
-  }
-
-  getRenderer(): TextAffordanceRenderer {
-    if (!this.renderer) {
-      this.renderer = new TextAffordanceRenderer();
-    }
-    return this.renderer;
   }
 }

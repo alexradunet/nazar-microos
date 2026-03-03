@@ -22,7 +22,7 @@ When a user request arrives, classify it:
 ### 1. Handle Directly
 
 - Operational tasks: object CRUD, information queries, daily planning.
-- Communication: Signal messages, reminders, nudges.
+- Communication: messaging channel messages, reminders, nudges.
 - Read-only inspection: checking status, listing objects, reading files.
 
 ### 2. Route to Evolution Pipeline

@@ -9,17 +9,20 @@ export {
   loadBaseBridgeConfig,
   MessageQueue,
 } from "./bridge-bootstrap.js";
-// --- Affordances ---
+// --- Affordances (HATEOAS) ---
 export type {
-  Affordance,
-  AgentResponse,
+  HateoasResponse,
+  Link,
+  ParsedAgentOutput,
 } from "./capabilities/affordances/parser.js";
 export {
-  isAffordance,
-  parseAgentResponse,
-  validateAffordance,
+  isLink,
+  parseAgentOutput,
+  toHateoasResponse,
+  validateLink,
 } from "./capabilities/affordances/parser.js";
-export { TextAffordanceRenderer } from "./capabilities/affordances/text-renderer.js";
+export type { ResponseRenderer } from "./capabilities/affordances/text-renderer.js";
+export { TextRenderer } from "./capabilities/affordances/text-renderer.js";
 export type { ExtensionFactory } from "./capabilities/agent-session/extension.js";
 export { createNazarExtension } from "./capabilities/agent-session/extension.js";
 export { AgentSessionCapability } from "./capabilities/agent-session/index.js";

@@ -1,4 +1,4 @@
-import type { AgentResponse } from "../capabilities/affordances/parser.js";
+import type { ParsedAgentOutput } from "../capabilities/affordances/parser.js";
 import type { IAgentBridge } from "../ports/agent-bridge.js";
 
 export interface MockCall {
@@ -9,13 +9,13 @@ export interface MockCall {
 /** Mock IAgentBridge for tests — records calls, returns canned responses. */
 export class MockAgentBridge implements IAgentBridge {
   calls: MockCall[] = [];
-  private response: AgentResponse;
+  private response: ParsedAgentOutput;
 
-  constructor(response?: AgentResponse) {
-    this.response = response ?? { text: "mock response", affordances: [] };
+  constructor(response?: ParsedAgentOutput) {
+    this.response = response ?? { text: "mock response", links: [] };
   }
 
-  async processMessage(text: string, from: string): Promise<AgentResponse> {
+  async processMessage(text: string, from: string): Promise<ParsedAgentOutput> {
     this.calls.push({ text, from });
     return this.response;
   }
@@ -25,7 +25,7 @@ export class MockAgentBridge implements IAgentBridge {
   }
 
   /** Set the response returned by processMessage. */
-  setResponse(response: AgentResponse): void {
+  setResponse(response: ParsedAgentOutput): void {
     this.response = response;
   }
 

@@ -9,8 +9,8 @@ import fs from "node:fs";
 import type { IAgentBridge } from "../../ports/agent-bridge.js";
 import type { IPersonaLoader } from "../../ports/persona-loader.js";
 import type { AgentConfig } from "../../types.js";
-import type { AgentResponse } from "../affordances/parser.js";
-import { parseAgentResponse } from "../affordances/parser.js";
+import type { ParsedAgentOutput } from "../affordances/parser.js";
+import { parseAgentOutput } from "../affordances/parser.js";
 import type { ExtensionFactory } from "./extension.js";
 import { SessionPool } from "./session-pool.js";
 
@@ -85,7 +85,7 @@ export class AgentBridge implements IAgentBridge {
     };
   }
 
-  async processMessage(text: string, from: string): Promise<AgentResponse> {
+  async processMessage(text: string, from: string): Promise<ParsedAgentOutput> {
     // Lazy-load the Pi AgentSession SDK to allow testing without it installed.
     const {
       createAgentSession,
@@ -161,7 +161,7 @@ export class AgentBridge implements IAgentBridge {
     let unsub: (() => void) | undefined;
     let timer: ReturnType<typeof setTimeout>;
     try {
-      const agentPromise = new Promise<AgentResponse>((resolve, reject) => {
+      const agentPromise = new Promise<ParsedAgentOutput>((resolve, reject) => {
         let accumulated = "";
         unsub = activeSession.subscribe((event: AgentSessionEvent) => {
           if (
@@ -183,7 +183,7 @@ export class AgentBridge implements IAgentBridge {
           ) {
             unsub?.();
             const raw = accumulated.trim() || "(no response)";
-            resolve(parseAgentResponse(raw));
+            resolve(parseAgentOutput(raw));
           }
           if (event.type === "error") {
             unsub?.();

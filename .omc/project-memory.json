@@ -155,8 +155,8 @@
   "hotPaths": [
     {
       "path": "",
-      "accessCount": 119,
-      "lastAccessed": 1772579555080,
+      "accessCount": 126,
+      "lastAccessed": 1772581587595,
       "type": "directory"
     },
     {
@@ -202,6 +202,18 @@
       "type": "file"
     },
     {
+      "path": "bridges/web/src/index.ts",
+      "accessCount": 18,
+      "lastAccessed": 1772580361446,
+      "type": "file"
+    },
+    {
+      "path": "bridges/signal/src/index.ts",
+      "accessCount": 17,
+      "lastAccessed": 1772580361226,
+      "type": "file"
+    },
+    {
       "path": "nazar-core/src/ports/system-executor.ts",
       "accessCount": 16,
       "lastAccessed": 1772561962090,
@@ -214,15 +226,9 @@
       "type": "file"
     },
     {
-      "path": "bridges/web/src/index.ts",
-      "accessCount": 16,
-      "lastAccessed": 1772571218475,
-      "type": "file"
-    },
-    {
-      "path": "bridges/signal/src/index.ts",
+      "path": "bridges/whatsapp/src/index.ts",
       "accessCount": 15,
-      "lastAccessed": 1772571289356,
+      "lastAccessed": 1772581279124,
       "type": "file"
     },
     {
@@ -232,9 +238,9 @@
       "type": "file"
     },
     {
-      "path": "bridges/whatsapp/src/index.ts",
-      "accessCount": 11,
-      "lastAccessed": 1772571341822,
+      "path": "package.json",
+      "accessCount": 12,
+      "lastAccessed": 1772580498751,
       "type": "file"
     },
     {
@@ -247,12 +253,6 @@
       "path": "nazar-core/src/capabilities/setup/quadlet-generator.ts",
       "accessCount": 10,
       "lastAccessed": 1772562547155,
-      "type": "file"
-    },
-    {
-      "path": "package.json",
-      "accessCount": 10,
-      "lastAccessed": 1772579001026,
       "type": "file"
     },
     {
@@ -274,15 +274,15 @@
       "type": "file"
     },
     {
-      "path": "nazar-core/src/extension.ts",
-      "accessCount": 8,
-      "lastAccessed": 1772562722326,
+      "path": "bridges/web/src/config.ts",
+      "accessCount": 9,
+      "lastAccessed": 1772580341455,
       "type": "file"
     },
     {
-      "path": "bridges/web/src/config.ts",
+      "path": "nazar-core/src/extension.ts",
       "accessCount": 8,
-      "lastAccessed": 1772571299728,
+      "lastAccessed": 1772562722326,
       "type": "file"
     },
     {
@@ -334,6 +334,12 @@
       "type": "file"
     },
     {
+      "path": "bridges/signal/src/__tests__/bridge.test.ts",
+      "accessCount": 6,
+      "lastAccessed": 1772580338141,
+      "type": "file"
+    },
+    {
       "path": "nazar-core/src/__tests__/discovery.test.ts",
       "accessCount": 5,
       "lastAccessed": 1772547950042,
@@ -352,10 +358,16 @@
       "type": "file"
     },
     {
-      "path": "bridges/signal/src/__tests__/bridge.test.ts",
+      "path": "bridges/whatsapp/src/__tests__/bridge.test.ts",
       "accessCount": 5,
-      "lastAccessed": 1772571227183,
+      "lastAccessed": 1772580338240,
       "type": "file"
+    },
+    {
+      "path": "bridges",
+      "accessCount": 5,
+      "lastAccessed": 1772581688763,
+      "type": "directory"
     },
     {
       "path": "nazar-core/src/capabilities/system-executor/node-executor.ts",
@@ -373,12 +385,6 @@
       "path": "nazar-core/agent/persona/BODY.md",
       "accessCount": 4,
       "lastAccessed": 1772562640908,
-      "type": "file"
-    },
-    {
-      "path": "bridges/whatsapp/src/__tests__/bridge.test.ts",
-      "accessCount": 4,
-      "lastAccessed": 1772571207286,
       "type": "file"
     },
     {
@@ -404,12 +410,6 @@
       "accessCount": 3,
       "lastAccessed": 1772562005778,
       "type": "file"
-    },
-    {
-      "path": "bridges",
-      "accessCount": 3,
-      "lastAccessed": 1772566413921,
-      "type": "directory"
     },
     {
       "path": "README.md",

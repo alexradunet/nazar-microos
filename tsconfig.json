@@ -1,9 +1,4 @@
 {
   "files": [],
-  "references": [
-    { "path": "core" },
-    { "path": "bridges/signal" },
-    { "path": "bridges/web" },
-    { "path": "bridges/whatsapp" }
-  ]
+  "references": [{ "path": "core" }, { "path": "bridges/whatsapp" }]
 }

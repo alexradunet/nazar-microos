@@ -62,7 +62,6 @@ export interface CoreServices extends LeafServices {
   objectStore: IObjectStore;
 }
 
-
 /**
  * What a capability contributes when initialized.
  *

@@ -3,13 +3,14 @@
  *
  * Defines the contract for connecting to a messaging service, receiving
  * incoming messages, and sending replies. It does NOT handle agent routing,
- * session management, affordance rendering, or contact allow-listing —
+ * session management, HATEOAS rendering, or contact allow-listing —
  * those concerns belong to the AgentBridge layer above this port.
  *
+ * The bootstrap layer wraps agent output in HateoasResponse and renders it
+ * via a ResponseRenderer before sending through the channel.
+ *
  * For implementations:
- *   Signal  — bridges/signal/src/index.ts (SignalBotChannel)
  *   WhatsApp — bridges/whatsapp/src/index.ts
- *   Web      — bridges/web/src/index.ts
  *
  * @example
  * ```ts
@@ -29,7 +30,7 @@ export interface IncomingMessage {
   channel: string;
 }
 
-/** Port interface for message channels (Signal, WhatsApp, Web, etc.). */
+/** Port interface for message channels (e.g. WhatsApp). */
 export interface MessageChannel {
   readonly name: string;
   /**

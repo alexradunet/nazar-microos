@@ -3,21 +3,21 @@
  *
  * One bridge instance manages per-contact Pi agent sessions. It handles
  * session lifetime (create on first message, reuse on subsequent ones) and
- * returns structured responses that include both text and affordances.
+ * returns parsed output containing text and HATEOAS links.
  *
- * Does NOT handle: message transport, contact allow-listing, or affordance
+ * Does NOT handle: message transport, contact allow-listing, or response
  * rendering. Those are the responsibility of the calling bridge service
- * and the IAffordanceRenderer port.
+ * and the ResponseRenderer.
  *
  * For implementation, see capabilities/agent-session/pi-agent-bridge.ts.
  * For the session SDK, see @mariozechner/pi-coding-agent (node_modules).
  */
-import type { AgentResponse } from "../capabilities/affordances/parser.js";
+import type { ParsedAgentOutput } from "../capabilities/affordances/parser.js";
 
 /** Port for processing messages through the AI agent. */
 export interface IAgentBridge {
-  /** Process an incoming message and return the agent's response. */
-  processMessage(text: string, from: string): Promise<AgentResponse>;
+  /** Process an incoming message and return the agent's parsed output. */
+  processMessage(text: string, from: string): Promise<ParsedAgentOutput>;
   /** Dispose of all sessions and free resources. */
   dispose(): void;
 }

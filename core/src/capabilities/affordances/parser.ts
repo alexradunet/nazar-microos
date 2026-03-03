@@ -1,22 +1,34 @@
-export interface Affordance {
+/** A hypermedia link (HATEOAS affordance). */
+export interface Link {
   rel: string;
+  href: string;
+  method: "GET" | "POST";
   label: string;
   description?: string;
-  method: "GET" | "POST";
-  href: string;
   confirm?: string;
   params?: Record<string, string>;
 }
 
-export interface AgentResponse {
+/** Intermediate parse result — text + links, no metadata. */
+export interface ParsedAgentOutput {
   text: string;
-  affordances: Affordance[];
+  links: Link[];
 }
 
-const AFFORDANCE_DELIMITER = "---AFFORDANCES---";
+/** HATEOAS response — the canonical format for all bridge communication. */
+export interface HateoasResponse {
+  text: string;
+  links: Link[];
+  meta: {
+    channel: string;
+    timestamp: string;
+  };
+}
 
-/** Hand-written type guard for Affordance objects. */
-export function isAffordance(value: unknown): value is Affordance {
+const DELIMITER = "---AFFORDANCES---";
+
+/** Hand-written type guard for Link objects. */
+export function isLink(value: unknown): value is Link {
   if (value === null || typeof value !== "object") return false;
   const obj = value as Record<string, unknown>;
 
@@ -42,43 +54,50 @@ export function isAffordance(value: unknown): value is Affordance {
 }
 
 /**
- * Parse an agent response, splitting on the `---AFFORDANCES---` delimiter.
- * Invalid affordances are silently dropped.
+ * Parse raw agent output, splitting on the `---AFFORDANCES---` delimiter.
+ * Invalid links are silently dropped.
  */
-export function parseAgentResponse(rawText: string): AgentResponse {
-  const delimiterIndex = rawText.indexOf(AFFORDANCE_DELIMITER);
+export function parseAgentOutput(raw: string): ParsedAgentOutput {
+  const delimiterIndex = raw.indexOf(DELIMITER);
   if (delimiterIndex === -1) {
-    return { text: rawText, affordances: [] };
+    return { text: raw, links: [] };
   }
 
-  const text = rawText.slice(0, delimiterIndex).trim();
-  const jsonBlock = rawText
-    .slice(delimiterIndex + AFFORDANCE_DELIMITER.length)
-    .trim();
+  const text = raw.slice(0, delimiterIndex).trim();
+  const jsonBlock = raw.slice(delimiterIndex + DELIMITER.length).trim();
 
   if (!jsonBlock) {
-    return { text, affordances: [] };
+    return { text, links: [] };
   }
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(jsonBlock);
   } catch {
-    return { text, affordances: [] };
+    return { text, links: [] };
   }
 
   if (!Array.isArray(parsed)) {
-    return { text, affordances: [] };
+    return { text, links: [] };
   }
 
-  const affordances = parsed.filter(isAffordance);
-  return { text, affordances };
+  const links = parsed.filter(isLink);
+  return { text, links };
 }
 
-/** Validate an affordance's href against a whitelist of allowed endpoint patterns. */
-export function validateAffordance(
-  aff: Affordance,
-  allowedEndpoints: RegExp[],
-): boolean {
-  return allowedEndpoints.some((pattern) => pattern.test(aff.href));
+/** Wrap a ParsedAgentOutput with channel metadata to produce a full HateoasResponse. */
+export function toHateoasResponse(
+  parsed: ParsedAgentOutput,
+  channel: string,
+): HateoasResponse {
+  return {
+    text: parsed.text,
+    links: parsed.links,
+    meta: { channel, timestamp: new Date().toISOString() },
+  };
+}
+
+/** Validate a link's href against a whitelist of allowed endpoint patterns. */
+export function validateLink(link: Link, allowedEndpoints: RegExp[]): boolean {
+  return allowedEndpoints.some((pattern) => pattern.test(link.href));
 }

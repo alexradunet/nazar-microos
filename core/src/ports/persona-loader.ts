@@ -5,7 +5,7 @@
  * what it can do, and how it communicates. Each layer is a separate markdown file
  * that gets concatenated into a single system prompt string. The optional
  * `channel` parameter allows channel-specific variants (e.g. different tone for
- * Signal vs. Web).
+ * WhatsApp vs. Interactive TUI).
  *
  * Handles: loading and concatenating persona layer files, loading SYSTEM.md context.
  * Does NOT handle: skill injection (that is done by the agent session capability),
