@@ -3,7 +3,10 @@
  *
  * No network, no timers — pure in-memory message passing.
  */
-import type { IncomingMessage, MessageChannel } from "../types.js";
+import type {
+  IncomingMessage,
+  MessageChannel,
+} from "../ports/message-channel.js";
 
 export interface SentMessage {
   to: string;

@@ -1,7 +1,11 @@
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
-import { AgentBridge } from "@nazar/core";
+import type { NazarConfig } from "@nazar/core";
+import {
+  type AgentSessionCapability,
+  createInitializedRegistry,
+} from "@nazar/core";
 import { loadConfig } from "./config.js";
 import { handleAgentAction } from "./routes/agents.js";
 import { handleChat } from "./routes/chat.js";
@@ -30,7 +34,9 @@ async function main(): Promise<void> {
   console.log(`  Pi model: ${config.piModel || "(default)"}`);
   console.log(`  Pi transport: ${config.piTransport || "(default)"}`);
 
-  const bridge = new AgentBridge(config);
+  const registry = await createInitializedRegistry({} as NazarConfig);
+  const agentSession = registry.get<AgentSessionCapability>("agent-session");
+  const bridge = agentSession.createBridge(config);
 
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", `http://${req.headers.host}`);

@@ -1,5 +1,5 @@
 import type http from "node:http";
-import type { AgentBridge, AgentResponse } from "@nazar/core";
+import type { AgentResponse, IAgentBridge } from "@nazar/core";
 import { renderAffordances } from "../render.js";
 import { renderMessageBubble } from "../templates/chat.js";
 
@@ -15,7 +15,7 @@ function readBody(req: http.IncomingMessage): Promise<string> {
 export async function handleChat(
   req: http.IncomingMessage,
   res: http.ServerResponse,
-  bridge: AgentBridge,
+  bridge: IAgentBridge,
   sessionId: string,
 ): Promise<void> {
   const body = await readBody(req);

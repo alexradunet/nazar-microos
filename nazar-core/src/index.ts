@@ -1,3 +1,6 @@
+// --- Ports (interfaces) ---
+
+// --- Affordances ---
 export type { Affordance, AgentResponse } from "./affordances.js";
 export {
   formatAffordancesAsText,
@@ -5,9 +8,23 @@ export {
   parseAgentResponse,
   validateAffordance,
 } from "./affordances.js";
+// --- Concrete implementations ---
 export type { BridgeConfig } from "./agent-bridge.js";
 export { AgentBridge, isAllowed, validatePhoneNumber } from "./agent-bridge.js";
+export { AgentSessionCapability } from "./capabilities/agent-session/index.js";
+// --- Capability system ---
+export type {
+  Capability,
+  CapabilityConfig,
+  CapabilityRegistration,
+  CliCommand,
+  CoreServices,
+} from "./capability.js";
 export { configValue, readConfig } from "./config.js";
+export {
+  createDefaultRegistry,
+  createInitializedRegistry,
+} from "./defaults.js";
 export { EvolveManager } from "./evolve.js";
 export type { ExtensionFactory } from "./extension.js";
 export { createNazarExtension } from "./extension.js";
@@ -18,24 +35,36 @@ export {
   loadPersonaPrompt,
   loadSystemContext,
 } from "./persona.js";
+export type {
+  IAffordanceRenderer,
+  IAgentBridge,
+  IConfigReader,
+  IEvolveManager,
+  IFrontmatterParser,
+  IHealthReporter,
+  IncomingMessage,
+  IObjectStore,
+  IPersonaLoader,
+  ISetupGenerator,
+  ISystemExecutor,
+  MessageChannel,
+  ObjectData,
+  ObjectFilters,
+  ObjectRef,
+} from "./ports/index.js";
+export { CapabilityRegistry } from "./registry.js";
 export {
   generateQuadletFiles,
   parseInterval,
   renderQuadletContainer,
 } from "./setup.js";
 export { NodeSystemExecutor } from "./system-executor.js";
+// --- Value types ---
 export type {
   AgentConfig,
   ContainerSpec,
   EvolveOptions,
   GeneratedFile,
-  IFrontmatterParser,
-  IncomingMessage,
-  IObjectStore,
-  ISystemExecutor,
-  MessageChannel,
   NazarConfig,
-  ObjectData,
-  ObjectRef,
   SetupOptions,
 } from "./types.js";

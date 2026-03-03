@@ -5,7 +5,7 @@ import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 import { EvolveManager } from "../evolve.js";
 import { ObjectStore } from "../object-store.js";
-import type { ISystemExecutor } from "../types.js";
+import type { ISystemExecutor } from "../ports/system-executor.js";
 
 interface ExecCall {
   cmd: string;

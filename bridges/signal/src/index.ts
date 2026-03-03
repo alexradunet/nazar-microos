@@ -17,9 +17,11 @@ import type {
   BridgeConfig,
   IncomingMessage,
   MessageChannel,
+  NazarConfig,
 } from "@nazar/core";
 import {
-  AgentBridge,
+  type AgentSessionCapability,
+  createInitializedRegistry,
   formatAffordancesAsText,
   isAllowed,
   validatePhoneNumber,
@@ -294,7 +296,10 @@ async function main(): Promise<void> {
     `  Allowed contacts: ${config.allowedContacts.length === 0 ? "all" : config.allowedContacts.join(", ")}`,
   );
 
-  const bridge = new AgentBridge(config);
+  const registry = await createInitializedRegistry({} as NazarConfig);
+  const agentSession = registry.get<AgentSessionCapability>("agent-session");
+  const bridge = agentSession.createBridge(config);
+
   const channel = new SignalBotChannel(config);
   channel.onMessage(async (msg) => {
     const response = await bridge.processMessage(msg.text, msg.from);
@@ -306,6 +311,7 @@ async function main(): Promise<void> {
   const shutdown = async () => {
     console.log("Shutting down gracefully...");
     bridge.dispose();
+    await registry.disposeAll();
     await channel.disconnect();
     process.exit(0);
   };

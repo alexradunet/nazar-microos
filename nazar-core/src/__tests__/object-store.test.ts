@@ -4,7 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 import { ObjectStore } from "../object-store.js";
-import type { IFrontmatterParser, ObjectData } from "../types.js";
+import type { IFrontmatterParser } from "../ports/frontmatter-parser.js";
+import type { ObjectData } from "../ports/object-store.js";
 
 function makeTmpDir(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), "nazar-test-"));

@@ -170,14 +170,14 @@
   "hotPaths": [
     {
       "path": "",
-      "accessCount": 97,
-      "lastAccessed": 1772529405669,
+      "accessCount": 107,
+      "lastAccessed": 1772537371058,
       "type": "directory"
     },
     {
       "path": "scripts/nazar-deploy.sh",
-      "accessCount": 74,
-      "lastAccessed": 1772533362587,
+      "accessCount": 75,
+      "lastAccessed": 1772534037406,
       "type": "directory"
     },
     {
@@ -188,8 +188,8 @@
     },
     {
       "path": "Makefile",
-      "accessCount": 54,
-      "lastAccessed": 1772533825295,
+      "accessCount": 55,
+      "lastAccessed": 1772533993982,
       "type": "directory"
     },
     {
@@ -212,32 +212,32 @@
     },
     {
       "path": "scripts/nazar-vm.sh",
-      "accessCount": 37,
-      "lastAccessed": 1772533357079,
+      "accessCount": 38,
+      "lastAccessed": 1772534037842,
       "type": "file"
     },
     {
       "path": "containers/signal-cli/Containerfile",
-      "accessCount": 34,
-      "lastAccessed": 1772531353933,
+      "accessCount": 35,
+      "lastAccessed": 1772534027108,
       "type": "file"
     },
     {
       "path": "scripts/nazar",
-      "accessCount": 34,
-      "lastAccessed": 1772533363028,
+      "accessCount": 35,
+      "lastAccessed": 1772534036945,
       "type": "directory"
+    },
+    {
+      "path": "containers/base/Containerfile",
+      "accessCount": 33,
+      "lastAccessed": 1772534025811,
+      "type": "file"
     },
     {
       "path": "containers/signal-bridge/Containerfile",
       "accessCount": 32,
       "lastAccessed": 1772527888605,
-      "type": "file"
-    },
-    {
-      "path": "containers/base/Containerfile",
-      "accessCount": 32,
-      "lastAccessed": 1772531354311,
       "type": "file"
     },
     {
@@ -259,27 +259,27 @@
       "type": "file"
     },
     {
+      "path": "package.json",
+      "accessCount": 20,
+      "lastAccessed": 1772537355997,
+      "type": "file"
+    },
+    {
       "path": "packages/nazar-core/src/__tests__/setup.test.ts",
       "accessCount": 18,
       "lastAccessed": 1772494396419,
       "type": "directory"
     },
     {
-      "path": "package.json",
+      "path": "containers/heartbeat/Containerfile",
       "accessCount": 18,
-      "lastAccessed": 1772528926090,
+      "lastAccessed": 1772534026293,
       "type": "file"
     },
     {
       "path": "skills/signal-setup/SKILL.md",
       "accessCount": 17,
       "lastAccessed": 1772479415983,
-      "type": "file"
-    },
-    {
-      "path": "containers/heartbeat/Containerfile",
-      "accessCount": 17,
-      "lastAccessed": 1772529722169,
       "type": "file"
     },
     {
@@ -295,6 +295,12 @@
       "type": "file"
     },
     {
+      "path": "nazar.yaml.example",
+      "accessCount": 16,
+      "lastAccessed": 1772534065124,
+      "type": "file"
+    },
+    {
       "path": "packages/nazar-core/src/index.ts",
       "accessCount": 15,
       "lastAccessed": 1772527503075,
@@ -304,12 +310,6 @@
       "path": "services/signal-bridge/tsconfig.json",
       "accessCount": 15,
       "lastAccessed": 1772527887334,
-      "type": "file"
-    },
-    {
-      "path": "nazar.yaml.example",
-      "accessCount": 15,
-      "lastAccessed": 1772528902659,
       "type": "file"
     },
     {
@@ -337,15 +337,15 @@
       "type": "file"
     },
     {
-      "path": "packages/nazar-core/package.json",
-      "accessCount": 10,
-      "lastAccessed": 1772526404061,
+      "path": "tests/container/smoke-test.sh",
+      "accessCount": 11,
+      "lastAccessed": 1772534066403,
       "type": "file"
     },
     {
-      "path": "tests/container/smoke-test.sh",
+      "path": "packages/nazar-core/package.json",
       "accessCount": 10,
-      "lastAccessed": 1772529729567,
+      "lastAccessed": 1772526404061,
       "type": "file"
     },
     {
@@ -368,14 +368,14 @@
     },
     {
       "path": "containers/heartbeat/entrypoint.sh",
-      "accessCount": 7,
-      "lastAccessed": 1772528885067,
+      "accessCount": 8,
+      "lastAccessed": 1772534026639,
       "type": "file"
     },
     {
       "path": "tests/integration/run.sh",
-      "accessCount": 6,
-      "lastAccessed": 1772528886293,
+      "accessCount": 7,
+      "lastAccessed": 1772534065873,
       "type": "file"
     },
     {
