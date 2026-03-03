@@ -1,6 +1,7 @@
 import path from "node:path";
 import type { ISetupGenerator } from "../../ports/setup-generator.js";
 import type { ContainerSpec, GeneratedFile, NazarConfig } from "../../types.js";
+import type { PodSpec, TimerSpec } from "../discovery/bridge-manifest.js";
 
 /**
  * Convert a human interval (30m, 2h, 3d) to a systemd OnCalendar expression.
@@ -28,18 +29,7 @@ export function parseInterval(interval: string): string {
  * Render a Quadlet .container file from a container spec.
  * Shared by both setup and evolve.
  */
-export function renderQuadletContainer(
-  spec: ContainerSpec & {
-    description: string;
-    after?: string;
-    publishPorts?: string[];
-    readOnly?: boolean;
-    noNewPrivileges?: boolean;
-    serviceType?: string;
-    restart?: string;
-    wantedBy?: string;
-  },
-): string {
+export function renderQuadletContainer(spec: ContainerSpec): string {
   const lines: string[] = [];
 
   lines.push("[Unit]");
@@ -91,6 +81,41 @@ export function renderQuadletContainer(
   lines.push(`WantedBy=${spec.wantedBy ?? "default.target"}`);
   lines.push("");
 
+  return lines.join("\n");
+}
+
+/** Render a Quadlet .pod file from a pod spec. */
+export function renderQuadletPod(spec: PodSpec): string {
+  const lines: string[] = [];
+  lines.push("[Unit]");
+  lines.push(`Description=${spec.description ?? spec.name}`);
+  if (spec.after) {
+    lines.push(`After=${spec.after}`);
+  }
+  lines.push("");
+  lines.push("[Pod]");
+  lines.push("");
+  lines.push("[Install]");
+  lines.push(`WantedBy=${spec.wantedBy ?? "default.target"}`);
+  lines.push("");
+  return lines.join("\n");
+}
+
+/** Render a Quadlet .timer file from a timer spec. */
+export function renderQuadletTimer(spec: TimerSpec): string {
+  const lines: string[] = [];
+  lines.push("[Unit]");
+  lines.push(`Description=${spec.description}`);
+  lines.push("");
+  lines.push("[Timer]");
+  lines.push(`OnCalendar=${spec.onCalendar}`);
+  if (spec.persistent !== false) {
+    lines.push("Persistent=true");
+  }
+  lines.push("");
+  lines.push("[Install]");
+  lines.push(`WantedBy=${spec.wantedBy ?? "timers.target"}`);
+  lines.push("");
   return lines.join("\n");
 }
 
@@ -158,133 +183,6 @@ export class QuadletSetupGenerator implements ISetupGenerator {
         "WantedBy=timers.target",
         "",
       ].join("\n"),
-    });
-
-    // --- Signal Pod ---
-    files.push({
-      path: path.join(outputDir, "nazar-signal.pod"),
-      content: [
-        "[Unit]",
-        "Description=Nazar Signal Pod",
-        "After=network-online.target",
-        "",
-        "[Pod]",
-        "",
-        "[Install]",
-        "WantedBy=default.target",
-        "",
-      ].join("\n"),
-    });
-
-    // --- Signal CLI container ---
-    files.push({
-      path: path.join(outputDir, "nazar-signal-cli.container"),
-      content: renderQuadletContainer({
-        name: "nazar-signal-cli",
-        image: "localhost/nazar-signal-cli:latest",
-        description: "Nazar Signal CLI Daemon",
-        volumes: ["/var/lib/nazar/signal-storage:/data/signal-storage:rw,z"],
-        environment: { NAZAR_SIGNAL_STORAGE_DIR: "/data/signal-storage" },
-        pod: "nazar-signal.pod",
-      }),
-    });
-
-    // --- Signal Bridge container ---
-    const signalPhone = cfgValue(config, "signal.phone_number", "");
-    const signalContacts: string[] = cfgValue(
-      config,
-      "signal.allowed_contacts",
-      [],
-    );
-    const skillsDir = cfgValue(
-      config,
-      "pi.skills_dir",
-      "/var/lib/nazar/skills",
-    );
-    const personaDir = cfgValue(
-      config,
-      "pi.persona_dir",
-      "/usr/local/share/nazar/persona",
-    );
-
-    files.push({
-      path: path.join(outputDir, "nazar-signal-bridge.container"),
-      content: renderQuadletContainer({
-        name: "nazar-signal-bridge",
-        image: "localhost/nazar-signal-bridge:latest",
-        description: "Nazar Signal Bridge",
-        volumes: [
-          "/var/lib/nazar/objects:/data/objects:rw,z",
-          "/var/lib/nazar/signal-storage:/data/signal-storage:rw,z",
-          "/var/lib/nazar/pi-config:/home/nazar/.pi:rw,z",
-          `${personaDir}:${personaDir}:ro,z`,
-          `${skillsDir}:${skillsDir}:ro,z`,
-        ],
-        environment: {
-          NAZAR_SIGNAL_PHONE: signalPhone,
-          NAZAR_SIGNAL_ALLOWED_CONTACTS: signalContacts.join(","),
-          NAZAR_SKILLS_DIR: skillsDir,
-          NAZAR_PERSONA_DIR: personaDir,
-          PI_CODING_AGENT_DIR: "/home/nazar/.pi/agent",
-        },
-        pod: "nazar-signal.pod",
-        after: "nazar-signal-cli.service",
-      }),
-    });
-
-    // --- WhatsApp Bridge container ---
-    const whatsappContacts: string[] = cfgValue(
-      config,
-      "whatsapp.allowed_contacts",
-      [],
-    );
-
-    files.push({
-      path: path.join(outputDir, "nazar-whatsapp-bridge.container"),
-      content: renderQuadletContainer({
-        name: "nazar-whatsapp-bridge",
-        image: "localhost/nazar-whatsapp-bridge:latest",
-        description: "Nazar WhatsApp Bridge",
-        volumes: [
-          "/var/lib/nazar/objects:/data/objects:rw,z",
-          "/var/lib/nazar/whatsapp-storage:/data/whatsapp-storage:rw,z",
-          "/var/lib/nazar/pi-config:/home/nazar/.pi:rw,z",
-          `${personaDir}:${personaDir}:ro,z`,
-          `${skillsDir}:${skillsDir}:ro,z`,
-        ],
-        environment: {
-          NAZAR_WHATSAPP_ALLOWED_CONTACTS: whatsappContacts.join(","),
-          NAZAR_SKILLS_DIR: skillsDir,
-          NAZAR_PERSONA_DIR: personaDir,
-          PI_CODING_AGENT_DIR: "/home/nazar/.pi/agent",
-        },
-      }),
-    });
-
-    // --- Web Bridge container ---
-    const uiPort = cfgValue(config, "ui.port", 3000);
-
-    files.push({
-      path: path.join(outputDir, "nazar-web-bridge.container"),
-      content: renderQuadletContainer({
-        name: "nazar-web-bridge",
-        image: "localhost/nazar-web-bridge:latest",
-        description: "Nazar Web Bridge",
-        volumes: [
-          "/var/lib/nazar/objects:/data/objects:rw,z",
-          "/var/lib/nazar/pi-config:/home/nazar/.pi:rw,z",
-          `${personaDir}:${personaDir}:ro,z`,
-          `${skillsDir}:${skillsDir}:ro,z`,
-        ],
-        environment: {
-          NAZAR_UI_PORT: String(uiPort),
-          NAZAR_SKILLS_DIR: skillsDir,
-          NAZAR_PERSONA_DIR: personaDir,
-          PI_CODING_AGENT_DIR: "/home/nazar/.pi/agent",
-        },
-        publishPorts: [`${uiPort}:${uiPort}`],
-        noNewPrivileges: true,
-      }),
     });
 
     // --- Syncthing ---

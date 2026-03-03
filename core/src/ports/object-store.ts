@@ -1,3 +1,14 @@
+/**
+ * IObjectStore port — CRUD + search + linking over the flat-file object store.
+ *
+ * Each object is a markdown file with YAML frontmatter stored under
+ * `objects/{type}/{slug}.md`. This port defines the contract; it does NOT
+ * implement file I/O or path resolution.
+ *
+ * For implementation, see capabilities/object-store/markdown-file-store.ts.
+ * For the frontmatter serialization contract, see IFrontmatterParser in ./frontmatter-parser.ts.
+ */
+
 /** Parsed object data from a flat-file markdown with YAML frontmatter. */
 export interface ObjectData {
   /** Frontmatter key-value pairs. */
@@ -20,7 +31,25 @@ export interface ObjectFilters {
   recentMinutes?: number;
 }
 
-/** CRUD operations on the flat-file object store. */
+/**
+ * CRUD operations on the flat-file object store.
+ *
+ * Handles: create, read, update, list, search, link, appendContent.
+ * Does NOT handle: file path resolution, frontmatter serialization, or
+ * directory bootstrapping. Those concerns belong to the implementation.
+ *
+ * For implementation, see capabilities/object-store/markdown-file-store.ts.
+ *
+ * @example
+ * ```ts
+ * const store: IObjectStore = registry.get<ObjectStoreCapability>("object-store").getStore();
+ * store.create("note", "hello-world", { title: "Hello World" });
+ * const obj = store.read("note", "hello-world");
+ * console.log(obj.data.title); // "Hello World"
+ * store.update("note", "hello-world", { status: "done" });
+ * const notes = store.list("note", { status: "done" });
+ * ```
+ */
 export interface IObjectStore {
   /**
    * Create a new object file with the given type, slug, and optional frontmatter fields.

@@ -1,7 +1,7 @@
 {
   "files": [],
   "references": [
-    { "path": "nazar-core" },
+    { "path": "core" },
     { "path": "bridges/signal" },
     { "path": "bridges/web" },
     { "path": "bridges/whatsapp" }

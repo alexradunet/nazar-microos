@@ -3,6 +3,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
+import type { BridgeManifest } from "../capabilities/discovery/bridge-manifest.js";
+import {
+  renderQuadletPod,
+  renderQuadletTimer,
+} from "../capabilities/setup/quadlet-generator.js";
 import { EvolveManager } from "../evolve.js";
 import { ObjectStore } from "../object-store.js";
 import type { ISystemExecutor } from "../ports/system-executor.js";
@@ -291,5 +296,219 @@ describe("EvolveManager", () => {
     it("throws for nonexistent slug", () => {
       assert.throws(() => manager.status("nope"), /object not found/);
     });
+  });
+});
+
+describe("renderQuadletPod", () => {
+  it("produces correct .pod content with all fields", () => {
+    const result = renderQuadletPod({
+      name: "nazar-signal",
+      description: "Signal Pod",
+      after: "network-online.target",
+      wantedBy: "multi-user.target",
+    });
+    assert.ok(result.includes("[Unit]"));
+    assert.ok(result.includes("Description=Signal Pod"));
+    assert.ok(result.includes("After=network-online.target"));
+    assert.ok(result.includes("[Pod]"));
+    assert.ok(result.includes("[Install]"));
+    assert.ok(result.includes("WantedBy=multi-user.target"));
+  });
+
+  it("uses name as description when description is omitted", () => {
+    const result = renderQuadletPod({ name: "nazar-foo" });
+    assert.ok(result.includes("Description=nazar-foo"));
+  });
+
+  it("uses default.target when wantedBy is omitted", () => {
+    const result = renderQuadletPod({ name: "nazar-foo" });
+    assert.ok(result.includes("WantedBy=default.target"));
+  });
+
+  it("omits After= line when after is not set", () => {
+    const result = renderQuadletPod({ name: "nazar-foo" });
+    assert.ok(!result.includes("After="));
+  });
+});
+
+describe("renderQuadletTimer", () => {
+  it("produces correct .timer content with all fields", () => {
+    const result = renderQuadletTimer({
+      name: "nazar-heartbeat",
+      description: "Heartbeat Timer",
+      onCalendar: "*:0/30",
+      persistent: true,
+      wantedBy: "timers.target",
+    });
+    assert.ok(result.includes("[Unit]"));
+    assert.ok(result.includes("Description=Heartbeat Timer"));
+    assert.ok(result.includes("[Timer]"));
+    assert.ok(result.includes("OnCalendar=*:0/30"));
+    assert.ok(result.includes("Persistent=true"));
+    assert.ok(result.includes("[Install]"));
+    assert.ok(result.includes("WantedBy=timers.target"));
+  });
+
+  it("uses timers.target when wantedBy is omitted", () => {
+    const result = renderQuadletTimer({
+      name: "nazar-t",
+      description: "T",
+      onCalendar: "*:0/5",
+    });
+    assert.ok(result.includes("WantedBy=timers.target"));
+  });
+
+  it("omits Persistent when persistent is false", () => {
+    const result = renderQuadletTimer({
+      name: "nazar-t",
+      description: "T",
+      onCalendar: "*:0/5",
+      persistent: false,
+    });
+    assert.ok(!result.includes("Persistent=true"));
+  });
+});
+
+describe("EvolveManager.installBridge", () => {
+  let tmpDir: string;
+  let quadletDir: string;
+  let executor: MockSystemExecutor;
+  let manager: EvolveManager;
+
+  const makeManifest = (
+    overrides?: Partial<BridgeManifest>,
+  ): BridgeManifest => ({
+    apiVersion: "nazar.dev/v1",
+    kind: "BridgeManifest",
+    metadata: {
+      name: "signal",
+      description: "Signal bridge",
+      version: "1.0.0",
+      channel: "stable",
+    },
+    containers: [
+      {
+        name: "nazar-signal-bridge",
+        image: "localhost/nazar-signal-bridge:latest",
+        description: "Signal Bridge",
+      },
+    ],
+    pods: [{ name: "nazar-signal", description: "Signal Pod" }],
+    timers: [
+      {
+        name: "nazar-signal-heartbeat",
+        description: "Signal Heartbeat",
+        onCalendar: "*:0/30",
+      },
+    ],
+    ...overrides,
+  });
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "nazar-bridge-"));
+    const objectsDir = path.join(tmpDir, "objects");
+    quadletDir = path.join(tmpDir, "quadlet");
+    const configPath = path.join(tmpDir, "nazar.yaml");
+
+    fs.mkdirSync(objectsDir, { recursive: true });
+    fs.mkdirSync(quadletDir, { recursive: true });
+    fs.writeFileSync(configPath, "hostname: nazar-box\nprimary_user: alex\n");
+
+    const store = new ObjectStore(objectsDir);
+    executor = new MockSystemExecutor();
+    manager = new EvolveManager(store, executor, configPath, quadletDir);
+  });
+
+  it("dry-run generates correct files for pods, containers, and timers", async () => {
+    const result = await manager.installBridge(makeManifest(), {
+      dryRun: true,
+    });
+
+    assert.ok(result.includes("[dry-run]"));
+    assert.ok(result.includes("nazar-signal.pod"));
+    assert.ok(result.includes("nazar-signal-bridge.container"));
+    assert.ok(result.includes("nazar-signal-heartbeat.timer"));
+    assert.ok(result.includes("[Pod]"));
+    assert.ok(result.includes("[Container]"));
+    assert.ok(result.includes("[Timer]"));
+    // No files written, no systemctl calls
+    assert.equal(executor.writeCalls.length, 0);
+    assert.equal(executor.execCalls.length, 0);
+  });
+
+  it("writes pod, container, and timer files and starts services", async () => {
+    executor.healthyServices.add("nazar-signal-bridge");
+
+    const result = await manager.installBridge(makeManifest(), {
+      healthCheckTimeout: 2,
+    });
+
+    assert.ok(result.includes("installed successfully"));
+
+    const paths = executor.writeCalls.map((w) => w.path);
+    assert.ok(paths.some((p) => p.endsWith("nazar-signal.pod")));
+    assert.ok(paths.some((p) => p.endsWith("nazar-signal-bridge.container")));
+    assert.ok(paths.some((p) => p.endsWith("nazar-signal-heartbeat.timer")));
+
+    // Pod started before containers
+    const startCalls = executor.execCalls.filter(
+      (c) => c.cmd === "sudo" && c.args[1] === "start",
+    );
+    assert.ok(startCalls.some((c) => c.args[2] === "nazar-signal-pod.service"));
+    assert.ok(
+      startCalls.some((c) => c.args[2] === "nazar-signal-bridge.service"),
+    );
+    assert.ok(
+      startCalls.some((c) => c.args[2] === "nazar-signal-heartbeat.timer"),
+    );
+  });
+
+  it("rollback removes .pod and .timer files on health check failure", async () => {
+    // nazar-signal-bridge is not healthy — health check fails
+
+    await assert.rejects(
+      () => manager.installBridge(makeManifest(), { healthCheckTimeout: 1 }),
+      /failed health check/,
+    );
+
+    assert.ok(
+      executor.removedFiles.some((f) => f.endsWith("nazar-signal.pod")),
+    );
+    assert.ok(
+      executor.removedFiles.some((f) =>
+        f.endsWith("nazar-signal-bridge.container"),
+      ),
+    );
+    assert.ok(
+      executor.removedFiles.some((f) =>
+        f.endsWith("nazar-signal-heartbeat.timer"),
+      ),
+    );
+  });
+
+  it("resolves template variables from bridgeConfig", async () => {
+    const manifest = makeManifest({
+      containers: [
+        {
+          name: "nazar-signal-bridge",
+          image: "localhost/{{registry}}/signal:{{version}}",
+          description: "Signal",
+        },
+      ],
+    });
+    executor.healthyServices.add("nazar-signal-bridge");
+
+    await manager.installBridge(manifest, {
+      bridgeConfig: { registry: "myrepo", version: "2.0.0" },
+      healthCheckTimeout: 2,
+    });
+
+    const containerWrite = executor.writeCalls.find((w) =>
+      w.path.endsWith("nazar-signal-bridge.container"),
+    );
+    assert.ok(containerWrite);
+    assert.ok(
+      containerWrite.content.includes("Image=localhost/myrepo/signal:2.0.0"),
+    );
   });
 });

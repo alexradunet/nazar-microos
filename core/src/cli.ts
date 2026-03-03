@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 
 import fs from "node:fs";
+import path from "node:path";
+import {
+  parseBridgeManifest,
+  validateBridgeManifest,
+} from "./capabilities/discovery/bridge-manifest.js";
 import { readConfig } from "./config.js";
 import { EvolveManager } from "./evolve.js";
 import { JsYamlFrontmatterParser } from "./frontmatter.js";
@@ -229,6 +234,216 @@ async function evolveCmd(parsed: ParsedArgs): Promise<void> {
   }
 }
 
+// --- Bridge subcommand ---
+
+const REFERENCE_BRIDGES_DIR =
+  process.env.NAZAR_REFERENCE_DIR ?? "/usr/local/share/nazar/reference/bridges";
+
+async function bridgeCmd(parsed: ParsedArgs): Promise<void> {
+  const configPath = parsed.flags.config ?? NAZAR_CONFIG;
+  const quadletDir = parsed.flags["quadlet-dir"] ?? QUADLET_OUTPUT_DIR;
+  const objectsDir = parsed.flags["objects-dir"] ?? NAZAR_OBJECTS_DIR;
+  const dryRun = parsed.boolFlags.has("dry-run");
+
+  switch (parsed.subcommand) {
+    case "install": {
+      const manifestPath = parsed.positional[0];
+      if (!manifestPath) {
+        die(
+          "usage: nazar-core bridge install <manifest-path> [--dry-run] [--config=path]",
+        );
+      }
+
+      // Read and parse manifest
+      let raw: string;
+      try {
+        raw = fs.readFileSync(manifestPath, "utf-8");
+      } catch {
+        die(`cannot read manifest: ${manifestPath}`);
+      }
+
+      const manifest = parseBridgeManifest(raw);
+      const errors = validateBridgeManifest(manifest);
+      if (errors.length > 0) {
+        die(`invalid bridge manifest:\n  ${errors.join("\n  ")}`);
+      }
+
+      // Read bridge config from nazar.yaml
+      let bridgeConfig: Record<string, unknown> = {};
+      try {
+        const config = readConfig(configPath);
+        const bridges = config.bridges as
+          | Record<string, Record<string, unknown>>
+          | undefined;
+        if (bridges?.[manifest.metadata.name]) {
+          bridgeConfig = bridges[manifest.metadata.name];
+        }
+      } catch {
+        // Config not available — templates will remain unresolved
+      }
+
+      const store = new ObjectStore(objectsDir);
+      const executor = new NodeSystemExecutor();
+      const manager = new EvolveManager(
+        store,
+        executor,
+        configPath,
+        quadletDir,
+      );
+
+      const result = await manager.installBridge(manifest, {
+        dryRun,
+        bridgeConfig,
+      });
+      console.log(result);
+      break;
+    }
+    case "list": {
+      // Scan reference bridges directory and installed bridge containers
+      const dirs = listReferenceBridges();
+      if (dirs.length === 0) {
+        console.log("No reference bridges found.");
+      } else {
+        console.log("Available bridges:");
+        for (const d of dirs) {
+          const mPath = path.join(REFERENCE_BRIDGES_DIR, d, "manifest.yaml");
+          try {
+            const raw = fs.readFileSync(mPath, "utf-8");
+            const m = parseBridgeManifest(raw);
+            console.log(
+              `  ${m.metadata.name}  ${m.metadata.description} (v${m.metadata.version})`,
+            );
+          } catch {
+            console.log(`  ${d}  (manifest unreadable)`);
+          }
+        }
+      }
+
+      // Show installed bridge containers
+      const installed = listInstalledBridges();
+      if (installed.length > 0) {
+        console.log("\nInstalled bridge containers:");
+        for (const name of installed) {
+          console.log(`  ${name}`);
+        }
+      }
+      break;
+    }
+    case "remove": {
+      const bridgeName = parsed.positional[0];
+      if (!bridgeName) {
+        die("usage: nazar-core bridge remove <bridge-name>");
+      }
+
+      // Find the manifest to know which files to remove
+      const mPath = path.join(
+        REFERENCE_BRIDGES_DIR,
+        bridgeName,
+        "manifest.yaml",
+      );
+      let raw: string;
+      try {
+        raw = fs.readFileSync(mPath, "utf-8");
+      } catch {
+        die(`cannot find manifest for bridge '${bridgeName}' at ${mPath}`);
+      }
+
+      const manifest = parseBridgeManifest(raw);
+      const executor = new NodeSystemExecutor();
+
+      // Stop and remove containers
+      for (const c of manifest.containers) {
+        if (!dryRun) {
+          await executor.exec("sudo", [
+            "systemctl",
+            "stop",
+            `${c.name}.service`,
+          ]);
+          const containerFile = path.join(quadletDir, `${c.name}.container`);
+          try {
+            fs.unlinkSync(containerFile);
+          } catch {
+            // already removed
+          }
+        }
+        console.log(`Removed ${c.name}.container`);
+      }
+
+      // Remove pods
+      if (manifest.pods) {
+        for (const p of manifest.pods) {
+          const podFile = path.join(quadletDir, `${p.name}.pod`);
+          if (!dryRun) {
+            try {
+              fs.unlinkSync(podFile);
+            } catch {
+              // already removed
+            }
+          }
+          console.log(`Removed ${p.name}.pod`);
+        }
+      }
+
+      // Remove timers
+      if (manifest.timers) {
+        for (const t of manifest.timers) {
+          if (!dryRun) {
+            await executor.exec("sudo", [
+              "systemctl",
+              "stop",
+              `${t.name}.timer`,
+            ]);
+            const timerFile = path.join(quadletDir, `${t.name}.timer`);
+            try {
+              fs.unlinkSync(timerFile);
+            } catch {
+              // already removed
+            }
+          }
+          console.log(`Removed ${t.name}.timer`);
+        }
+      }
+
+      if (!dryRun) {
+        await executor.exec("sudo", ["systemctl", "daemon-reload"]);
+      }
+
+      console.log(
+        `\nBridge '${bridgeName}' removed${dryRun ? " (dry-run)" : ""}`,
+      );
+      break;
+    }
+    default:
+      die("usage: nazar-core bridge <install|list|remove> ...");
+  }
+}
+
+function listReferenceBridges(): string[] {
+  try {
+    return fs.readdirSync(REFERENCE_BRIDGES_DIR).filter((e) => {
+      try {
+        return fs.statSync(path.join(REFERENCE_BRIDGES_DIR, e)).isDirectory();
+      } catch {
+        return false;
+      }
+    });
+  } catch {
+    return [];
+  }
+}
+
+function listInstalledBridges(): string[] {
+  const quadletDir = QUADLET_OUTPUT_DIR;
+  try {
+    return fs
+      .readdirSync(quadletDir)
+      .filter((f) => f.endsWith(".container") && f.includes("bridge"))
+      .map((f) => f.replace(".container", ""));
+  } catch {
+    return [];
+  }
+}
+
 // --- Helpers ---
 
 function die(msg: string): never {
@@ -252,9 +467,12 @@ async function main(): Promise<void> {
       case "evolve":
         await evolveCmd(parsed);
         break;
+      case "bridge":
+        await bridgeCmd(parsed);
+        break;
       default:
         console.error(
-          "Usage: nazar-core <object|setup|evolve> [subcommand] [args]",
+          "Usage: nazar-core <object|setup|evolve|bridge> [subcommand] [args]",
         );
         console.error("");
         console.error("Commands:");
@@ -266,6 +484,9 @@ async function main(): Promise<void> {
         );
         console.error(
           "  evolve <install|rollback|status>               Container evolution",
+        );
+        console.error(
+          "  bridge <install|list|remove>                   Bridge management",
         );
         process.exit(1);
     }

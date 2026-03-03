@@ -5,6 +5,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createNazarExtension } from "../extension.js";
+import type { IObjectStore } from "../ports/object-store.js";
 import type { ISystemExecutor } from "../ports/system-executor.js";
 
 /** Minimal mock executor that returns canned output for each command. */
@@ -228,14 +229,286 @@ describe("createNazarExtension", () => {
     }
   });
 
-  it("session_before_compact event returns compaction instructions", async () => {
+  it("session_before_compact event returns generic default compaction instructions", async () => {
     const ext = createNazarExtension().create();
     const result = (await ext.on({
       type: "session_before_compact",
     })) as { compaction?: { instructions?: string } };
     assert.ok(result.compaction);
     assert.ok(result.compaction.instructions);
-    assert.ok(result.compaction.instructions.includes("Preserve:"));
-    assert.ok(result.compaction.instructions.includes("Discard:"));
+    assert.ok(
+      result.compaction.instructions.includes("context compaction"),
+      "should mention context compaction",
+    );
+    assert.ok(
+      result.compaction.instructions.includes("persona"),
+      "should mention persona",
+    );
+    assert.ok(
+      result.compaction.instructions.includes("Discard verbose"),
+      "should mention discarding verbose output",
+    );
+  });
+
+  it("session_before_compact event uses custom compaction instructions when provided", async () => {
+    const customInstructions = "Custom: preserve only the secret word.";
+    const ext = createNazarExtension({
+      compactionInstructions: customInstructions,
+    }).create();
+    const result = (await ext.on({
+      type: "session_before_compact",
+    })) as { compaction?: { instructions?: string } };
+    assert.ok(result.compaction);
+    assert.equal(result.compaction.instructions, customInstructions);
+  });
+
+  it("context event includes health alerts for unhealthy state", async () => {
+    const unhealthyExecutor = createMockExecutor({
+      bootc: {
+        stdout: JSON.stringify({
+          status: {
+            booted: {
+              image: { image: { image: "ghcr.io/nazar/os:latest" } },
+            },
+            staged: null,
+          },
+        }),
+        stderr: "",
+        exitCode: 0,
+      },
+      podman: {
+        stdout: JSON.stringify([
+          {
+            Names: ["nazar-signal-bridge"],
+            Image: "ghcr.io/nazar/signal:latest",
+            State: "exited",
+            Status: "Exited (1) 5 minutes ago",
+          },
+        ]),
+        stderr: "",
+        exitCode: 0,
+      },
+    });
+    const ext = createNazarExtension({
+      systemExecutor: unhealthyExecutor,
+    }).create();
+    const result = (await ext.on({
+      type: "context",
+      messages: [],
+    })) as { messages?: { role: string; content: string }[] };
+    assert.ok(result.messages);
+    const content = result.messages[0].content;
+    assert.ok(
+      content.includes("## Health Alerts"),
+      "should include Health Alerts section",
+    );
+    assert.ok(content.includes("CRITICAL"), "should include critical severity");
+    assert.ok(
+      content.includes("nazar-signal-bridge"),
+      "should include container name in alert",
+    );
+  });
+
+  it("context event skips health alerts when all healthy", async () => {
+    const ext = createNazarExtension({
+      systemExecutor: createMockExecutor(),
+    }).create();
+    const result = (await ext.on({
+      type: "context",
+      messages: [],
+    })) as { messages?: { role: string; content: string }[] };
+    assert.ok(result.messages);
+    const content = result.messages[0].content;
+    assert.ok(
+      !content.includes("## Health Alerts"),
+      "should not include Health Alerts when all healthy",
+    );
+  });
+
+  it("context event includes pending evolutions when objectStore is provided", async () => {
+    const mockObjectStore: IObjectStore = {
+      create() {
+        return "";
+      },
+      read() {
+        return { data: {}, content: "" };
+      },
+      list(type, filters) {
+        if (type === "evolution" && filters?.status === "proposed") {
+          return [
+            {
+              type: "evolution",
+              slug: "upgrade-signal-cli",
+              title: "Upgrade signal-cli to v0.15",
+            },
+            {
+              type: "evolution",
+              slug: "add-healthcheck",
+              title: "Add healthcheck to web bridge",
+            },
+          ];
+        }
+        return [];
+      },
+      update() {},
+      search() {
+        return [];
+      },
+      link() {
+        return "";
+      },
+      appendContent() {},
+    };
+    const ext = createNazarExtension({
+      objectStore: mockObjectStore,
+    }).create();
+    const result = (await ext.on({
+      type: "context",
+      messages: [],
+    })) as { messages?: { role: string; content: string }[] };
+    assert.ok(result.messages);
+    const content = result.messages[0].content;
+    assert.ok(
+      content.includes("## Pending Evolutions"),
+      "should include Pending Evolutions section",
+    );
+    assert.ok(
+      content.includes("upgrade-signal-cli"),
+      "should include evolution slug",
+    );
+    assert.ok(
+      content.includes("Upgrade signal-cli to v0.15"),
+      "should include evolution title",
+    );
+    assert.ok(
+      content.includes("add-healthcheck"),
+      "should include second evolution",
+    );
+  });
+
+  it("context event skips evolutions when objectStore is not provided", async () => {
+    const ext = createNazarExtension({
+      systemExecutor: createMockExecutor(),
+    }).create();
+    const result = (await ext.on({
+      type: "context",
+      messages: [],
+    })) as { messages?: { role: string; content: string }[] };
+    assert.ok(result.messages);
+    const content = result.messages[0].content;
+    assert.ok(
+      !content.includes("## Pending Evolutions"),
+      "should not include Pending Evolutions without objectStore",
+    );
+  });
+
+  it("context event includes Available Bridges and Installed Bridges sections when systemExecutor is provided", async () => {
+    const manifestYaml = [
+      "apiVersion: nazar.dev/v1",
+      "kind: BridgeManifest",
+      "metadata:",
+      "  name: signal",
+      "  description: Signal messaging bridge via signal-cli JSON-RPC",
+      "  version: 1.0.0",
+      "  channel: signal",
+      "containers:",
+      "  - name: nazar-signal-bridge",
+      "    image: ghcr.io/nazar/signal:latest",
+    ].join("\n");
+
+    const bridgeExecutor = createMockExecutor({
+      systemctl: {
+        stdout: "active",
+        stderr: "",
+        exitCode: 0,
+      },
+    });
+    // Override readDir and readFile and isDirectory for bridge discovery
+    const executor = {
+      ...bridgeExecutor,
+      async readDir(path: string) {
+        if (path === "/test/reference/bridges") return ["signal"];
+        if (path === "/test/quadlet/") return ["nazar-signal-bridge.container"];
+        return [];
+      },
+      async isDirectory(path: string) {
+        return path === "/test/reference/bridges/signal";
+      },
+      async readFile(path: string) {
+        if (path === "/test/reference/bridges/signal/manifest.yaml")
+          return manifestYaml;
+        return "";
+      },
+    };
+
+    const ext = createNazarExtension({
+      systemExecutor: executor,
+      referenceBridgesDir: "/test/reference/bridges",
+      quadletDir: "/test/quadlet/",
+    }).create();
+
+    const result = (await ext.on({
+      type: "context",
+      messages: [],
+    })) as { messages?: { role: string; content: string }[] };
+    assert.ok(result.messages);
+    const content = result.messages[0].content;
+
+    assert.ok(
+      content.includes("## Available Bridges"),
+      "should include Available Bridges section",
+    );
+    assert.ok(
+      content.includes(
+        "signal: Signal messaging bridge via signal-cli JSON-RPC (v1.0.0)",
+      ),
+      "should include signal bridge description",
+    );
+    assert.ok(
+      content.includes("## Installed Bridges"),
+      "should include Installed Bridges section",
+    );
+    assert.ok(
+      content.includes("nazar-signal-bridge (active)"),
+      "should include installed bridge with status",
+    );
+  });
+
+  it("context event shows fallback text when no bridges are found", async () => {
+    const emptyExecutor = createMockExecutor();
+    const executor = {
+      ...emptyExecutor,
+      async readDir(_path: string) {
+        return [] as string[];
+      },
+      async isDirectory(_path: string) {
+        return false;
+      },
+      async readFile(_path: string) {
+        return "";
+      },
+    };
+
+    const ext = createNazarExtension({
+      systemExecutor: executor,
+      referenceBridgesDir: "/test/reference/bridges",
+      quadletDir: "/test/quadlet/",
+    }).create();
+
+    const result = (await ext.on({
+      type: "context",
+      messages: [],
+    })) as { messages?: { role: string; content: string }[] };
+    assert.ok(result.messages);
+    const content = result.messages[0].content;
+
+    assert.ok(
+      content.includes("No reference bridges found"),
+      "should show fallback for available bridges",
+    );
+    assert.ok(
+      content.includes("No bridges installed"),
+      "should show fallback for installed bridges",
+    );
   });
 });

@@ -57,29 +57,17 @@ export class YamlConfigReader implements IConfigReader {
       }
     }
 
-    // Validate ui port if present
-    const ui = config.ui as Record<string, unknown> | undefined;
-    if (ui?.port !== undefined) {
-      const port = Number(ui.port);
-      if (!Number.isInteger(port) || port < 1 || port > 65535) {
-        throw new Error(
-          `invalid ui port: '${ui.port}' (must be integer 1-65535)`,
-        );
-      }
-    }
-
     return {
+      ...config,
       hostname: config.hostname as string,
       primary_user: config.primary_user as string,
       timezone: config.timezone as string | undefined,
       heartbeat: heartbeat as NazarConfig["heartbeat"],
       ttyd: ttyd as NazarConfig["ttyd"],
-      signal: config.signal as NazarConfig["signal"],
-      whatsapp: config.whatsapp as NazarConfig["whatsapp"],
-      ui: ui as NazarConfig["ui"],
       agent: config.agent as NazarConfig["agent"],
       evolution: config.evolution as NazarConfig["evolution"],
       firewall: config.firewall as NazarConfig["firewall"],
+      bridges: config.bridges as NazarConfig["bridges"],
     };
   }
 

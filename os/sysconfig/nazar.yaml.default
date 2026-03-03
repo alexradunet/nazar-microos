@@ -11,15 +11,15 @@ heartbeat:
 ttyd:
   port: 7681
 
-signal:
-  phone_number: ""
-  allowed_contacts: []
-
-whatsapp:
-  allowed_contacts: []
-
-ui:
-  port: 3000
+# Bridge-specific config goes under bridges.<name>:
+# bridges:
+#   signal:
+#     phone_number: "+1234567890"
+#     allowed_contacts: ["+1234567890"]
+#   whatsapp:
+#     allowed_contacts: ["+1234567890"]
+#   web:
+#     port: 3000
 
 agent:
   skills_dir: /usr/local/share/nazar/skills

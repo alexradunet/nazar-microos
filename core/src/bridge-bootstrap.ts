@@ -1,12 +1,23 @@
 /**
  * Shared bridge bootstrap utilities — DRYs up Signal, WhatsApp, and Web bridges.
  *
- * Exports:
- * - loadBaseBridgeConfig() — shared env-var loading for BridgeConfig fields
- * - MessageQueue — sequential message processing with backpressure
- * - HealthFileReporter — periodic health timestamp writer
- * - bootstrapBridge() — full bootstrap for MessageChannel-based bridges
- * - bridgeNazarConfig() — minimal valid NazarConfig from env vars
+ * Handles:
+ *   - loadBaseBridgeConfig()  — shared env-var loading for BridgeConfig fields
+ *   - MessageQueue            — sequential message processing with backpressure
+ *   - HealthFileReporter      — periodic health timestamp writer (HEALTHCHECK integration)
+ *   - bootstrapBridge()       — full bootstrap for MessageChannel-based bridges
+ *   - bridgeNazarConfig()     — minimal valid NazarConfig from env vars
+ *
+ * Does NOT handle:
+ *   - Channel-specific connection logic (e.g. Signal JSON-RPC, WhatsApp Puppeteer)
+ *   - Contact allow-listing (each bridge service handles that in its channel impl)
+ *   - Agent session management (delegated to AgentSessionCapability via registry)
+ *   - Affordance rendering (delegated to formatAffordancesAsText from affordances.ts)
+ *
+ * For the three bridge entry points that call bootstrapBridge(), see:
+ *   Signal   — bridges/signal/src/index.ts
+ *   WhatsApp — bridges/whatsapp/src/index.ts
+ *   Web      — bridges/web/src/index.ts
  */
 
 import fs from "node:fs";
@@ -53,7 +64,14 @@ export function bridgeNazarConfig(): NazarConfig {
   };
 }
 
-/** Sequential message processing queue with backpressure. */
+/**
+ * Sequential message processing queue with backpressure.
+ *
+ * Reason: messaging channels (Signal, WhatsApp) may deliver bursts of messages
+ * faster than the Pi agent can process them. This queue serializes processing
+ * and drops messages when the queue is full rather than letting memory grow
+ * unboundedly or spawning concurrent agent sessions for the same contact.
+ */
 export class MessageQueue {
   private processingQueue: Promise<void> = Promise.resolve();
   private queueDepth = 0;
@@ -87,7 +105,16 @@ export class MessageQueue {
   }
 }
 
-/** Periodic health timestamp writer for container HEALTHCHECK. */
+/**
+ * Periodic health timestamp writer for container HEALTHCHECK.
+ *
+ * Podman reads the timestamp file path configured in the Quadlet
+ * `.container` unit's `HealthCmd`. If the file is not updated within
+ * the configured interval, Podman marks the container unhealthy and
+ * may restart it (depending on RestartPolicy).
+ *
+ * For the IHealthReporter port interface, see ports/health-reporter.ts.
+ */
 export class HealthFileReporter {
   private interval?: ReturnType<typeof setInterval>;
 
@@ -126,6 +153,19 @@ export interface BootstrapResult {
  *
  * Handles: auth validation, startup logging, registry init with valid NazarConfig,
  * agent session wiring, channel.onMessage, channel.connect, SIGTERM/SIGINT.
+ *
+ * Does NOT handle: channel-specific connection protocols, contact allow-listing,
+ * or health file writing (callers add HealthFileReporter separately if needed).
+ *
+ * Bootstrap sequence:
+ * 1. Verify Pi agent auth.json exists (fails fast before any network connections)
+ * 2. Run bridge-specific validation via validate() callback
+ * 3. Log startup info
+ * 4. createInitializedRegistry() — 3-phase capability init (see defaults.ts)
+ * 5. createBridge() — wire AgentSessionCapability to BridgeConfig
+ * 6. channel.onMessage() — route messages through bridge, append affordances
+ * 7. channel.connect() — start listening
+ * 8. Register SIGTERM/SIGINT for graceful shutdown
  */
 export async function bootstrapBridge<C extends BridgeConfig>(
   opts: BootstrapOptions<C>,
@@ -133,6 +173,8 @@ export async function bootstrapBridge<C extends BridgeConfig>(
   const { config, createChannel, validate, logExtra } = opts;
 
   // Validate agent config directory has required files
+  // Reason: failing here gives a clear error before any network connections
+  // are attempted, which makes misconfigured containers easy to diagnose.
   const authFile = path.join(config.agentDir, "auth.json");
   if (!fs.existsSync(authFile)) {
     throw new Error(

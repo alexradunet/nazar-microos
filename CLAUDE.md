@@ -6,16 +6,18 @@ Nazar — self-hosted AI companion on Fedora bootc. Podman Quadlet containers, s
 
 ## Architecture
 
-- **Monorepo**: npm workspaces — `nazar-core` (shared library), `bridges/*` (bridge services)
+- **Monorepo**: npm workspaces — `core` (shared library, package: `@nazar/core`), `bridges/*` (bridge services)
 - **Shell scripts**: `scripts/` — bash CLI tools (nazar router, deploy, vm)
-- **nazar-core CLI**: `nazar-core object|setup|evolve` — TypeScript CLI replacing yq/jq bash scripts
-- **Agent**: `nazar-core/agent/persona/` — OpenPersona 4-layer (SOUL, BODY, FACULTY, SKILL)
-- **Agent**: `nazar-core/agent/skills/*/SKILL.md` — Pi agent domain skills
-- **Agent**: `nazar-core/agent/context/` — System context for agent prompts (SYSTEM.md, APPEND_SYSTEM.md)
+- **nazar-core CLI**: `nazar-core object|setup|evolve|bridge` — TypeScript CLI replacing yq/jq bash scripts
+- **Agent**: `core/agent/persona/` — OpenPersona 4-layer (SOUL, BODY, FACULTY, SKILL)
+- **Agent**: `core/agent/skills/*/SKILL.md` — Pi agent domain skills
+- **Agent**: `core/agent/context/` — System context for agent prompts (SYSTEM.md, APPEND_SYSTEM.md)
+- **Bridge manifests**: `reference/bridges/*/manifest.yaml` — self-contained bridge definitions
 - **Bridges**: `bridges/{signal,web,whatsapp}/` — bridge services, each with its own Containerfile
 - **Containers**: `containers/{base,heartbeat,signal-cli}` — infra containers, all build FROM nazar-base
 - **OS image**: `os/Containerfile` — Fedora bootc 42
 - **Config**: `nazar.yaml` applied by `nazar-core setup` → Podman Quadlet files
+- **Reference**: `reference/bridges/` — bridge manifests, channel personas, skills
 
 ## Build and Test
 

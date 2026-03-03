@@ -1,6 +1,24 @@
 /**
  * CapabilityRegistry — composition root that collects and aggregates
  * contributions from all capabilities.
+ *
+ * Responsibilities:
+ *   - Store capability instances by name
+ *   - Initialize capabilities on demand or all at once
+ *   - Aggregate cross-capability outputs (extension factories, skill paths,
+ *     CLI commands, config validators)
+ *   - Dispose all capabilities in reverse registration order on shutdown
+ *
+ * Does NOT handle: initialization ordering or phased bootstrapping. That
+ * logic lives in defaults.ts (createInitializedRegistry). The registry
+ * simply executes whatever init calls it receives, in the order given.
+ *
+ * Does NOT handle: dependency injection between capabilities. Each capability
+ * receives the same CapabilityConfig; it is the caller's responsibility to
+ * build a config with the right services for each phase.
+ *
+ * For phased bootstrap, see defaults.ts.
+ * For the Capability interface, see capability.ts.
  */
 
 import type {
@@ -34,7 +52,13 @@ export class CapabilityRegistry {
     }
   }
 
-  /** Initialize a single capability by name. Skips if already initialized. */
+  /**
+   * Initialize a single capability by name. Skips if already initialized.
+   *
+   * Reason: phased bootstrap in defaults.ts calls initCapability() per
+   * capability rather than initAll(), so it can pass different CapabilityConfig
+   * (with different service sets) to different phases.
+   */
   async initCapability(name: string, config: CapabilityConfig): Promise<void> {
     if (this.registrations.has(name)) return;
     const cap = this.capabilities.get(name);
@@ -89,7 +113,12 @@ export class CapabilityRegistry {
     return errors;
   }
 
-  /** Dispose all capabilities in reverse registration order. */
+  /**
+   * Dispose all capabilities in reverse registration order.
+   *
+   * Reason: reverse order ensures that capabilities which depend on other
+   * capabilities are torn down before the capabilities they depend on.
+   */
   async disposeAll(): Promise<void> {
     const caps = [...this.capabilities.values()].reverse();
     for (const cap of caps) {

@@ -1,0 +1,50 @@
+apiVersion: nazar.dev/v1
+kind: BridgeManifest
+metadata:
+  name: whatsapp
+  description: WhatsApp messaging bridge via whatsapp-web.js
+  version: "1.0.0"
+  channel: whatsapp
+containers:
+  - name: nazar-whatsapp-bridge
+    image: localhost/nazar-whatsapp-bridge:latest
+    description: WhatsApp to Pi agent bridge
+    volumes:
+      - /var/lib/nazar/objects:/data/objects:rw,z
+      - /etc/nazar:/etc/nazar:ro,z
+      - /usr/local/share/nazar/persona:/data/persona:ro,z
+      - /usr/local/share/nazar/skills:/data/skills:ro,z
+      - /var/lib/nazar/whatsapp:/data/whatsapp:rw,z
+      - /var/lib/nazar/sessions:/data/sessions:rw,z
+    environment:
+      NAZAR_CONFIG: /etc/nazar/nazar.yaml
+      NAZAR_OBJECTS_DIR: /data/objects
+      WHATSAPP_ALLOWED_CONTACTS: "{{allowed_contacts}}"
+      PI_SKILLS_DIR: /data/skills
+      PI_PERSONA_DIR: /data/persona
+      PI_SESSIONS_DIR: /data/sessions
+configSchema:
+  - name: allowed_contacts
+    type: "string[]"
+    required: false
+    description: Phone numbers allowed to message the agent
+    default: []
+    envVar: WHATSAPP_ALLOWED_CONTACTS
+setupInstructions: |
+  1. Build whatsapp-bridge container: `podman build -t nazar-whatsapp-bridge bridges/whatsapp/`
+  2. Optionally configure: Add `bridges.whatsapp.allowed_contacts` to nazar.yaml
+  3. Install: `nazar-core bridge install /usr/local/share/nazar/reference/bridges/whatsapp/manifest.yaml`
+  4. Scan QR code: Check container logs for the WhatsApp Web QR code
+compactionInstructions: |
+  You are resuming after context compaction on a WhatsApp messaging channel.
+  - Keep messages casual and conversational
+  - Preserve the user's identity and conversation context
+  - Maintain your persona (Pi/Nazar) and any pending tasks
+  - Discard verbose command outputs and intermediate steps
+provides:
+  - name: whatsapp-messaging
+    description: Send and receive WhatsApp messages
+requiredImages:
+  - name: nazar-whatsapp-bridge
+    context: bridges/whatsapp
+    containerfile: Containerfile

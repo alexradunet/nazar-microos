@@ -1,5 +1,8 @@
 import path from "node:path";
-import type { IEvolveManager } from "../../ports/evolve-manager.js";
+import type {
+  BridgeInstallOptions,
+  IEvolveManager,
+} from "../../ports/evolve-manager.js";
 import type { IObjectStore } from "../../ports/object-store.js";
 import type { ISystemExecutor } from "../../ports/system-executor.js";
 import type {
@@ -9,9 +12,15 @@ import type {
   NazarConfig,
 } from "../../types.js";
 import { YamlConfigReader } from "../config/yaml-config-reader.js";
+import type { BridgeManifest } from "../discovery/bridge-manifest.js";
+import { resolveManifestTemplates } from "../discovery/bridge-manifest.js";
 import { CapabilityExtractor } from "../discovery/extractor.js";
 import { parseManifest, validateManifest } from "../discovery/manifest.js";
-import { renderQuadletContainer } from "../setup/quadlet-generator.js";
+import {
+  renderQuadletContainer,
+  renderQuadletPod,
+  renderQuadletTimer,
+} from "../setup/quadlet-generator.js";
 
 const CONTAINER_NAME_RE = /^nazar-[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
 const DEFAULT_HEALTH_TIMEOUT = 30;
@@ -216,6 +225,146 @@ export class EvolveManager implements IEvolveManager {
     }
 
     return `evolution '${slug}' applied successfully`;
+  }
+
+  async installBridge(
+    manifest: BridgeManifest,
+    opts: BridgeInstallOptions,
+  ): Promise<string> {
+    const { dryRun, bridgeConfig = {}, healthCheckTimeout } = opts;
+
+    // Resolve templates
+    const resolved = resolveManifestTemplates(manifest, bridgeConfig);
+
+    // Validate all containers
+    for (const spec of resolved.containers) {
+      this.validateContainer(spec);
+    }
+
+    // Generate Quadlet files
+    const quadlets: GeneratedFile[] = [];
+
+    // Pods
+    for (const pod of resolved.pods ?? []) {
+      quadlets.push({
+        path: path.join(this.quadletDir, `${pod.name}.pod`),
+        content: renderQuadletPod(pod),
+      });
+    }
+
+    // Containers
+    for (const spec of resolved.containers) {
+      quadlets.push({
+        path: path.join(this.quadletDir, `${spec.name}.container`),
+        content: renderQuadletContainer({
+          name: spec.name,
+          image: spec.image,
+          description:
+            spec.description ?? `Nazar Bridge Container: ${spec.name}`,
+          volumes: spec.volumes,
+          environment: spec.environment,
+          pod: spec.pod,
+          publishPorts: spec.publishPorts,
+          readOnly: spec.readOnly,
+          noNewPrivileges: spec.noNewPrivileges,
+          serviceType: spec.serviceType,
+          restart: spec.restart,
+        }),
+      });
+    }
+
+    // Timers
+    for (const timer of resolved.timers ?? []) {
+      quadlets.push({
+        path: path.join(this.quadletDir, `${timer.name}.timer`),
+        content: renderQuadletTimer(timer),
+      });
+    }
+
+    if (dryRun) {
+      const lines = ["[dry-run] Would generate Quadlet files:"];
+      for (const q of quadlets) {
+        lines.push(`  ${q.path}`);
+        lines.push(q.content);
+      }
+      return lines.join("\n");
+    }
+
+    // Write files
+    await this.executor.mkdirp(this.quadletDir);
+    for (const q of quadlets) {
+      await this.executor.writeFile(q.path, q.content);
+    }
+
+    // Reload systemd
+    await this.executor.exec("sudo", ["systemctl", "daemon-reload"]);
+
+    const timeout = healthCheckTimeout ?? DEFAULT_HEALTH_TIMEOUT;
+    const podNames = (resolved.pods ?? []).map((p) => p.name);
+    const containerNames = resolved.containers.map((c) => c.name);
+    const timerNames = (resolved.timers ?? []).map((t) => t.name);
+
+    // Helper to roll back all written files on failure
+    const rollbackFiles = async () => {
+      for (const name of [...podNames, ...containerNames, ...timerNames]) {
+        const ext = podNames.includes(name)
+          ? "pod"
+          : timerNames.includes(name)
+            ? "timer"
+            : "container";
+        await this.executor.removeFile(
+          path.join(this.quadletDir, `${name}.${ext}`),
+        );
+      }
+      await this.executor.exec("sudo", ["systemctl", "daemon-reload"]);
+    };
+
+    // Start pods first
+    for (const name of podNames) {
+      await this.executor.exec("sudo", [
+        "systemctl",
+        "start",
+        `${name}-pod.service`,
+      ]);
+    }
+
+    // Start containers and health check
+    for (const name of containerNames) {
+      await this.executor.exec("sudo", [
+        "systemctl",
+        "start",
+        `${name}.service`,
+      ]);
+
+      const healthy = await this.healthCheck(name, timeout);
+      if (!healthy) {
+        for (const n of containerNames) {
+          await this.executor.exec("sudo", [
+            "systemctl",
+            "stop",
+            `${n}.service`,
+          ]);
+        }
+        for (const n of podNames) {
+          await this.executor.exec("sudo", [
+            "systemctl",
+            "stop",
+            `${n}-pod.service`,
+          ]);
+        }
+        await rollbackFiles();
+        throw new Error(
+          `bridge '${manifest.metadata.name}' failed health check on '${name}' and was rolled back`,
+        );
+      }
+    }
+
+    // Start timers
+    for (const name of timerNames) {
+      await this.executor.exec("sudo", ["systemctl", "start", `${name}.timer`]);
+    }
+
+    return `bridge '${manifest.metadata.name}' installed successfully`;
   }
 
   async rollback(opts: EvolveOptions): Promise<string> {

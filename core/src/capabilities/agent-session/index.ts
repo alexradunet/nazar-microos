@@ -3,6 +3,7 @@ import type {
   CapabilityConfig,
   CapabilityRegistration,
 } from "../../capability.js";
+import type { IObjectStore } from "../../ports/object-store.js";
 import type { IPersonaLoader } from "../../ports/persona-loader.js";
 import type { ISystemExecutor } from "../../ports/system-executor.js";
 import type { CapabilityRegistry } from "../../registry.js";
@@ -29,6 +30,7 @@ export class AgentSessionCapability implements Capability {
 
   private personaLoader?: IPersonaLoader;
   private systemExecutor?: ISystemExecutor;
+  private objectStore?: IObjectStore;
   private registry?: CapabilityRegistry;
 
   /** Optionally bind a registry so createBridge() can aggregate contributions. */
@@ -39,6 +41,7 @@ export class AgentSessionCapability implements Capability {
   init(config: CapabilityConfig): CapabilityRegistration {
     this.personaLoader = config.services.personaLoader;
     this.systemExecutor = config.services.systemExecutor;
+    this.objectStore = config.services.objectStore;
     return {};
   }
 
@@ -53,6 +56,7 @@ export class AgentSessionCapability implements Capability {
       createNazarExtension({
         channelName: config.channelName,
         systemExecutor: this.systemExecutor,
+        objectStore: this.objectStore,
       }),
     );
     const skillPaths = this.registry?.getSkillPaths() ?? [config.skillsDir];

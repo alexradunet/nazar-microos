@@ -12,6 +12,17 @@ import {
   validateManifest,
 } from "./manifest.js";
 
+export type {
+  BridgeManifest,
+  ConfigSchemaField,
+  PodSpec,
+  TimerSpec,
+} from "./bridge-manifest.js";
+export {
+  parseBridgeManifest,
+  resolveManifestTemplates,
+  validateBridgeManifest,
+} from "./bridge-manifest.js";
 export { CapabilityExtractor } from "./extractor.js";
 export type { CapabilityManifest } from "./manifest.js";
 export { parseManifest, validateManifest } from "./manifest.js";

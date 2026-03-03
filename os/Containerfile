@@ -29,15 +29,16 @@ COPY os/sysconfig/registries.conf.d/ /etc/containers/registries.conf.d/
 COPY os/sysconfig/profile.d/tailscale-login.sh /etc/profile.d/tailscale-login.sh
 
 # nazar-core TypeScript CLI — install deps first for layer caching
-COPY nazar-core/package.json /usr/local/lib/nazar-core/package.json
+COPY core/package.json /usr/local/lib/nazar-core/package.json
 RUN cd /usr/local/lib/nazar-core && HOME=/tmp npm install --omit=dev
-COPY nazar-core/dist/ /usr/local/lib/nazar-core/dist/
+COPY core/dist/ /usr/local/lib/nazar-core/dist/
 RUN ln -s /usr/local/lib/nazar-core/dist/cli.js /usr/local/bin/nazar-core \
     && chmod +x /usr/local/lib/nazar-core/dist/cli.js \
     && printf '#!/usr/bin/env bash\nexec nazar-core object "$@"\n' > /usr/local/bin/nazar-object \
     && printf '#!/usr/bin/env bash\nexec nazar-core setup "$@"\n' > /usr/local/bin/nazar-setup \
     && printf '#!/usr/bin/env bash\nexec nazar-core evolve "$@"\n' > /usr/local/bin/nazar-evolve \
-    && chmod +x /usr/local/bin/nazar-object /usr/local/bin/nazar-setup /usr/local/bin/nazar-evolve
+    && printf '#!/usr/bin/env bash\nexec nazar-core bridge "$@"\n' > /usr/local/bin/nazar-bridge \
+    && chmod +x /usr/local/bin/nazar-object /usr/local/bin/nazar-setup /usr/local/bin/nazar-evolve /usr/local/bin/nazar-bridge
 
 # CLI scripts
 COPY scripts/nazar /usr/local/bin/nazar
@@ -49,11 +50,12 @@ RUN chmod 0755 /usr/local/bin/nazar /usr/local/bin/nazar-vm /usr/local/bin/nazar
 
 # Config, docs, persona, skills
 COPY os/sysconfig/nazar.yaml.default /etc/nazar/nazar.yaml
-COPY nazar-core/agent/context/SYSTEM.md /usr/local/share/nazar/SYSTEM.md
-COPY nazar-core/agent/context/SYSTEM.md /usr/local/share/nazar/pi-config/agent/SYSTEM.md
-COPY nazar-core/agent/context/APPEND_SYSTEM.md /usr/local/share/nazar/pi-config/agent/APPEND_SYSTEM.md
-COPY nazar-core/agent/persona/ /usr/local/share/nazar/persona/
-COPY nazar-core/agent/skills/ /usr/local/share/nazar/skills/
+COPY core/agent/context/SYSTEM.md /usr/local/share/nazar/SYSTEM.md
+COPY core/agent/context/SYSTEM.md /usr/local/share/nazar/pi-config/agent/SYSTEM.md
+COPY core/agent/context/APPEND_SYSTEM.md /usr/local/share/nazar/pi-config/agent/APPEND_SYSTEM.md
+COPY core/agent/persona/ /usr/local/share/nazar/persona/
+COPY core/agent/skills/ /usr/local/share/nazar/skills/
+COPY reference/bridges/ /usr/local/share/nazar/reference/bridges/
 
 # Logically-bound container images (pulled on first boot)
 COPY os/sysconfig/bound-images/ /usr/share/containers/systemd/

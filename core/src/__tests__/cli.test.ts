@@ -169,6 +169,83 @@ describe("CLI", () => {
     });
   });
 
+  describe("bridge", () => {
+    it("shows usage when no subcommand given", () => {
+      const r = runCli(["bridge"]);
+      assert.equal(r.exitCode, 1);
+      assert.ok(r.stderr.includes("usage:"));
+    });
+
+    it("installs a bridge manifest in dry-run mode", () => {
+      const configPath = path.join(tmpDir, "nazar.yaml");
+      fs.writeFileSync(
+        configPath,
+        'hostname: nazar-box\nprimary_user: alex\nbridges:\n  signal:\n    phone_number: "+4917612345678"\n    allowed_contacts: ["+4917699999999"]\n',
+      );
+      const manifestPath = path.join(tmpDir, "manifest.yaml");
+      fs.writeFileSync(
+        manifestPath,
+        [
+          "apiVersion: nazar.dev/v1",
+          "kind: BridgeManifest",
+          "metadata:",
+          "  name: signal",
+          "  description: Signal bridge",
+          '  version: "1.0.0"',
+          "  channel: signal",
+          "containers:",
+          "  - name: nazar-signal-bridge",
+          "    image: localhost/nazar-signal-bridge:latest",
+          "    description: Signal bridge",
+          '    environment: { SIGNAL_PHONE: "{{phone_number}}" }',
+        ].join("\n"),
+      );
+      const r = runCli([
+        "bridge",
+        "install",
+        manifestPath,
+        "--dry-run",
+        `--config=${configPath}`,
+        `--objects-dir=${objectsDir}`,
+      ]);
+      assert.equal(r.exitCode, 0, `stderr: ${r.stderr}`);
+      assert.ok(r.stdout.includes("nazar-signal-bridge.container"));
+      assert.ok(r.stdout.includes("+4917612345678"));
+    });
+
+    it("lists bridges from reference directory", () => {
+      const refDir = path.join(tmpDir, "ref-bridges");
+      fs.mkdirSync(path.join(refDir, "test-bridge"), { recursive: true });
+      fs.writeFileSync(
+        path.join(refDir, "test-bridge", "manifest.yaml"),
+        [
+          "apiVersion: nazar.dev/v1",
+          "kind: BridgeManifest",
+          "metadata:",
+          "  name: test-bridge",
+          "  description: A test bridge",
+          '  version: "1.0.0"',
+          "  channel: test",
+          "containers:",
+          "  - name: nazar-test",
+          "    image: test:latest",
+        ].join("\n"),
+      );
+      const r = runCli(["bridge", "list"], {
+        NAZAR_REFERENCE_DIR: refDir,
+      });
+      assert.equal(r.exitCode, 0);
+      assert.ok(r.stdout.includes("test-bridge"));
+      assert.ok(r.stdout.includes("A test bridge"));
+    });
+
+    it("fails install with missing manifest path", () => {
+      const r = runCli(["bridge", "install"]);
+      assert.equal(r.exitCode, 1);
+      assert.ok(r.stderr.includes("usage:"));
+    });
+  });
+
   describe("setup", () => {
     it("generates Quadlet files in dry-run mode", () => {
       const configPath = path.join(tmpDir, "nazar.yaml");

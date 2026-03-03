@@ -154,69 +154,177 @@
   },
   "hotPaths": [
     {
-      "path": "nazar-core/src/capabilities/agent-session/pi-agent-bridge.ts",
-      "accessCount": 16,
-      "lastAccessed": 1772551120832,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/bridge-bootstrap.ts",
-      "accessCount": 12,
-      "lastAccessed": 1772551126266,
-      "type": "file"
-    },
-    {
       "path": "nazar-core/src/capabilities/agent-session/index.ts",
-      "accessCount": 11,
-      "lastAccessed": 1772550799519,
-      "type": "file"
-    },
-    {
-      "path": "bridges/web/src/index.ts",
-      "accessCount": 9,
-      "lastAccessed": 1772551139764,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/types.ts",
-      "accessCount": 8,
-      "lastAccessed": 1772551109755,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/index.ts",
-      "accessCount": 7,
-      "lastAccessed": 1772551094813,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/capabilities/agent-session/extension.ts",
-      "accessCount": 6,
-      "lastAccessed": 1772550769048,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/agent-bridge.ts",
-      "accessCount": 6,
-      "lastAccessed": 1772550824334,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/__tests__/bridge-bootstrap.test.ts",
-      "accessCount": 6,
-      "lastAccessed": 1772550854646,
+      "accessCount": 31,
+      "lastAccessed": 1772562727682,
       "type": "file"
     },
     {
       "path": "",
-      "accessCount": 6,
-      "lastAccessed": 1772551011852,
+      "accessCount": 31,
+      "lastAccessed": 1772564779287,
       "type": "directory"
     },
     {
+      "path": "nazar-core/src/capabilities/agent-session/extension.ts",
+      "accessCount": 27,
+      "lastAccessed": 1772562558474,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/defaults.ts",
+      "accessCount": 26,
+      "lastAccessed": 1772562575055,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/bridge-bootstrap.ts",
+      "accessCount": 26,
+      "lastAccessed": 1772563572623,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/capabilities/agent-session/pi-agent-bridge.ts",
+      "accessCount": 24,
+      "lastAccessed": 1772562732009,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/types.ts",
+      "accessCount": 23,
+      "lastAccessed": 1772562543081,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/capability.ts",
+      "accessCount": 21,
+      "lastAccessed": 1772563572426,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/ports/system-executor.ts",
+      "accessCount": 16,
+      "lastAccessed": 1772561962090,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/registry.ts",
+      "accessCount": 16,
+      "lastAccessed": 1772563572239,
+      "type": "file"
+    },
+    {
+      "path": "bridges/web/src/index.ts",
+      "accessCount": 13,
+      "lastAccessed": 1772561975226,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/index.ts",
+      "accessCount": 13,
+      "lastAccessed": 1772562589146,
+      "type": "file"
+    },
+    {
       "path": "bridges/signal/src/index.ts",
+      "accessCount": 12,
+      "lastAccessed": 1772562612599,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/agent-bridge.ts",
+      "accessCount": 10,
+      "lastAccessed": 1772561993750,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/capabilities/setup/quadlet-generator.ts",
+      "accessCount": 10,
+      "lastAccessed": 1772562547155,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/ports/agent-bridge.ts",
+      "accessCount": 9,
+      "lastAccessed": 1772561958053,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src",
+      "accessCount": 9,
+      "lastAccessed": 1772562006865,
+      "type": "directory"
+    },
+    {
+      "path": "nazar-core/src/capabilities/evolution/index.ts",
+      "accessCount": 9,
+      "lastAccessed": 1772562674970,
+      "type": "file"
+    },
+    {
+      "path": "bridges/whatsapp/src/index.ts",
+      "accessCount": 8,
+      "lastAccessed": 1772561975945,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/extension.ts",
+      "accessCount": 8,
+      "lastAccessed": 1772562722326,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/__tests__/bridge-bootstrap.test.ts",
+      "accessCount": 7,
+      "lastAccessed": 1772557778836,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/__tests__/evolve.test.ts",
+      "accessCount": 7,
+      "lastAccessed": 1772557971220,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/capabilities/agent-session/session-pool.ts",
+      "accessCount": 7,
+      "lastAccessed": 1772561972177,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/agent/skills/nazar-runtime/SKILL.md",
+      "accessCount": 7,
+      "lastAccessed": 1772561997614,
+      "type": "file"
+    },
+    {
+      "path": "package.json",
+      "accessCount": 7,
+      "lastAccessed": 1772564604423,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/ports/persona-loader.ts",
       "accessCount": 6,
-      "lastAccessed": 1772551023261,
+      "lastAccessed": 1772561961400,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/capabilities/discovery/index.ts",
+      "accessCount": 6,
+      "lastAccessed": 1772561972983,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/capabilities/object-store/index.ts",
+      "accessCount": 6,
+      "lastAccessed": 1772561974877,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/package.json",
+      "accessCount": 6,
+      "lastAccessed": 1772562584523,
       "type": "file"
     },
     {
@@ -226,57 +334,45 @@
       "type": "file"
     },
     {
-      "path": "nazar-core/src/defaults.ts",
-      "accessCount": 5,
-      "lastAccessed": 1772550071151,
-      "type": "file"
-    },
-    {
       "path": "bridges/web/src/config.ts",
       "accessCount": 5,
       "lastAccessed": 1772551030957,
       "type": "file"
     },
     {
-      "path": "bridges/whatsapp/src/index.ts",
-      "accessCount": 4,
-      "lastAccessed": 1772550077563,
+      "path": "nazar-core/agent/persona/SOUL.md",
+      "accessCount": 5,
+      "lastAccessed": 1772561991409,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/capability.ts",
+      "path": "nazar-core/agent/skills/heartbeat/SKILL.md",
+      "accessCount": 5,
+      "lastAccessed": 1772561997672,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/capabilities/system-executor/node-executor.ts",
       "accessCount": 4,
-      "lastAccessed": 1772550078447,
+      "lastAccessed": 1772557788146,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/src/capabilities/affordances/parser.ts",
+      "accessCount": 4,
+      "lastAccessed": 1772557953788,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/agent/persona/BODY.md",
+      "accessCount": 4,
+      "lastAccessed": 1772562640908,
       "type": "file"
     },
     {
       "path": "nazar-core/src/testing/mock-system-executor.ts",
       "accessCount": 3,
       "lastAccessed": 1772547861750,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/__tests__/evolve.test.ts",
-      "accessCount": 3,
-      "lastAccessed": 1772547957825,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/capabilities/evolution/index.ts",
-      "accessCount": 3,
-      "lastAccessed": 1772548222059,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/capabilities/discovery/index.ts",
-      "accessCount": 3,
-      "lastAccessed": 1772548227281,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/registry.ts",
-      "accessCount": 3,
-      "lastAccessed": 1772550078521,
       "type": "file"
     },
     {
@@ -292,39 +388,51 @@
       "type": "file"
     },
     {
-      "path": "nazar-core/src",
+      "path": "nazar-core/agent/persona/FACULTY.md",
       "accessCount": 3,
-      "lastAccessed": 1772551089402,
+      "lastAccessed": 1772561992213,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/agent/persona/SKILL.md",
+      "accessCount": 3,
+      "lastAccessed": 1772561992735,
+      "type": "file"
+    },
+    {
+      "path": "nazar-core/agent/skills/object-task/SKILL.md",
+      "accessCount": 3,
+      "lastAccessed": 1772562005778,
+      "type": "file"
+    },
+    {
+      "path": "bridges",
+      "accessCount": 2,
+      "lastAccessed": 1772553764282,
       "type": "directory"
     },
     {
-      "path": "nazar-core/src/capabilities/object-store/index.ts",
+      "path": "nazar-core/src/capabilities/persona/fs-persona-loader.ts",
       "accessCount": 2,
-      "lastAccessed": 1772547369232,
+      "lastAccessed": 1772553813572,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/ports/system-executor.ts",
+      "path": "nazar-core/src/capabilities/persona/index.ts",
       "accessCount": 2,
-      "lastAccessed": 1772547837367,
+      "lastAccessed": 1772561976226,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/capabilities/system-executor/node-executor.ts",
+      "path": "nazar-core/agent/skills/claude-consult/SKILL.md",
       "accessCount": 2,
-      "lastAccessed": 1772547845013,
+      "lastAccessed": 1772562012006,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/capabilities/agent-session/session-pool.ts",
+      "path": "nazar-core/agent/skills/tdd/SKILL.md",
       "accessCount": 2,
-      "lastAccessed": 1772550070216,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/extension.ts",
-      "accessCount": 2,
-      "lastAccessed": 1772550070947,
+      "lastAccessed": 1772562012066,
       "type": "file"
     },
     {
@@ -334,105 +442,9 @@
       "type": "file"
     },
     {
-      "path": "package.json",
-      "accessCount": 1,
-      "lastAccessed": 1772547600256,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/package.json",
-      "accessCount": 1,
-      "lastAccessed": 1772547603411,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/agent/skills/heartbeat/SKILL.md",
-      "accessCount": 1,
-      "lastAccessed": 1772547674674,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/agent/skills/object-task/SKILL.md",
-      "accessCount": 1,
-      "lastAccessed": 1772547674845,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/agent/skills/tdd/SKILL.md",
-      "accessCount": 1,
-      "lastAccessed": 1772547675259,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/agent/skills/claude-consult/SKILL.md",
-      "accessCount": 1,
-      "lastAccessed": 1772547675441,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/ports/persona-loader.ts",
-      "accessCount": 1,
-      "lastAccessed": 1772547692167,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/agent/persona/SOUL.md",
-      "accessCount": 1,
-      "lastAccessed": 1772547697438,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/agent/persona/BODY.md",
-      "accessCount": 1,
-      "lastAccessed": 1772547697695,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/agent/persona/FACULTY.md",
-      "accessCount": 1,
-      "lastAccessed": 1772547697913,
-      "type": "file"
-    },
-    {
       "path": "nazar-core/src/persona.ts",
       "accessCount": 1,
       "lastAccessed": 1772547702937,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/capabilities/persona/fs-persona-loader.ts",
-      "accessCount": 1,
-      "lastAccessed": 1772547703378,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/capabilities/affordances/parser.ts",
-      "accessCount": 1,
-      "lastAccessed": 1772547714275,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/capabilities/persona/index.ts",
-      "accessCount": 1,
-      "lastAccessed": 1772548222110,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/agent/persona/SKILL.md",
-      "accessCount": 1,
-      "lastAccessed": 1772548234424,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/agent/skills/nazar-runtime/SKILL.md",
-      "accessCount": 1,
-      "lastAccessed": 1772548240612,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/ports/agent-bridge.ts",
-      "accessCount": 1,
-      "lastAccessed": 1772550070878,
       "type": "file"
     },
     {
@@ -440,18 +452,6 @@
       "accessCount": 1,
       "lastAccessed": 1772550177130,
       "type": "directory"
-    },
-    {
-      "path": "bridges",
-      "accessCount": 1,
-      "lastAccessed": 1772550178324,
-      "type": "directory"
-    },
-    {
-      "path": "nazar-core/src/capabilities/setup/quadlet-generator.ts",
-      "accessCount": 1,
-      "lastAccessed": 1772550184263,
-      "type": "file"
     }
   ],
   "userDirectives": []

@@ -15,9 +15,12 @@
  * Registered via extensionFactories on DefaultResourceLoader.
  */
 
+import type { IObjectStore } from "../../ports/object-store.js";
 import type { ISystemExecutor } from "../../ports/system-executor.js";
+import { parseBridgeManifest } from "../discovery/bridge-manifest.js";
 import { getBootcStatus } from "../os-tools/bootc.js";
 import { listContainerHealth } from "../os-tools/containers.js";
+import { analyzeHealth, formatAlerts } from "../os-tools/health-analyzer.js";
 import { listNazarServices } from "../os-tools/systemd.js";
 
 interface AgentMessage {
@@ -78,7 +81,11 @@ export interface ExtensionFactory {
 
 export interface NazarExtensionConfig {
   channelName?: string;
+  compactionInstructions?: string;
   systemExecutor?: ISystemExecutor;
+  objectStore?: IObjectStore;
+  referenceBridgesDir?: string;
+  quadletDir?: string;
 }
 
 /** Dangerous bash patterns that should be blocked in tool calls. */
@@ -95,31 +102,15 @@ function isDangerousCommand(command: string): boolean {
   return BLOCKED_PATTERNS.some((p) => p.test(command));
 }
 
-function getCompactionInstructions(channelName?: string): string {
-  switch (channelName) {
-    case "signal":
-      return (
-        "Preserve: user identity, current task, objects referenced. " +
-        "Use concise format — Signal is mobile-first. " +
-        "Discard: intermediate tool outputs, verbose logs."
-      );
-    case "web":
-      return (
-        "Preserve: user identity, current task, objects referenced, UI navigation state. " +
-        "Discard: intermediate tool outputs, verbose logs, redundant context."
-      );
-    case "whatsapp":
-      return (
-        "Preserve: user identity, current task, objects referenced. " +
-        "Use concise format — WhatsApp is mobile-first. " +
-        "Discard: intermediate tool outputs, verbose logs."
-      );
-    default:
-      return (
-        "Preserve: user identity, current task, objects referenced, and conversation tone. " +
-        "Discard: intermediate tool outputs, verbose logs, and redundant context."
-      );
-  }
+const DEFAULT_COMPACTION_INSTRUCTIONS =
+  "You are resuming after context compaction. Key guidelines:\n" +
+  "- Preserve the user's name and conversation context\n" +
+  "- Maintain your persona (Pi/Nazar) and current task state\n" +
+  "- Keep any pending action items or promises\n" +
+  "- Discard verbose command outputs and intermediate steps";
+
+function getCompactionInstructions(compactionInstructions?: string): string {
+  return compactionInstructions ?? DEFAULT_COMPACTION_INSTRUCTIONS;
 }
 
 export function createNazarExtension(
@@ -146,7 +137,7 @@ export function createNazarExtension(
                 "",
                 "## Available CLI Tools",
                 "Object store: `nazar-core object create|read|list|update|search|link`",
-                "OS inspection: `nazar-core os status|upgrade-check|services|logs|containers|timers`",
+                "OS operations: `nazar-core os status|upgrade-check|upgrade|services|logs|containers|timers|restart-service|restart-container`",
               ];
 
               if (config?.systemExecutor) {
@@ -158,6 +149,97 @@ export function createNazarExtension(
                 lines.push("", "## OS Status", osStatus);
                 lines.push("", "## Services", services);
                 lines.push("", "## Containers", containers);
+
+                const alerts = analyzeHealth(osStatus, services, containers);
+                const alertBlock = formatAlerts(alerts);
+                if (alertBlock) {
+                  lines.push("", "## Health Alerts", alertBlock);
+                }
+              }
+
+              if (config?.objectStore) {
+                try {
+                  const pending = config.objectStore.list("evolution", {
+                    status: "proposed",
+                  });
+                  if (pending.length > 0) {
+                    lines.push("", "## Pending Evolutions");
+                    for (const e of pending) {
+                      lines.push(`- ${e.slug}: ${e.title ?? "(untitled)"}`);
+                    }
+                  }
+                } catch {
+                  // Object store may not have evolution/ dir yet — ignore
+                }
+              }
+
+              if (config?.systemExecutor) {
+                const refDir =
+                  config.referenceBridgesDir ??
+                  "/usr/local/share/nazar/reference/bridges";
+                lines.push("", "## Available Bridges");
+                try {
+                  const entries = await config.systemExecutor.readDir(refDir);
+                  const bridgeLines: string[] = [];
+                  for (const entry of entries) {
+                    try {
+                      const isDir = await config.systemExecutor.isDirectory(
+                        `${refDir}/${entry}`,
+                      );
+                      if (!isDir) continue;
+                      const raw = await config.systemExecutor.readFile(
+                        `${refDir}/${entry}/manifest.yaml`,
+                      );
+                      const manifest = parseBridgeManifest(raw);
+                      const { name, description, version } = manifest.metadata;
+                      bridgeLines.push(
+                        `- ${name}: ${description} (v${version})`,
+                      );
+                    } catch {
+                      // Skip entries with missing or invalid manifests
+                    }
+                  }
+                  if (bridgeLines.length > 0) {
+                    lines.push(...bridgeLines);
+                  } else {
+                    lines.push("No reference bridges found");
+                  }
+                } catch {
+                  lines.push("No reference bridges found");
+                }
+
+                const quadletDir =
+                  config.quadletDir ?? "/etc/containers/systemd/";
+                lines.push("", "## Installed Bridges");
+                try {
+                  const files = await config.systemExecutor.readDir(quadletDir);
+                  const bridgeFiles = files.filter(
+                    (f) => f.endsWith(".container") && f.includes("bridge"),
+                  );
+                  if (bridgeFiles.length > 0) {
+                    for (const file of bridgeFiles) {
+                      const serviceName = file.replace(/\.container$/, "");
+                      let status = "unknown";
+                      try {
+                        const result = await config.systemExecutor.exec(
+                          "systemctl",
+                          ["is-active", serviceName],
+                        );
+                        status =
+                          result.exitCode === 0
+                            ? result.stdout.trim() || "active"
+                            : result.stdout.trim() || "inactive";
+                      } catch {
+                        // systemctl not available — leave status as unknown
+                      }
+                      lines.push(`- ${serviceName} (${status})`);
+                    }
+                  } else {
+                    lines.push("No bridges installed");
+                  }
+                } catch {
+                  lines.push("No bridges installed");
+                }
               }
 
               const contextMsg: AgentMessage = {
@@ -186,7 +268,9 @@ export function createNazarExtension(
             case "session_before_compact": {
               return {
                 compaction: {
-                  instructions: getCompactionInstructions(config?.channelName),
+                  instructions: getCompactionInstructions(
+                    config?.compactionInstructions,
+                  ),
                 },
               } satisfies SessionBeforeCompactResult;
             }

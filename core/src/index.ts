@@ -25,11 +25,20 @@ export {
   MessageQueue,
 } from "./bridge-bootstrap.js";
 export { AgentSessionCapability } from "./capabilities/agent-session/index.js";
-export type { CapabilityManifest } from "./capabilities/discovery/index.js";
+export type {
+  BridgeManifest,
+  CapabilityManifest,
+  ConfigSchemaField,
+  PodSpec,
+  TimerSpec,
+} from "./capabilities/discovery/index.js";
 export {
   CapabilityExtractor,
   DiscoveryCapability,
+  parseBridgeManifest,
   parseManifest,
+  resolveManifestTemplates,
+  validateBridgeManifest,
   validateManifest,
 } from "./capabilities/discovery/index.js";
 // --- Capability system ---
@@ -57,6 +66,7 @@ export {
   loadSystemContext,
 } from "./persona.js";
 export type {
+  BridgeInstallOptions,
   IAffordanceRenderer,
   IAgentBridge,
   IConfigReader,
@@ -78,6 +88,8 @@ export {
   generateQuadletFiles,
   parseInterval,
   renderQuadletContainer,
+  renderQuadletPod,
+  renderQuadletTimer,
 } from "./setup.js";
 export { NodeSystemExecutor } from "./system-executor.js";
 // --- Value types ---

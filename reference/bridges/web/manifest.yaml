@@ -1,0 +1,49 @@
+apiVersion: nazar.dev/v1
+kind: BridgeManifest
+metadata:
+  name: web
+  description: Web UI bridge with htmx frontend
+  version: "1.0.0"
+  channel: web
+containers:
+  - name: nazar-web-bridge
+    image: localhost/nazar-web-bridge:latest
+    description: Web UI to Pi agent bridge (HTMX)
+    publishPorts:
+      - "{{port}}:3000"
+    volumes:
+      - /var/lib/nazar/objects:/data/objects:rw,z
+      - /etc/nazar:/etc/nazar:ro,z
+      - /usr/local/share/nazar/persona:/data/persona:ro,z
+      - /usr/local/share/nazar/skills:/data/skills:ro,z
+      - /var/lib/nazar/sessions:/data/sessions:rw,z
+    environment:
+      NAZAR_CONFIG: /etc/nazar/nazar.yaml
+      NAZAR_OBJECTS_DIR: /data/objects
+      PI_SKILLS_DIR: /data/skills
+      PI_PERSONA_DIR: /data/persona
+      PI_SESSIONS_DIR: /data/sessions
+configSchema:
+  - name: port
+    type: number
+    required: false
+    description: Port to expose the web UI on
+    default: 3000
+    envVar: WEB_PORT
+setupInstructions: |
+  1. Build web-bridge container: `podman build -t nazar-web-bridge bridges/web/`
+  2. Optionally configure: Add `bridges.web.port` to nazar.yaml (default: 3000)
+  3. Install: `nazar-core bridge install /usr/local/share/nazar/reference/bridges/web/manifest.yaml`
+compactionInstructions: |
+  You are resuming after context compaction on the Web UI channel.
+  - You can use richer formatting and structured output
+  - Preserve the user's identity and conversation context
+  - Maintain your persona (Pi/Nazar), current task state, and UI state
+  - Discard verbose command outputs and intermediate steps
+provides:
+  - name: web-ui
+    description: Browser-based chat interface
+requiredImages:
+  - name: nazar-web-bridge
+    context: bridges/web
+    containerfile: Containerfile
