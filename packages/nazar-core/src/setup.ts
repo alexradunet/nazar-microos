@@ -228,6 +228,7 @@ export function generateQuadletFiles(
       description: "Nazar WhatsApp Bridge",
       volumes: [
         "/var/lib/nazar/objects:/data/objects:rw,z",
+        "/var/lib/nazar/whatsapp-storage:/data/whatsapp-storage:rw,z",
         "/var/lib/nazar/pi-config:/home/nazar/.pi:rw,z",
         `${personaDir}:${personaDir}:ro,z`,
       ],
