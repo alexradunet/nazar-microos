@@ -120,7 +120,9 @@ deploy_images() {
   local containers=(
     "heartbeat|containers/heartbeat/Containerfile|localhost/nazar-heartbeat:latest"
     "signal-cli|containers/signal-cli/Containerfile|localhost/nazar-signal-cli:latest"
-    "signal-bridge|containers/signal-bridge/Containerfile|localhost/nazar-signal-bridge:latest"
+    "signal-bridge|bridges/signal/Containerfile|localhost/nazar-signal-bridge:latest"
+    "web-bridge|bridges/web/Containerfile|localhost/nazar-web-bridge:latest"
+    "whatsapp-bridge|bridges/whatsapp/Containerfile|localhost/nazar-whatsapp-bridge:latest"
   )
 
   for entry in "${containers[@]}"; do
@@ -181,15 +183,15 @@ deploy_scripts() {
 
   info "Building nazar-core..."
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    info "[dry-run] npm -w packages/nazar-core run build"
-    info "[dry-run] tar packages/nazar-core/{dist,package.json} | ssh ... sudo tar -xf -C /usr/local/lib/nazar-core/"
+    info "[dry-run] npm -w nazar-core run build"
+    info "[dry-run] tar nazar-core/{dist,package.json} | ssh ... sudo tar -xf -C /usr/local/lib/nazar-core/"
     info "[dry-run] ssh ... cd /usr/local/lib/nazar-core && npm install --omit=dev"
     info "[dry-run] ssh ... ln -sf + create shims"
   else
-    npm -w packages/nazar-core run build
+    npm -w nazar-core run build
 
     info "Syncing nazar-core to VM..."
-    tar -cf - -C "$PROJECT_ROOT/packages/nazar-core" dist package.json | \
+    tar -cf - -C "$PROJECT_ROOT/nazar-core" dist package.json | \
       # shellcheck disable=SC2086
       ssh $SSH_OPTS "${NAZAR_SSH_USER}@${NAZAR_HOST}" \
       "sudo mkdir -p /usr/local/lib/nazar-core && sudo tar -xf - -C /usr/local/lib/nazar-core/"
@@ -211,14 +213,14 @@ deploy_persona() {
   info "=== Syncing persona files ==="
 
   cd "$PROJECT_ROOT"
-  [[ -d "$PROJECT_ROOT/agent/persona" ]] || { warn "agent/persona/ directory not found, skipping"; return; }
+  [[ -d "$PROJECT_ROOT/nazar-core/nazar-core/agent/persona" ]] || { warn "nazar-core/agent/persona/ directory not found, skipping"; return; }
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    info "[dry-run] tar agent/persona/ | ssh ... sudo tar -xf - -C /usr/local/share/nazar/persona/"
+    info "[dry-run] tar nazar-core/agent/persona/ | ssh ... sudo tar -xf - -C /usr/local/share/nazar/persona/"
     return
   fi
 
-  tar -cf - -C "$PROJECT_ROOT/agent/persona" . | \
+  tar -cf - -C "$PROJECT_ROOT/nazar-core/nazar-core/agent/persona" . | \
     # shellcheck disable=SC2086
     ssh $SSH_OPTS "${NAZAR_SSH_USER}@${NAZAR_HOST}" \
     "sudo tar -xf - -C /usr/local/share/nazar/persona/"
@@ -230,14 +232,14 @@ deploy_skills() {
   info "=== Syncing skills ==="
 
   cd "$PROJECT_ROOT"
-  [[ -d "$PROJECT_ROOT/agent/skills" ]] || { warn "agent/skills/ directory not found, skipping"; return; }
+  [[ -d "$PROJECT_ROOT/nazar-core/nazar-core/agent/skills" ]] || { warn "nazar-core/agent/skills/ directory not found, skipping"; return; }
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    info "[dry-run] tar agent/skills/ | ssh ... sudo tar -xf - -C /usr/local/share/nazar/skills/"
+    info "[dry-run] tar nazar-core/agent/skills/ | ssh ... sudo tar -xf - -C /usr/local/share/nazar/skills/"
     return
   fi
 
-  tar -cf - -C "$PROJECT_ROOT/agent/skills" . | \
+  tar -cf - -C "$PROJECT_ROOT/nazar-core/nazar-core/agent/skills" . | \
     # shellcheck disable=SC2086
     ssh $SSH_OPTS "${NAZAR_SSH_USER}@${NAZAR_HOST}" \
     "sudo tar -xf - -C /usr/local/share/nazar/skills/"

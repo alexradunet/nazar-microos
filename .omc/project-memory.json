@@ -182,14 +182,20 @@
     },
     {
       "path": "scripts/nazar-deploy.sh",
-      "accessCount": 51,
-      "lastAccessed": 1772483061930,
+      "accessCount": 62,
+      "lastAccessed": 1772528198122,
       "type": "directory"
     },
     {
       "path": "packages/nazar-core/src/setup.ts",
-      "accessCount": 45,
-      "lastAccessed": 1772526692575,
+      "accessCount": 46,
+      "lastAccessed": 1772527498055,
+      "type": "directory"
+    },
+    {
+      "path": "Makefile",
+      "accessCount": 44,
+      "lastAccessed": 1772527984500,
       "type": "directory"
     },
     {
@@ -199,15 +205,9 @@
       "type": "file"
     },
     {
-      "path": "Makefile",
-      "accessCount": 40,
-      "lastAccessed": 1772526695268,
-      "type": "directory"
-    },
-    {
       "path": "packages/nazar-core/src/types.ts",
-      "accessCount": 38,
-      "lastAccessed": 1772526590598,
+      "accessCount": 39,
+      "lastAccessed": 1772527505862,
       "type": "file"
     },
     {
@@ -217,16 +217,16 @@
       "type": "file"
     },
     {
-      "path": "scripts/nazar",
-      "accessCount": 30,
-      "lastAccessed": 1772482472608,
-      "type": "directory"
+      "path": "containers/signal-bridge/Containerfile",
+      "accessCount": 32,
+      "lastAccessed": 1772527888605,
+      "type": "file"
     },
     {
-      "path": "containers/signal-bridge/Containerfile",
-      "accessCount": 30,
-      "lastAccessed": 1772526591790,
-      "type": "file"
+      "path": "scripts/nazar",
+      "accessCount": 31,
+      "lastAccessed": 1772527503174,
+      "type": "directory"
     },
     {
       "path": "containers/signal-cli/Containerfile",
@@ -236,8 +236,8 @@
     },
     {
       "path": "containers/base/Containerfile",
-      "accessCount": 22,
-      "lastAccessed": 1772494726532,
+      "accessCount": 26,
+      "lastAccessed": 1772528198285,
       "type": "file"
     },
     {
@@ -283,27 +283,33 @@
       "type": "file"
     },
     {
+      "path": "packages/nazar-core/src/index.ts",
+      "accessCount": 15,
+      "lastAccessed": 1772527503075,
+      "type": "file"
+    },
+    {
+      "path": "services/signal-bridge/tsconfig.json",
+      "accessCount": 15,
+      "lastAccessed": 1772527887334,
+      "type": "file"
+    },
+    {
+      "path": "package.json",
+      "accessCount": 15,
+      "lastAccessed": 1772527927580,
+      "type": "file"
+    },
+    {
       "path": "containers/heartbeat/Containerfile",
       "accessCount": 14,
       "lastAccessed": 1772482881152,
       "type": "file"
     },
     {
-      "path": "packages/nazar-core/src/index.ts",
-      "accessCount": 14,
-      "lastAccessed": 1772526401531,
-      "type": "file"
-    },
-    {
-      "path": "services/signal-bridge/tsconfig.json",
-      "accessCount": 14,
-      "lastAccessed": 1772526588707,
-      "type": "file"
-    },
-    {
       "path": "nazar.yaml.example",
-      "accessCount": 13,
-      "lastAccessed": 1772494744012,
+      "accessCount": 14,
+      "lastAccessed": 1772527497874,
       "type": "file"
     },
     {
@@ -319,12 +325,6 @@
       "type": "file"
     },
     {
-      "path": "package.json",
-      "accessCount": 12,
-      "lastAccessed": 1772526329177,
-      "type": "file"
-    },
-    {
       "path": "packages/nazar-core/src/config.ts",
       "accessCount": 11,
       "lastAccessed": 1772494303415,
@@ -332,14 +332,20 @@
     },
     {
       "path": "packages/nazar-core/src/cli.ts",
-      "accessCount": 10,
-      "lastAccessed": 1772483060888,
+      "accessCount": 11,
+      "lastAccessed": 1772527502967,
       "type": "file"
     },
     {
       "path": "packages/nazar-core/package.json",
       "accessCount": 10,
       "lastAccessed": 1772526404061,
+      "type": "file"
+    },
+    {
+      "path": "CLAUDE.md",
+      "accessCount": 9,
+      "lastAccessed": 1772528027242,
       "type": "file"
     },
     {
@@ -352,12 +358,6 @@
       "path": "skills/heartbeat/SKILL.md",
       "accessCount": 8,
       "lastAccessed": 1772465228268,
-      "type": "file"
-    },
-    {
-      "path": "CLAUDE.md",
-      "accessCount": 7,
-      "lastAccessed": 1772482943093,
       "type": "file"
     },
     {

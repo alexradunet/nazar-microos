@@ -1,8 +1,8 @@
 {
   "private": true,
   "workspaces": [
-    "packages/*",
-    "services/*"
+    "nazar-core",
+    "bridges/*"
   ],
   "scripts": {
     "build": "tsc --build",

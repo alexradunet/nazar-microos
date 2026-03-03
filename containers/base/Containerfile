@@ -13,15 +13,16 @@ WORKDIR /app
 
 # Copy all workspace package.json files for layer caching, then install all deps
 COPY package.json package-lock.json ./
-COPY packages/nazar-core/package.json packages/nazar-core/
-COPY services/signal-bridge/package.json services/signal-bridge/
-COPY services/web-bridge/package.json services/web-bridge/
+COPY nazar-core/package.json nazar-core/
+COPY bridges/signal/package.json bridges/signal/
+COPY bridges/web/package.json bridges/web/
+COPY bridges/whatsapp/package.json bridges/whatsapp/
 RUN npm ci
 
 # Copy and build nazar-core (npm ci symlinks node_modules/@nazar/core here)
 # Remove stale tsbuildinfo (tracked in git) so tsc emits fresh dist/
-COPY packages/nazar-core/ packages/nazar-core/
-RUN rm -f packages/nazar-core/tsconfig.tsbuildinfo \
-  && npm -w packages/nazar-core run build
+COPY nazar-core/ nazar-core/
+RUN rm -f nazar-core/tsconfig.tsbuildinfo \
+  && npm -w nazar-core run build
 
 USER nazar

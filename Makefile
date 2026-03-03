@@ -26,9 +26,9 @@ containers:
 	podman build -t nazar-base -f containers/base/Containerfile .
 	podman build -t localhost/nazar-heartbeat:latest -f containers/heartbeat/Containerfile .
 	podman build -t localhost/nazar-signal-cli:latest -f containers/signal-cli/Containerfile .
-	podman build -t localhost/nazar-signal-bridge:latest -f containers/signal-bridge/Containerfile .
-	podman build -t localhost/nazar-web-bridge:latest -f containers/web-bridge/Containerfile .
-	podman build -t localhost/nazar-whatsapp-bridge:latest -f containers/whatsapp-bridge/Containerfile .
+	podman build -t localhost/nazar-signal-bridge:latest -f bridges/signal/Containerfile .
+	podman build -t localhost/nazar-web-bridge:latest -f bridges/web/Containerfile .
+	podman build -t localhost/nazar-whatsapp-bridge:latest -f bridges/whatsapp/Containerfile .
 
 chunked-oci:
 	podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f os/Containerfile .
