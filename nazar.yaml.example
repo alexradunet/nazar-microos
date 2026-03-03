@@ -8,9 +8,6 @@ timezone: UTC
 heartbeat:
   interval: 30m
 
-ttyd:
-  port: 7681
-
 signal:
   phone_number: "+15551234567"
   allowed_contacts: ["+15559876543", "+15558765432"]
