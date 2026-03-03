@@ -213,14 +213,14 @@ deploy_persona() {
   info "=== Syncing persona files ==="
 
   cd "$PROJECT_ROOT"
-  [[ -d "$PROJECT_ROOT/nazar-core/nazar-core/agent/persona" ]] || { warn "nazar-core/agent/persona/ directory not found, skipping"; return; }
+  [[ -d "$PROJECT_ROOT/nazar-core/agent/persona" ]] || { warn "nazar-core/agent/persona/ directory not found, skipping"; return; }
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
     info "[dry-run] tar nazar-core/agent/persona/ | ssh ... sudo tar -xf - -C /usr/local/share/nazar/persona/"
     return
   fi
 
-  tar -cf - -C "$PROJECT_ROOT/nazar-core/nazar-core/agent/persona" . | \
+  tar -cf - -C "$PROJECT_ROOT/nazar-core/agent/persona" . | \
     # shellcheck disable=SC2086
     ssh $SSH_OPTS "${NAZAR_SSH_USER}@${NAZAR_HOST}" \
     "sudo tar -xf - -C /usr/local/share/nazar/persona/"
@@ -232,14 +232,14 @@ deploy_skills() {
   info "=== Syncing skills ==="
 
   cd "$PROJECT_ROOT"
-  [[ -d "$PROJECT_ROOT/nazar-core/nazar-core/agent/skills" ]] || { warn "nazar-core/agent/skills/ directory not found, skipping"; return; }
+  [[ -d "$PROJECT_ROOT/nazar-core/agent/skills" ]] || { warn "nazar-core/agent/skills/ directory not found, skipping"; return; }
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
     info "[dry-run] tar nazar-core/agent/skills/ | ssh ... sudo tar -xf - -C /usr/local/share/nazar/skills/"
     return
   fi
 
-  tar -cf - -C "$PROJECT_ROOT/nazar-core/nazar-core/agent/skills" . | \
+  tar -cf - -C "$PROJECT_ROOT/nazar-core/agent/skills" . | \
     # shellcheck disable=SC2086
     ssh $SSH_OPTS "${NAZAR_SSH_USER}@${NAZAR_HOST}" \
     "sudo tar -xf - -C /usr/local/share/nazar/skills/"
