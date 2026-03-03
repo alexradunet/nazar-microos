@@ -1,10 +1,19 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  generateQuadletFiles,
   parseInterval,
+  QuadletSetupGenerator,
   renderQuadletContainer,
-} from "../setup.js";
+} from "../capabilities/setup/quadlet-generator.js";
+
+const _setupGenerator = new QuadletSetupGenerator();
+function generateQuadletFiles(
+  config: import("../types.js").NazarConfig,
+  outputDir: string,
+) {
+  return _setupGenerator.generate(config, outputDir);
+}
+
 import type { NazarConfig } from "../types.js";
 
 describe("parseInterval", () => {

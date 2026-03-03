@@ -22,7 +22,8 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { formatAffordancesAsText } from "./affordances.js";
+import type { Affordance } from "./capabilities/affordances/parser.js";
+import { TextAffordanceRenderer } from "./capabilities/affordances/text-renderer.js";
 import type { AgentSessionCapability } from "./capabilities/agent-session/index.js";
 import type {
   AgentBridge,
@@ -32,6 +33,11 @@ import { createInitializedRegistry } from "./defaults.js";
 import type { IncomingMessage, MessageChannel } from "./ports/index.js";
 import type { CapabilityRegistry } from "./registry.js";
 import type { NazarConfig } from "./types.js";
+
+const _affordanceRenderer = new TextAffordanceRenderer();
+function formatAffordancesAsText(affordances: Affordance[]): string {
+  return _affordanceRenderer.render(affordances);
+}
 
 /** Load the 12 shared BridgeConfig fields from env vars. */
 export function loadBaseBridgeConfig(channelName: string): BridgeConfig {

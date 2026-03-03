@@ -12,7 +12,7 @@
  * For implementation, see capabilities/agent-session/pi-agent-bridge.ts.
  * For the session SDK, see @mariozechner/pi-coding-agent (node_modules).
  */
-import type { AgentResponse } from "../affordances.js";
+import type { AgentResponse } from "../capabilities/affordances/parser.js";
 
 /** Port for processing messages through the AI agent. */
 export interface IAgentBridge {

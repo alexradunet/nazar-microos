@@ -21,14 +21,12 @@
  * For the Capability interface, see capability.ts.
  */
 
+import type { ExtensionFactory } from "./capabilities/agent-session/extension.js";
 import type {
   Capability,
   CapabilityConfig,
   CapabilityRegistration,
-  CliCommand,
 } from "./capability.js";
-import type { ExtensionFactory } from "./extension.js";
-import type { NazarConfig } from "./types.js";
 
 export class CapabilityRegistry {
   private capabilities = new Map<string, Capability>();
@@ -89,28 +87,6 @@ export class CapabilityRegistry {
       }
     }
     return paths;
-  }
-
-  /** Aggregate CLI commands from all capabilities. */
-  getCliCommands(): CliCommand[] {
-    const commands: CliCommand[] = [];
-    for (const reg of this.registrations.values()) {
-      if (reg.cliCommands) {
-        commands.push(...reg.cliCommands);
-      }
-    }
-    return commands;
-  }
-
-  /** Validate config across all capabilities. Returns all error messages. */
-  validateConfig(config: NazarConfig): string[] {
-    const errors: string[] = [];
-    for (const reg of this.registrations.values()) {
-      if (reg.validateConfig) {
-        errors.push(...reg.validateConfig(config));
-      }
-    }
-    return errors;
   }
 
   /**

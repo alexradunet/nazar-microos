@@ -3,7 +3,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
-import { configValue, readConfig } from "../config.js";
+import { configValue } from "../capabilities/config/config-value.js";
+import { YamlConfigReader } from "../capabilities/config/yaml-config-reader.js";
+
+const _configReader = new YamlConfigReader();
+const readConfig = _configReader.read.bind(_configReader);
 
 describe("readConfig", () => {
   let tmpDir: string;

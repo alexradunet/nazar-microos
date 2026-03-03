@@ -16,8 +16,6 @@ export { createNazarExtension } from "./extension.js";
 export type { BridgeConfig } from "./pi-agent-bridge.js";
 export {
   AgentBridge,
-  /** @deprecated Use AgentBridge instead. */
-  AgentBridge as PiAgentBridge,
   isAllowed,
   validatePhoneNumber,
 } from "./pi-agent-bridge.js";
@@ -55,7 +53,6 @@ export class AgentSessionCapability implements Capability {
     extensionFactories.push(
       createNazarExtension({
         channelName: config.channelName,
-        systemExecutor: this.systemExecutor,
         objectStore: this.objectStore,
       }),
     );

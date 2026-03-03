@@ -4,12 +4,12 @@ import os from "node:os";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 import type { BridgeManifest } from "../capabilities/discovery/bridge-manifest.js";
+import { EvolveManager } from "../capabilities/evolution/evolve-manager.js";
+import { MarkdownFileStore as ObjectStore } from "../capabilities/object-store/markdown-file-store.js";
 import {
   renderQuadletPod,
   renderQuadletTimer,
 } from "../capabilities/setup/quadlet-generator.js";
-import { EvolveManager } from "../evolve.js";
-import { ObjectStore } from "../object-store.js";
 import type { ISystemExecutor } from "../ports/system-executor.js";
 
 interface ExecCall {

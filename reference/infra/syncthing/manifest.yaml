@@ -1,0 +1,20 @@
+apiVersion: nazar.dev/v1
+kind: BridgeManifest
+metadata:
+  name: syncthing
+  description: Syncthing file synchronisation for the Nazar object store
+  version: "1.0.0"
+  channel: infra
+
+containers:
+  - name: nazar-syncthing
+    image: docker.io/syncthing/syncthing:latest
+    description: Nazar Syncthing
+    volumes:
+      - /var/lib/nazar:/var/syncthing:rw,z
+    publishPorts:
+      - 8384:8384
+      - 22000:22000/tcp
+      - 22000:22000/udp
+      - 21027:21027/udp
+    noNewPrivileges: true

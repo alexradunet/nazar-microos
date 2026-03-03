@@ -17,7 +17,7 @@
  * or the actual service implementations. For wiring, see defaults.ts.
  */
 
-import type { ExtensionFactory } from "./extension.js";
+import type { ExtensionFactory } from "./capabilities/agent-session/extension.js";
 import type { IConfigReader } from "./ports/config-reader.js";
 import type { IFrontmatterParser } from "./ports/frontmatter-parser.js";
 import type { IObjectStore } from "./ports/object-store.js";

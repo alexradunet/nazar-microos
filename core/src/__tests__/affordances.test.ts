@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import type { Affordance } from "../affordances.js";
+import type { Affordance } from "../capabilities/affordances/parser.js";
 import {
-  formatAffordancesAsText,
   isAffordance,
   parseAgentResponse,
   validateAffordance,
-} from "../affordances.js";
+} from "../capabilities/affordances/parser.js";
+import { TextAffordanceRenderer } from "../capabilities/affordances/text-renderer.js";
+
+const _renderer = new TextAffordanceRenderer();
+const formatAffordancesAsText = (a: Affordance[]) => _renderer.render(a);
 
 describe("isAffordance", () => {
   const valid: Affordance = {

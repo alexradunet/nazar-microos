@@ -2,16 +2,25 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { YamlConfigReader } from "./capabilities/config/yaml-config-reader.js";
 import {
   parseBridgeManifest,
   validateBridgeManifest,
 } from "./capabilities/discovery/bridge-manifest.js";
-import { readConfig } from "./config.js";
-import { EvolveManager } from "./evolve.js";
-import { JsYamlFrontmatterParser } from "./frontmatter.js";
-import { ObjectStore } from "./object-store.js";
-import { generateQuadletFiles } from "./setup.js";
-import { NodeSystemExecutor } from "./system-executor.js";
+import { EvolveManager } from "./capabilities/evolution/evolve-manager.js";
+import { JsYamlFrontmatterParser } from "./capabilities/frontmatter/js-yaml-parser.js";
+import { MarkdownFileStore as ObjectStore } from "./capabilities/object-store/markdown-file-store.js";
+import { QuadletSetupGenerator } from "./capabilities/setup/quadlet-generator.js";
+import { NodeSystemExecutor } from "./capabilities/system-executor/node-executor.js";
+import type { NazarConfig } from "./types.js";
+
+const _configReader = new YamlConfigReader();
+const readConfig = _configReader.read.bind(_configReader);
+
+const _setupGenerator = new QuadletSetupGenerator();
+function generateQuadletFiles(config: NazarConfig, outputDir: string) {
+  return _setupGenerator.generate(config, outputDir);
+}
 
 // --- Argument parsing ---
 

@@ -12,7 +12,6 @@
  * For the capability wiring that connects ports to implementations, see
  * ../defaults.ts (createInitializedRegistry).
  */
-export type { IAffordanceRenderer } from "./affordance-renderer.js";
 export type { IAgentBridge } from "./agent-bridge.js";
 export type { IConfigReader } from "./config-reader.js";
 export type { BridgeInstallOptions, IEvolveManager } from "./evolve-manager.js";
@@ -26,5 +25,4 @@ export type {
   ObjectRef,
 } from "./object-store.js";
 export type { IPersonaLoader } from "./persona-loader.js";
-export type { ISetupGenerator } from "./setup-generator.js";
 export type { ISystemExecutor } from "./system-executor.js";

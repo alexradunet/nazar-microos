@@ -154,16 +154,16 @@
   },
   "hotPaths": [
     {
+      "path": "",
+      "accessCount": 52,
+      "lastAccessed": 1772567476918,
+      "type": "directory"
+    },
+    {
       "path": "nazar-core/src/capabilities/agent-session/index.ts",
       "accessCount": 31,
       "lastAccessed": 1772562727682,
       "type": "file"
-    },
-    {
-      "path": "",
-      "accessCount": 31,
-      "lastAccessed": 1772564779287,
-      "type": "directory"
     },
     {
       "path": "nazar-core/src/capabilities/agent-session/extension.ts",
@@ -407,8 +407,8 @@
     },
     {
       "path": "bridges",
-      "accessCount": 2,
-      "lastAccessed": 1772553764282,
+      "accessCount": 3,
+      "lastAccessed": 1772566413921,
       "type": "directory"
     },
     {

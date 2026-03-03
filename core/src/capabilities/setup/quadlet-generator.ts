@@ -1,6 +1,6 @@
 import path from "node:path";
-import type { ISetupGenerator } from "../../ports/setup-generator.js";
 import type { ContainerSpec, GeneratedFile, NazarConfig } from "../../types.js";
+import { configValue } from "../config/config-value.js";
 import type { PodSpec, TimerSpec } from "../discovery/bridge-manifest.js";
 
 /**
@@ -119,36 +119,12 @@ export function renderQuadletTimer(spec: TimerSpec): string {
   return lines.join("\n");
 }
 
-/** Helper to access nested config values safely. */
-function cfgValue<T>(
-  config: NazarConfig,
-  configPath: string,
-  defaultValue: T,
-): T {
-  const parts = configPath.split(".");
-  let current: unknown = config;
-  for (const part of parts) {
-    if (
-      current === null ||
-      current === undefined ||
-      typeof current !== "object"
-    ) {
-      return defaultValue;
-    }
-    current = (current as Record<string, unknown>)[part];
-  }
-  if (current === undefined || current === null) {
-    return defaultValue;
-  }
-  return current as T;
-}
-
-export class QuadletSetupGenerator implements ISetupGenerator {
+export class QuadletSetupGenerator {
   generate(config: NazarConfig, outputDir: string): GeneratedFile[] {
     const files: GeneratedFile[] = [];
 
     // --- Heartbeat (.container + .timer) ---
-    const interval = cfgValue(config, "heartbeat.interval", "30m");
+    const interval = configValue(config, "heartbeat.interval", "30m");
     const onCalendar = parseInterval(interval);
 
     files.push({
@@ -204,7 +180,7 @@ export class QuadletSetupGenerator implements ISetupGenerator {
     });
 
     // --- ttyd (web terminal) ---
-    const ttydPort = cfgValue(config, "ttyd.port", 7681);
+    const ttydPort = configValue(config, "ttyd.port", 7681);
     files.push({
       path: path.join(outputDir, "nazar-ttyd.container"),
       content: renderQuadletContainer({

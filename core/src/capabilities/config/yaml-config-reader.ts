@@ -2,6 +2,7 @@ import fs from "node:fs";
 import YAML from "js-yaml";
 import type { IConfigReader } from "../../ports/config-reader.js";
 import type { NazarConfig } from "../../types.js";
+import { configValue } from "./config-value.js";
 
 export class YamlConfigReader implements IConfigReader {
   read(configPath: string): NazarConfig {
@@ -72,21 +73,6 @@ export class YamlConfigReader implements IConfigReader {
   }
 
   value<T>(config: NazarConfig, path: string, defaultValue: T): T {
-    const parts = path.split(".");
-    let current: unknown = config;
-    for (const part of parts) {
-      if (
-        current === null ||
-        current === undefined ||
-        typeof current !== "object"
-      ) {
-        return defaultValue;
-      }
-      current = (current as Record<string, unknown>)[part];
-    }
-    if (current === undefined || current === null) {
-      return defaultValue;
-    }
-    return current as T;
+    return configValue(config, path, defaultValue);
   }
 }

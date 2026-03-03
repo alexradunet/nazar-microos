@@ -6,6 +6,7 @@ import type {
 import type { NazarConfig } from "../../types.js";
 import { YamlConfigReader } from "./yaml-config-reader.js";
 
+export { configValue } from "./config-value.js";
 export { YamlConfigReader } from "./yaml-config-reader.js";
 
 export class ConfigCapability implements Capability {

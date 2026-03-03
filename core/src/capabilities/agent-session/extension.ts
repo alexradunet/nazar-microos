@@ -2,10 +2,15 @@
  * Nazar Pi extension — adds runtime context, tool guardrails, and compaction guidance.
  *
  * Hooks into Pi SDK extension events to:
- * - Inject OS-aware runtime context on every agent turn (context event)
+ * - Inject lightweight runtime context on every agent turn (context event)
  * - Block dangerous bash patterns before execution (tool_call event)
  * - Guide compaction with channel-specific instructions (session_before_compact)
  * - Log agent and tool lifecycle events for observability
+ *
+ * Heavy OS context (bootc status, services, containers, bridge lists) is NOT
+ * pre-loaded here. The agent can inspect system state on demand via:
+ *   nazar-core os status|services|containers
+ *   nazar-core bridge list
  *
  * Does NOT register Pi tools directly — tool registration requires the full
  * Pi ExtensionAPI which is only available inside the SDK runtime.
@@ -16,12 +21,6 @@
  */
 
 import type { IObjectStore } from "../../ports/object-store.js";
-import type { ISystemExecutor } from "../../ports/system-executor.js";
-import { parseBridgeManifest } from "../discovery/bridge-manifest.js";
-import { getBootcStatus } from "../os-tools/bootc.js";
-import { listContainerHealth } from "../os-tools/containers.js";
-import { analyzeHealth, formatAlerts } from "../os-tools/health-analyzer.js";
-import { listNazarServices } from "../os-tools/systemd.js";
 
 interface AgentMessage {
   role: "user" | "assistant";
@@ -82,10 +81,7 @@ export interface ExtensionFactory {
 export interface NazarExtensionConfig {
   channelName?: string;
   compactionInstructions?: string;
-  systemExecutor?: ISystemExecutor;
   objectStore?: IObjectStore;
-  referenceBridgesDir?: string;
-  quadletDir?: string;
 }
 
 /** Dangerous bash patterns that should be blocked in tool calls. */
@@ -124,13 +120,13 @@ export function createNazarExtension(
         async on(event: ExtensionEvent): Promise<ExtensionEventResult> {
           switch (event.type) {
             case "context": {
-              // Reason: context is injected at the start of every agent turn.
-              // It tells the agent what tools are available and where data lives,
-              // so it can make informed decisions without guessing paths or commands.
+              // Lightweight context: paths and guidance only.
+              // Use nazar-core CLI tools to inspect system state on demand.
               const lines = [
                 "## Nazar Runtime Context",
                 `- Timestamp: ${new Date().toISOString()}`,
                 `- Host: ${process.env.HOSTNAME || "nazar-box"}`,
+                `- Config path: ${process.env.NAZAR_CONFIG || "/etc/nazar/nazar.yaml"}`,
                 `- Objects dir: ${process.env.NAZAR_OBJECTS_DIR || "/var/lib/nazar/objects"}`,
                 `- Skills dir: ${process.env.NAZAR_SKILLS_DIR || "/usr/local/share/nazar/skills"}`,
                 `- Sessions dir: ${process.env.NAZAR_SESSIONS_DIR || "/var/lib/nazar/sessions"}`,
@@ -138,24 +134,15 @@ export function createNazarExtension(
                 "## Available CLI Tools",
                 "Object store: `nazar-core object create|read|list|update|search|link`",
                 "OS operations: `nazar-core os status|upgrade-check|upgrade|services|logs|containers|timers|restart-service|restart-container`",
+                "Bridge management: `nazar-core bridge list|install|remove`",
+                "",
+                "## System Inspection",
+                "Use these commands to inspect system state on demand:",
+                "- `nazar-core os status` — bootc and system status",
+                "- `nazar-core os services` — list nazar services and their states",
+                "- `nazar-core os containers` — list running containers and health",
+                "- `nazar-core bridge list` — available and installed bridges",
               ];
-
-              if (config?.systemExecutor) {
-                const [osStatus, services, containers] = await Promise.all([
-                  getBootcStatus(config.systemExecutor),
-                  listNazarServices(config.systemExecutor),
-                  listContainerHealth(config.systemExecutor),
-                ]);
-                lines.push("", "## OS Status", osStatus);
-                lines.push("", "## Services", services);
-                lines.push("", "## Containers", containers);
-
-                const alerts = analyzeHealth(osStatus, services, containers);
-                const alertBlock = formatAlerts(alerts);
-                if (alertBlock) {
-                  lines.push("", "## Health Alerts", alertBlock);
-                }
-              }
 
               if (config?.objectStore) {
                 try {
@@ -170,75 +157,6 @@ export function createNazarExtension(
                   }
                 } catch {
                   // Object store may not have evolution/ dir yet — ignore
-                }
-              }
-
-              if (config?.systemExecutor) {
-                const refDir =
-                  config.referenceBridgesDir ??
-                  "/usr/local/share/nazar/reference/bridges";
-                lines.push("", "## Available Bridges");
-                try {
-                  const entries = await config.systemExecutor.readDir(refDir);
-                  const bridgeLines: string[] = [];
-                  for (const entry of entries) {
-                    try {
-                      const isDir = await config.systemExecutor.isDirectory(
-                        `${refDir}/${entry}`,
-                      );
-                      if (!isDir) continue;
-                      const raw = await config.systemExecutor.readFile(
-                        `${refDir}/${entry}/manifest.yaml`,
-                      );
-                      const manifest = parseBridgeManifest(raw);
-                      const { name, description, version } = manifest.metadata;
-                      bridgeLines.push(
-                        `- ${name}: ${description} (v${version})`,
-                      );
-                    } catch {
-                      // Skip entries with missing or invalid manifests
-                    }
-                  }
-                  if (bridgeLines.length > 0) {
-                    lines.push(...bridgeLines);
-                  } else {
-                    lines.push("No reference bridges found");
-                  }
-                } catch {
-                  lines.push("No reference bridges found");
-                }
-
-                const quadletDir =
-                  config.quadletDir ?? "/etc/containers/systemd/";
-                lines.push("", "## Installed Bridges");
-                try {
-                  const files = await config.systemExecutor.readDir(quadletDir);
-                  const bridgeFiles = files.filter(
-                    (f) => f.endsWith(".container") && f.includes("bridge"),
-                  );
-                  if (bridgeFiles.length > 0) {
-                    for (const file of bridgeFiles) {
-                      const serviceName = file.replace(/\.container$/, "");
-                      let status = "unknown";
-                      try {
-                        const result = await config.systemExecutor.exec(
-                          "systemctl",
-                          ["is-active", serviceName],
-                        );
-                        status =
-                          result.exitCode === 0
-                            ? result.stdout.trim() || "active"
-                            : result.stdout.trim() || "inactive";
-                      } catch {
-                        // systemctl not available — leave status as unknown
-                      }
-                      lines.push(`- ${serviceName} (${status})`);
-                    }
-                  } else {
-                    lines.push("No bridges installed");
-                  }
-                } catch {
-                  lines.push("No bridges installed");
                 }
               }
 

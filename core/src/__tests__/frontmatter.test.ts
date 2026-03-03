@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { JsYamlFrontmatterParser } from "../frontmatter.js";
+import { JsYamlFrontmatterParser } from "../capabilities/frontmatter/js-yaml-parser.js";
 
 const parser = new JsYamlFrontmatterParser();
 

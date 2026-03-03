@@ -1,0 +1,35 @@
+apiVersion: nazar.dev/v1
+kind: BridgeManifest
+metadata:
+  name: heartbeat
+  description: Nazar Heartbeat Service — periodic health check and status reporting
+  version: "1.0.0"
+  channel: infra
+
+containers:
+  - name: nazar-heartbeat
+    image: localhost/nazar-heartbeat:latest
+    description: Nazar Heartbeat Service
+    volumes:
+      - /var/lib/nazar/objects:/data/objects:ro,z
+      - /etc/nazar:/etc/nazar:ro,z
+    environment:
+      NAZAR_CONFIG: /etc/nazar/nazar.yaml
+    readOnly: true
+    noNewPrivileges: true
+    serviceType: oneshot
+    restart: "no"
+
+timers:
+  - name: nazar-heartbeat
+    description: Nazar Heartbeat Timer
+    onCalendar: "{{interval}}"
+    persistent: true
+    wantedBy: timers.target
+
+configSchema:
+  - name: interval
+    type: string
+    required: false
+    description: "Heartbeat interval in systemd OnCalendar format (e.g. *:0/30)"
+    default: "*:0/30"

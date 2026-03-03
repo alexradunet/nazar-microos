@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
-import { ObjectStore } from "../object-store.js";
+import { MarkdownFileStore as ObjectStore } from "../capabilities/object-store/markdown-file-store.js";
 import type { IFrontmatterParser } from "../ports/frontmatter-parser.js";
 import type { ObjectData } from "../ports/object-store.js";
 

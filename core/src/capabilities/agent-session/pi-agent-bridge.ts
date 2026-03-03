@@ -6,12 +6,12 @@
  */
 
 import fs from "node:fs";
-import type { ExtensionFactory } from "../../extension.js";
 import type { IAgentBridge } from "../../ports/agent-bridge.js";
 import type { IPersonaLoader } from "../../ports/persona-loader.js";
 import type { AgentConfig } from "../../types.js";
 import type { AgentResponse } from "../affordances/parser.js";
 import { parseAgentResponse } from "../affordances/parser.js";
+import type { ExtensionFactory } from "./extension.js";
 import { SessionPool } from "./session-pool.js";
 
 /** Base config for any message bridge with agent integration. */

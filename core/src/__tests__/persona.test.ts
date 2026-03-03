@@ -9,9 +9,12 @@ import path from "node:path";
 import { afterEach, describe, it } from "node:test";
 import {
   extractChannelSection,
-  loadPersonaPrompt,
-  loadSystemContext,
-} from "../persona.js";
+  FsPersonaLoader,
+} from "../capabilities/persona/fs-persona-loader.js";
+
+const _personaLoader = new FsPersonaLoader();
+const loadPersonaPrompt = _personaLoader.loadPersonaPrompt.bind(_personaLoader);
+const loadSystemContext = _personaLoader.loadSystemContext.bind(_personaLoader);
 
 // ---------------------------------------------------------------------------
 // Helpers

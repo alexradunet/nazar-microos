@@ -4,7 +4,10 @@
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { isAllowed, validatePhoneNumber } from "../agent-bridge.js";
+import {
+  isAllowed,
+  validatePhoneNumber,
+} from "../capabilities/agent-session/pi-agent-bridge.js";
 
 // ---------------------------------------------------------------------------
 // isAllowed
