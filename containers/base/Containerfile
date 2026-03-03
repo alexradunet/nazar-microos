@@ -15,6 +15,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/nazar-core/package.json packages/nazar-core/
 COPY services/signal-bridge/package.json services/signal-bridge/
+COPY services/web-bridge/package.json services/web-bridge/
 RUN npm ci
 
 # Copy and build nazar-core (npm ci symlinks node_modules/@nazar/core here)

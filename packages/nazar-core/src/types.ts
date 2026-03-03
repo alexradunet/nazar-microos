@@ -96,6 +96,7 @@ export interface NazarConfig {
   ttyd?: { port?: number };
   signal?: { phone_number?: string; allowed_contacts?: string[] };
   whatsapp?: { allowed_contacts?: string[] };
+  ui?: { port?: number };
   pi?: { skills_dir?: string; persona_dir?: string };
   evolution?: { max_containers_per_evolution?: number };
   firewall?: { restrict_to_tailscale?: boolean; open_ports?: number[] };

@@ -59,6 +59,17 @@ export function readConfig(configPath: string): NazarConfig {
     }
   }
 
+  // Validate ui port if present
+  const ui = config.ui as Record<string, unknown> | undefined;
+  if (ui?.port !== undefined) {
+    const port = Number(ui.port);
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      throw new Error(
+        `invalid ui port: '${ui.port}' (must be integer 1-65535)`,
+      );
+    }
+  }
+
   return config as unknown as NazarConfig;
 }
 

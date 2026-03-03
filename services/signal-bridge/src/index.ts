@@ -18,7 +18,12 @@ import type {
   IncomingMessage,
   MessageChannel,
 } from "@nazar/core";
-import { AgentBridge, isAllowed, validatePhoneNumber } from "@nazar/core";
+import {
+  AgentBridge,
+  formatAffordancesAsText,
+  isAllowed,
+  validatePhoneNumber,
+} from "@nazar/core";
 
 // Re-export from @nazar/core for backward compatibility
 export { isAllowed, validatePhoneNumber } from "@nazar/core";
@@ -277,7 +282,11 @@ async function main(): Promise<void> {
 
   const bridge = new AgentBridge(config);
   const channel = new SignalBotChannel(config);
-  channel.onMessage(async (msg) => bridge.processMessage(msg.text, msg.from));
+  channel.onMessage(async (msg) => {
+    const response = await bridge.processMessage(msg.text, msg.from);
+    const suffix = formatAffordancesAsText(response.affordances);
+    return suffix ? `${response.text}\n\n${suffix}` : response.text;
+  });
   await channel.connect();
 }
 

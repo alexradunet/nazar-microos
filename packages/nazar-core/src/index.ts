@@ -1,3 +1,10 @@
+export type { Affordance, AgentResponse } from "./affordances.js";
+export {
+  formatAffordancesAsText,
+  isAffordance,
+  parseAgentResponse,
+  validateAffordance,
+} from "./affordances.js";
 export type { BridgeConfig } from "./agent-bridge.js";
 export { AgentBridge, isAllowed, validatePhoneNumber } from "./agent-bridge.js";
 export { configValue, readConfig } from "./config.js";

@@ -176,8 +176,8 @@
     },
     {
       "path": "services/signal-bridge/src/index.ts",
-      "accessCount": 56,
-      "lastAccessed": 1772484531561,
+      "accessCount": 62,
+      "lastAccessed": 1772494343506,
       "type": "file"
     },
     {
@@ -187,33 +187,33 @@
       "type": "directory"
     },
     {
+      "path": "packages/nazar-core/src/setup.ts",
+      "accessCount": 42,
+      "lastAccessed": 1772494380760,
+      "type": "directory"
+    },
+    {
       "path": "Containerfile",
       "accessCount": 40,
       "lastAccessed": 1772482843115,
       "type": "file"
     },
     {
-      "path": "packages/nazar-core/src/setup.ts",
-      "accessCount": 38,
-      "lastAccessed": 1772484157822,
+      "path": "Makefile",
+      "accessCount": 37,
+      "lastAccessed": 1772494739535,
       "type": "directory"
+    },
+    {
+      "path": "packages/nazar-core/src/types.ts",
+      "accessCount": 35,
+      "lastAccessed": 1772494295999,
+      "type": "file"
     },
     {
       "path": "scripts/nazar-vm.sh",
       "accessCount": 34,
       "lastAccessed": 1772483062226,
-      "type": "file"
-    },
-    {
-      "path": "Makefile",
-      "accessCount": 33,
-      "lastAccessed": 1772483551219,
-      "type": "directory"
-    },
-    {
-      "path": "packages/nazar-core/src/types.ts",
-      "accessCount": 31,
-      "lastAccessed": 1772484535032,
       "type": "file"
     },
     {
@@ -223,15 +223,21 @@
       "type": "directory"
     },
     {
+      "path": "containers/signal-bridge/Containerfile",
+      "accessCount": 28,
+      "lastAccessed": 1772494231167,
+      "type": "file"
+    },
+    {
       "path": "containers/signal-cli/Containerfile",
       "accessCount": 27,
       "lastAccessed": 1772483551829,
       "type": "file"
     },
     {
-      "path": "containers/signal-bridge/Containerfile",
-      "accessCount": 25,
-      "lastAccessed": 1772483551543,
+      "path": "containers/base/Containerfile",
+      "accessCount": 22,
+      "lastAccessed": 1772494726532,
       "type": "file"
     },
     {
@@ -241,16 +247,22 @@
       "type": "file"
     },
     {
-      "path": "containers/base/Containerfile",
-      "accessCount": 18,
-      "lastAccessed": 1772482466241,
+      "path": "services/signal-bridge/src/__tests__/bridge.test.ts",
+      "accessCount": 19,
+      "lastAccessed": 1772485060428,
       "type": "file"
     },
     {
-      "path": "services/signal-bridge/src/__tests__/bridge.test.ts",
-      "accessCount": 18,
-      "lastAccessed": 1772484255334,
+      "path": "services/signal-bridge/package.json",
+      "accessCount": 19,
+      "lastAccessed": 1772494233861,
       "type": "file"
+    },
+    {
+      "path": "packages/nazar-core/src/__tests__/setup.test.ts",
+      "accessCount": 18,
+      "lastAccessed": 1772494396419,
+      "type": "directory"
     },
     {
       "path": "skills/signal-setup/SKILL.md",
@@ -271,22 +283,22 @@
       "type": "file"
     },
     {
-      "path": "services/signal-bridge/package.json",
-      "accessCount": 15,
-      "lastAccessed": 1772483671723,
-      "type": "file"
-    },
-    {
       "path": "containers/heartbeat/Containerfile",
       "accessCount": 14,
       "lastAccessed": 1772482881152,
       "type": "file"
     },
     {
-      "path": "packages/nazar-core/src/__tests__/setup.test.ts",
+      "path": "packages/nazar-core/src/index.ts",
       "accessCount": 13,
-      "lastAccessed": 1772484285357,
-      "type": "directory"
+      "lastAccessed": 1772494332357,
+      "type": "file"
+    },
+    {
+      "path": "nazar.yaml.example",
+      "accessCount": 13,
+      "lastAccessed": 1772494744012,
+      "type": "file"
     },
     {
       "path": "sysconfig/systemd/nazar-setup.service",
@@ -301,9 +313,21 @@
       "type": "file"
     },
     {
-      "path": "nazar.yaml.example",
-      "accessCount": 10,
-      "lastAccessed": 1772483055623,
+      "path": "services/signal-bridge/tsconfig.json",
+      "accessCount": 12,
+      "lastAccessed": 1772494233976,
+      "type": "file"
+    },
+    {
+      "path": "package.json",
+      "accessCount": 11,
+      "lastAccessed": 1772485047841,
+      "type": "file"
+    },
+    {
+      "path": "packages/nazar-core/src/config.ts",
+      "accessCount": 11,
+      "lastAccessed": 1772494303415,
       "type": "file"
     },
     {
@@ -313,21 +337,9 @@
       "type": "file"
     },
     {
-      "path": "package.json",
-      "accessCount": 10,
-      "lastAccessed": 1772483701052,
-      "type": "file"
-    },
-    {
-      "path": "services/signal-bridge/tsconfig.json",
+      "path": "packages/nazar-core/package.json",
       "accessCount": 9,
-      "lastAccessed": 1772483670266,
-      "type": "file"
-    },
-    {
-      "path": "packages/nazar-core/src/index.ts",
-      "accessCount": 9,
-      "lastAccessed": 1772484152632,
+      "lastAccessed": 1772494240446,
       "type": "file"
     },
     {
@@ -349,21 +361,9 @@
       "type": "file"
     },
     {
-      "path": "packages/nazar-core/src/config.ts",
-      "accessCount": 7,
-      "lastAccessed": 1772483727460,
-      "type": "file"
-    },
-    {
       "path": "containers/heartbeat/entrypoint.sh",
       "accessCount": 6,
       "lastAccessed": 1772482481069,
-      "type": "file"
-    },
-    {
-      "path": "packages/nazar-core/package.json",
-      "accessCount": 6,
-      "lastAccessed": 1772483671212,
       "type": "file"
     },
     {
@@ -409,6 +409,12 @@
       "type": "file"
     },
     {
+      "path": "packages/nazar-core/src/testing/test-message-channel.ts",
+      "accessCount": 5,
+      "lastAccessed": 1772492795412,
+      "type": "file"
+    },
+    {
       "path": "packages/nazar-core/src/system-executor.ts",
       "accessCount": 4,
       "lastAccessed": 1772462808075,
@@ -425,12 +431,6 @@
       "accessCount": 3,
       "lastAccessed": 1772476896856,
       "type": "directory"
-    },
-    {
-      "path": "packages/nazar-core/src/testing/test-message-channel.ts",
-      "accessCount": 3,
-      "lastAccessed": 1772483724642,
-      "type": "file"
     },
     {
       "path": "skills/object-evolution/SKILL.md",

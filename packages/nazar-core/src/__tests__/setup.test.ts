@@ -106,6 +106,7 @@ describe("generateQuadletFiles", () => {
       "nazar-signal-cli.container",
       "nazar-signal-bridge.container",
       "nazar-whatsapp-bridge.container",
+      "nazar-web-bridge.container",
       "nazar-syncthing.container",
       "nazar-ttyd.container",
     ]);
@@ -232,6 +233,26 @@ describe("generateQuadletFiles", () => {
     assert.ok(
       wa.content.includes("NAZAR_WHATSAPP_ALLOWED_CONTACTS=+1555,+1666"),
     );
+  });
+
+  it("web-bridge container has default port 3000", () => {
+    const files = generateQuadletFiles(baseConfig, "/out");
+    const wb = files.find((f) => f.path.endsWith("nazar-web-bridge.container"));
+    assert.ok(wb);
+    assert.ok(wb.content.includes("Description=Nazar Web Bridge"));
+    assert.ok(wb.content.includes("Image=localhost/nazar-web-bridge:latest"));
+    assert.ok(wb.content.includes("PublishPort=3000:3000"));
+    assert.ok(wb.content.includes("NAZAR_UI_PORT=3000"));
+    assert.ok(wb.content.includes("NoNewPrivileges=true"));
+  });
+
+  it("web-bridge container uses custom port", () => {
+    const config: NazarConfig = { ...baseConfig, ui: { port: 8080 } };
+    const files = generateQuadletFiles(config, "/out");
+    const wb = files.find((f) => f.path.endsWith("nazar-web-bridge.container"));
+    assert.ok(wb);
+    assert.ok(wb.content.includes("PublishPort=8080:8080"));
+    assert.ok(wb.content.includes("NAZAR_UI_PORT=8080"));
   });
 
   it("signal-bridge does not mount unused /etc/nazar", () => {

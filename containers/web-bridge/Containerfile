@@ -1,0 +1,14 @@
+FROM nazar-base
+
+USER root
+COPY services/web-bridge/ services/web-bridge/
+RUN npm -w services/web-bridge run build
+USER nazar
+
+ENV NAZAR_UI_PORT=3000
+ENV NAZAR_OBJECTS_DIR=/data/objects
+ENV NAZAR_PI_MODEL=""
+ENV NAZAR_PI_TRANSPORT=""
+ENV NAZAR_PERSONA_DIR=/usr/local/share/nazar/persona
+
+CMD ["node", "services/web-bridge/dist/index.js"]

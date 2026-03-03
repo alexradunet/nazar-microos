@@ -18,6 +18,9 @@ signal:
 whatsapp:
   allowed_contacts: []
 
+ui:
+  port: 3000
+
 pi:
   skills_dir: /usr/local/share/nazar/skills
   persona_dir: /usr/local/share/nazar/persona

@@ -2,6 +2,7 @@
   "files": [],
   "references": [
     { "path": "packages/nazar-core" },
-    { "path": "services/signal-bridge" }
+    { "path": "services/signal-bridge" },
+    { "path": "services/web-bridge" }
   ]
 }

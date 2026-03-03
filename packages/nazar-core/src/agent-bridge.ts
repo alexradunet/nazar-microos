@@ -6,6 +6,8 @@
  * Signal and WhatsApp bridges.
  */
 
+import type { AgentResponse } from "./affordances.js";
+import { parseAgentResponse } from "./affordances.js";
 import { createNazarExtension } from "./extension.js";
 import { loadPersonaPrompt, loadSystemContext } from "./persona.js";
 import type { AgentConfig } from "./types.js";
@@ -65,7 +67,7 @@ export class AgentBridge {
     this.maxSessions = maxSessions ?? DEFAULT_MAX_SESSIONS;
   }
 
-  async processMessage(text: string, from: string): Promise<string> {
+  async processMessage(text: string, from: string): Promise<AgentResponse> {
     // Lazy-load the Pi AgentSession SDK to allow testing without it installed.
     const {
       createAgentSession,
@@ -150,7 +152,7 @@ export class AgentBridge {
     }
 
     const activeSession = session;
-    const agentPromise = new Promise<string>((resolve, reject) => {
+    const agentPromise = new Promise<AgentResponse>((resolve, reject) => {
       let accumulated = "";
       const unsub = activeSession.subscribe((event: AgentSessionEvent) => {
         if (
@@ -171,7 +173,8 @@ export class AgentBridge {
           event.type === "turn_end"
         ) {
           unsub();
-          resolve(accumulated.trim() || "(no response)");
+          const raw = accumulated.trim() || "(no response)";
+          resolve(parseAgentResponse(raw));
         }
         if (event.type === "error") {
           unsub();

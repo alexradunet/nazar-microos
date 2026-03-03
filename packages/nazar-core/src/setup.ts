@@ -240,6 +240,31 @@ export function generateQuadletFiles(
     }),
   });
 
+  // --- Web Bridge container ---
+  const uiPort = configValue(config, "ui.port", 3000);
+
+  files.push({
+    path: path.join(outputDir, "nazar-web-bridge.container"),
+    content: renderQuadletContainer({
+      name: "nazar-web-bridge",
+      image: "localhost/nazar-web-bridge:latest",
+      description: "Nazar Web Bridge",
+      volumes: [
+        "/var/lib/nazar/objects:/data/objects:rw,z",
+        "/var/lib/nazar/pi-config:/home/nazar/.pi:rw,z",
+        `${personaDir}:${personaDir}:ro,z`,
+      ],
+      environment: {
+        NAZAR_UI_PORT: String(uiPort),
+        NAZAR_SKILLS_DIR: skillsDir,
+        NAZAR_PERSONA_DIR: personaDir,
+        PI_CODING_AGENT_DIR: "/home/nazar/.pi/agent",
+      },
+      publishPorts: [`${uiPort}:${uiPort}`],
+      noNewPrivileges: true,
+    }),
+  });
+
   // --- Syncthing ---
   files.push({
     path: path.join(outputDir, "nazar-syncthing.container"),

@@ -15,6 +15,9 @@ signal:
   phone_number: "+15551234567"
   allowed_contacts: ["+15559876543", "+15558765432"]
 
+ui:
+  port: 3000
+
 pi:
   skills_dir: /usr/local/share/nazar/skills
   persona_dir: /usr/local/share/nazar/persona
