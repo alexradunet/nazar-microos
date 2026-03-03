@@ -9,10 +9,14 @@ import type {
   NazarConfig,
 } from "../../types.js";
 import { YamlConfigReader } from "../config/yaml-config-reader.js";
+import { CapabilityExtractor } from "../discovery/extractor.js";
+import { parseManifest, validateManifest } from "../discovery/manifest.js";
 import { renderQuadletContainer } from "../setup/quadlet-generator.js";
 
 const CONTAINER_NAME_RE = /^nazar-[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
 const DEFAULT_HEALTH_TIMEOUT = 30;
+const CAPABILITIES_DIR = "/var/lib/nazar/capabilities";
+const SKILLS_DIR = "/var/lib/nazar/skills";
 
 export class EvolveManager implements IEvolveManager {
   private readonly cfgReader: YamlConfigReader;
@@ -169,7 +173,7 @@ export class EvolveManager implements IEvolveManager {
 
       const healthy = await this.healthCheck(name, timeout);
       if (!healthy) {
-        // Rollback: stop all, remove Quadlet files
+        // Rollback: stop all, remove Quadlet files, clean up capabilities
         for (const n of containerNames) {
           await this.executor.exec("sudo", [
             "systemctl",
@@ -180,6 +184,7 @@ export class EvolveManager implements IEvolveManager {
             path.join(this.quadletDir, `${n}.container`),
           );
         }
+        await this.cleanupCapabilities(containerNames);
         await this.executor.exec("sudo", ["systemctl", "daemon-reload"]);
 
         try {
@@ -196,6 +201,9 @@ export class EvolveManager implements IEvolveManager {
         );
       }
     }
+
+    // Extract capability manifests from running containers
+    await this.extractCapabilities(containerNames);
 
     // All healthy — mark as applied
     try {
@@ -229,6 +237,7 @@ export class EvolveManager implements IEvolveManager {
     }
 
     if (!dryRun) {
+      await this.cleanupCapabilities(containers.map((c) => c.name));
       await this.executor.exec("sudo", ["systemctl", "daemon-reload"]);
     }
 
@@ -242,6 +251,47 @@ export class EvolveManager implements IEvolveManager {
     }
 
     return `evolution '${slug}' rolled back`;
+  }
+
+  /**
+   * Extract capability manifests and skills from running containers.
+   * Silently skips containers without /nazar/capability.yaml.
+   */
+  private async extractCapabilities(containerNames: string[]): Promise<void> {
+    const extractor = new CapabilityExtractor(this.executor);
+
+    for (const name of containerNames) {
+      const manifestPath = path.join(CAPABILITIES_DIR, `${name}.yaml`);
+      const hasManifest = await extractor.extractManifest(name, manifestPath);
+      if (!hasManifest) continue;
+
+      try {
+        const raw = await this.executor.readFile(manifestPath);
+        const manifest = parseManifest(raw);
+        const errors = validateManifest(manifest);
+        if (errors.length > 0) continue;
+
+        if (manifest.skills && manifest.skills.length > 0) {
+          await extractor.extractSkills(
+            name,
+            manifest.skills,
+            path.join(SKILLS_DIR, manifest.metadata.name),
+          );
+        }
+      } catch {
+        // best effort — manifest extraction is non-critical
+      }
+    }
+  }
+
+  /** Remove extracted capability manifest and skills for given containers. */
+  private async cleanupCapabilities(containerNames: string[]): Promise<void> {
+    for (const name of containerNames) {
+      await this.executor.removeFile(
+        path.join(CAPABILITIES_DIR, `${name}.yaml`),
+      );
+      await this.executor.removeDir(path.join(SKILLS_DIR, name));
+    }
   }
 
   status(slug?: string): string {

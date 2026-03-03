@@ -12,6 +12,7 @@
 import { AffordancesCapability } from "./capabilities/affordances/index.js";
 import { AgentSessionCapability } from "./capabilities/agent-session/index.js";
 import { ConfigCapability } from "./capabilities/config/index.js";
+import { DiscoveryCapability } from "./capabilities/discovery/index.js";
 import { EvolutionCapability } from "./capabilities/evolution/index.js";
 import { FrontmatterCapability } from "./capabilities/frontmatter/index.js";
 import { HealthCapability } from "./capabilities/health/index.js";
@@ -36,6 +37,7 @@ export function createDefaultRegistry(): CapabilityRegistry {
   registry.register(new HealthCapability());
   registry.register(new SetupCapability());
   registry.register(new EvolutionCapability());
+  registry.register(new DiscoveryCapability());
   registry.register(new AgentSessionCapability());
   return registry;
 }
@@ -62,6 +64,7 @@ export async function createInitializedRegistry(
   const health = new HealthCapability();
   const setup = new SetupCapability();
   const evolution = new EvolutionCapability();
+  const discovery = new DiscoveryCapability();
   const agentSession = new AgentSessionCapability();
 
   for (const cap of [
@@ -74,6 +77,7 @@ export async function createInitializedRegistry(
     health,
     setup,
     evolution,
+    discovery,
     agentSession,
   ]) {
     registry.register(cap);
@@ -112,6 +116,7 @@ export async function createInitializedRegistry(
   services.objectStore = objectStore.getStore();
 
   await registry.initCapability("evolution", fullConfig);
+  await registry.initCapability("discovery", fullConfig);
 
   agentSession.setRegistry(registry);
   await registry.initCapability("agent-session", fullConfig);

@@ -199,7 +199,7 @@ export class QuadletSetupGenerator implements ISetupGenerator {
     const skillsDir = cfgValue(
       config,
       "pi.skills_dir",
-      "/usr/local/share/nazar/skills",
+      "/var/lib/nazar/skills",
     );
     const personaDir = cfgValue(
       config,
@@ -218,6 +218,7 @@ export class QuadletSetupGenerator implements ISetupGenerator {
           "/var/lib/nazar/signal-storage:/data/signal-storage:rw,z",
           "/var/lib/nazar/pi-config:/home/nazar/.pi:rw,z",
           `${personaDir}:${personaDir}:ro,z`,
+          `${skillsDir}:${skillsDir}:ro,z`,
         ],
         environment: {
           NAZAR_SIGNAL_PHONE: signalPhone,
@@ -249,6 +250,7 @@ export class QuadletSetupGenerator implements ISetupGenerator {
           "/var/lib/nazar/whatsapp-storage:/data/whatsapp-storage:rw,z",
           "/var/lib/nazar/pi-config:/home/nazar/.pi:rw,z",
           `${personaDir}:${personaDir}:ro,z`,
+          `${skillsDir}:${skillsDir}:ro,z`,
         ],
         environment: {
           NAZAR_WHATSAPP_ALLOWED_CONTACTS: whatsappContacts.join(","),
@@ -272,6 +274,7 @@ export class QuadletSetupGenerator implements ISetupGenerator {
           "/var/lib/nazar/objects:/data/objects:rw,z",
           "/var/lib/nazar/pi-config:/home/nazar/.pi:rw,z",
           `${personaDir}:${personaDir}:ro,z`,
+          `${skillsDir}:${skillsDir}:ro,z`,
         ],
         environment: {
           NAZAR_UI_PORT: String(uiPort),

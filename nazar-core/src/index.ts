@@ -12,6 +12,13 @@ export {
 export type { BridgeConfig } from "./agent-bridge.js";
 export { AgentBridge, isAllowed, validatePhoneNumber } from "./agent-bridge.js";
 export { AgentSessionCapability } from "./capabilities/agent-session/index.js";
+export type { CapabilityManifest } from "./capabilities/discovery/index.js";
+export {
+  CapabilityExtractor,
+  DiscoveryCapability,
+  parseManifest,
+  validateManifest,
+} from "./capabilities/discovery/index.js";
 // --- Capability system ---
 export type {
   Capability,

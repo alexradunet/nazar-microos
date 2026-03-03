@@ -170,14 +170,14 @@
   "hotPaths": [
     {
       "path": "",
-      "accessCount": 107,
-      "lastAccessed": 1772537371058,
+      "accessCount": 111,
+      "lastAccessed": 1772540570177,
       "type": "directory"
     },
     {
       "path": "scripts/nazar-deploy.sh",
-      "accessCount": 75,
-      "lastAccessed": 1772534037406,
+      "accessCount": 76,
+      "lastAccessed": 1772540256462,
       "type": "directory"
     },
     {
@@ -218,20 +218,20 @@
     },
     {
       "path": "containers/signal-cli/Containerfile",
-      "accessCount": 35,
-      "lastAccessed": 1772534027108,
+      "accessCount": 37,
+      "lastAccessed": 1772540264067,
       "type": "file"
     },
     {
       "path": "scripts/nazar",
-      "accessCount": 35,
-      "lastAccessed": 1772534036945,
+      "accessCount": 36,
+      "lastAccessed": 1772540256453,
       "type": "directory"
     },
     {
       "path": "containers/base/Containerfile",
-      "accessCount": 33,
-      "lastAccessed": 1772534025811,
+      "accessCount": 36,
+      "lastAccessed": 1772540406065,
       "type": "file"
     },
     {
@@ -265,21 +265,27 @@
       "type": "file"
     },
     {
+      "path": "containers/heartbeat/Containerfile",
+      "accessCount": 20,
+      "lastAccessed": 1772540264004,
+      "type": "file"
+    },
+    {
       "path": "packages/nazar-core/src/__tests__/setup.test.ts",
       "accessCount": 18,
       "lastAccessed": 1772494396419,
       "type": "directory"
     },
     {
-      "path": "containers/heartbeat/Containerfile",
-      "accessCount": 18,
-      "lastAccessed": 1772534026293,
-      "type": "file"
-    },
-    {
       "path": "skills/signal-setup/SKILL.md",
       "accessCount": 17,
       "lastAccessed": 1772479415983,
+      "type": "file"
+    },
+    {
+      "path": "nazar.yaml.example",
+      "accessCount": 17,
+      "lastAccessed": 1772540267500,
       "type": "file"
     },
     {
@@ -292,12 +298,6 @@
       "path": "docs/dev-setup.md",
       "accessCount": 16,
       "lastAccessed": 1772482947895,
-      "type": "file"
-    },
-    {
-      "path": "nazar.yaml.example",
-      "accessCount": 16,
-      "lastAccessed": 1772534065124,
       "type": "file"
     },
     {
@@ -355,6 +355,12 @@
       "type": "file"
     },
     {
+      "path": "containers/heartbeat/entrypoint.sh",
+      "accessCount": 9,
+      "lastAccessed": 1772540281037,
+      "type": "file"
+    },
+    {
       "path": "packages/nazar-core/src/evolve.ts",
       "accessCount": 8,
       "lastAccessed": 1772463689407,
@@ -364,12 +370,6 @@
       "path": "skills/heartbeat/SKILL.md",
       "accessCount": 8,
       "lastAccessed": 1772465228268,
-      "type": "file"
-    },
-    {
-      "path": "containers/heartbeat/entrypoint.sh",
-      "accessCount": 8,
-      "lastAccessed": 1772534026639,
       "type": "file"
     },
     {

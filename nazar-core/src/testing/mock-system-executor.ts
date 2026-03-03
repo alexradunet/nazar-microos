@@ -14,8 +14,10 @@ export class MockSystemExecutor implements ISystemExecutor {
   execCalls: ExecCall[] = [];
   writeCalls: WriteCall[] = [];
   removedFiles: string[] = [];
+  removedDirs: string[] = [];
   createdDirs: string[] = [];
   existingFiles = new Set<string>();
+  fileContents = new Map<string, string>();
   healthyServices = new Set<string>();
 
   async exec(
@@ -38,14 +40,28 @@ export class MockSystemExecutor implements ISystemExecutor {
     return { stdout: "", stderr: "", exitCode: 0 };
   }
 
+  async readFile(filePath: string): Promise<string> {
+    const content = this.fileContents.get(filePath);
+    if (content === undefined) {
+      throw Object.assign(new Error(`ENOENT: ${filePath}`), { code: "ENOENT" });
+    }
+    return content;
+  }
+
   async writeFile(filePath: string, content: string): Promise<void> {
     this.writeCalls.push({ path: filePath, content });
     this.existingFiles.add(filePath);
+    this.fileContents.set(filePath, content);
   }
 
   async removeFile(filePath: string): Promise<void> {
     this.removedFiles.push(filePath);
     this.existingFiles.delete(filePath);
+    this.fileContents.delete(filePath);
+  }
+
+  async removeDir(dirPath: string): Promise<void> {
+    this.removedDirs.push(dirPath);
   }
 
   async mkdirp(dirPath: string): Promise<void> {
@@ -61,8 +77,10 @@ export class MockSystemExecutor implements ISystemExecutor {
     this.execCalls = [];
     this.writeCalls = [];
     this.removedFiles = [];
+    this.removedDirs = [];
     this.createdDirs = [];
     this.existingFiles.clear();
+    this.fileContents.clear();
     this.healthyServices.clear();
   }
 }

@@ -21,7 +21,9 @@ class MockSystemExecutor implements ISystemExecutor {
   execCalls: ExecCall[] = [];
   writeCalls: WriteCall[] = [];
   removedFiles: string[] = [];
+  removedDirs: string[] = [];
   createdDirs: string[] = [];
+  fileContents = new Map<string, string>();
   healthyServices = new Set<string>();
 
   async exec(
@@ -41,15 +43,34 @@ class MockSystemExecutor implements ISystemExecutor {
       };
     }
 
+    // Simulate podman cp — fail by default (no manifest)
+    if (cmd === "podman" && args[0] === "cp") {
+      return { stdout: "", stderr: "no such file", exitCode: 125 };
+    }
+
     return { stdout: "", stderr: "", exitCode: 0 };
+  }
+
+  async readFile(filePath: string): Promise<string> {
+    const content = this.fileContents.get(filePath);
+    if (content === undefined) {
+      throw Object.assign(new Error(`ENOENT: ${filePath}`), { code: "ENOENT" });
+    }
+    return content;
   }
 
   async writeFile(filePath: string, content: string): Promise<void> {
     this.writeCalls.push({ path: filePath, content });
+    this.fileContents.set(filePath, content);
   }
 
   async removeFile(filePath: string): Promise<void> {
     this.removedFiles.push(filePath);
+    this.fileContents.delete(filePath);
+  }
+
+  async removeDir(dirPath: string): Promise<void> {
+    this.removedDirs.push(dirPath);
   }
 
   async mkdirp(dirPath: string): Promise<void> {

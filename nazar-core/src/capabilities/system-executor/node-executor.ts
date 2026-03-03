@@ -23,6 +23,10 @@ export class NodeSystemExecutor implements ISystemExecutor {
     });
   }
 
+  async readFile(filePath: string): Promise<string> {
+    return fs.readFile(filePath, "utf-8");
+  }
+
   async writeFile(filePath: string, content: string): Promise<void> {
     await fs.writeFile(filePath, content);
   }
@@ -30,6 +34,14 @@ export class NodeSystemExecutor implements ISystemExecutor {
   async removeFile(filePath: string): Promise<void> {
     try {
       await fs.unlink(filePath);
+    } catch (err: unknown) {
+      if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+    }
+  }
+
+  async removeDir(dirPath: string): Promise<void> {
+    try {
+      await fs.rm(dirPath, { recursive: true });
     } catch (err: unknown) {
       if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
     }

@@ -198,10 +198,23 @@ describe("generateQuadletFiles", () => {
     );
     assert.ok(bridge);
     assert.ok(
-      bridge.content.includes("NAZAR_SKILLS_DIR=/usr/local/share/nazar/skills"),
+      bridge.content.includes("NAZAR_SKILLS_DIR=/var/lib/nazar/skills"),
     );
     assert.ok(
       bridge.content.includes("PI_CODING_AGENT_DIR=/home/nazar/.pi/agent"),
+    );
+  });
+
+  it("signal-bridge mounts skills directory read-only", () => {
+    const files = generateQuadletFiles(baseConfig, "/out");
+    const bridge = files.find((f) =>
+      f.path.endsWith("nazar-signal-bridge.container"),
+    );
+    assert.ok(bridge);
+    assert.ok(
+      bridge.content.includes(
+        "Volume=/var/lib/nazar/skills:/var/lib/nazar/skills:ro,z",
+      ),
     );
   });
 
