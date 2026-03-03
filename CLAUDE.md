@@ -13,8 +13,7 @@ Nazar — self-hosted AI companion on Fedora bootc. Podman Quadlet containers, s
 - **Agent**: `core/agent/skills/*/SKILL.md` — Pi agent domain skills
 - **Agent**: `core/agent/context/` — System context for agent prompts (SYSTEM.md, APPEND_SYSTEM.md)
 - **Bridges**: `bridges/{signal,web,whatsapp}/` — bridge services, each with manifest.yaml, body-channel.md, Containerfile
-- **Infra**: `infra/{syncthing,ttyd}/` — optional infrastructure manifests (installed via `nazar-core bridge install`)
-- **Containers**: `containers/base/` — shared base container
+- **Containers**: `core/containers/base/` — shared base container, `core/containers/heartbeat/` — core health service
 - **OS image**: `os/Containerfile` — Fedora bootc 42
 - **Config**: `nazar.yaml` applied by `nazar-core setup` → Podman Quadlet files
 

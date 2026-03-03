@@ -33,8 +33,6 @@ primary_user: alex
 timezone: UTC
 heartbeat:
   interval: 30m
-ttyd:
-  port: 7681
 evolution:
   max_containers_per_evolution: 5
 `);
@@ -42,7 +40,6 @@ evolution:
     assert.equal(config.hostname, "nazar-box");
     assert.equal(config.primary_user, "alex");
     assert.equal(config.heartbeat?.interval, "30m");
-    assert.equal(config.ttyd?.port, 7681);
     assert.equal(config.evolution?.max_containers_per_evolution, 5);
   });
 
@@ -79,26 +76,6 @@ heartbeat:
   interval: 30x
 `);
     assert.throws(() => readConfig(p), /invalid heartbeat interval/);
-  });
-
-  it("throws on invalid ttyd port", () => {
-    const p = writeYaml(`
-hostname: nazar-box
-primary_user: alex
-ttyd:
-  port: abc
-`);
-    assert.throws(() => readConfig(p), /invalid ttyd port/);
-  });
-
-  it("throws on out-of-range ttyd port", () => {
-    const p = writeYaml(`
-hostname: nazar-box
-primary_user: alex
-ttyd:
-  port: 99999
-`);
-    assert.throws(() => readConfig(p), /invalid ttyd port/);
   });
 
   it("accepts valid intervals: m, h, d", () => {

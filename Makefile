@@ -23,7 +23,7 @@ qcow2:
 	  --type qcow2 --rootfs xfs --config /config.toml $(IMAGE_NAME):$(IMAGE_TAG)
 
 containers:
-	podman build -t nazar-base -f containers/base/Containerfile .
+	podman build -t nazar-base -f core/containers/base/Containerfile .
 	podman build -t localhost/nazar-heartbeat:latest -f core/containers/heartbeat/Containerfile .
 	podman build -t localhost/nazar-signal-cli:latest -f bridges/signal/containers/signal-cli/Containerfile .
 	podman build -t localhost/nazar-signal-bridge:latest -f bridges/signal/Containerfile .

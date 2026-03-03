@@ -47,24 +47,12 @@ export class YamlConfigReader implements IConfigReader {
       }
     }
 
-    // Validate ttyd port if present
-    const ttyd = config.ttyd as Record<string, unknown> | undefined;
-    if (ttyd?.port !== undefined) {
-      const port = Number(ttyd.port);
-      if (!Number.isInteger(port) || port < 1 || port > 65535) {
-        throw new Error(
-          `invalid ttyd port: '${ttyd.port}' (must be integer 1-65535)`,
-        );
-      }
-    }
-
     return {
       ...config,
       hostname: config.hostname as string,
       primary_user: config.primary_user as string,
       timezone: config.timezone as string | undefined,
       heartbeat: heartbeat as NazarConfig["heartbeat"],
-      ttyd: ttyd as NazarConfig["ttyd"],
       agent: config.agent as NazarConfig["agent"],
       evolution: config.evolution as NazarConfig["evolution"],
       firewall: config.firewall as NazarConfig["firewall"],

@@ -111,9 +111,9 @@ deploy_images() {
   # Build base image
   info "Building nazar-base..."
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    info "[dry-run] podman build -t nazar-base -f containers/base/Containerfile ."
+    info "[dry-run] podman build -t nazar-base -f core/containers/base/Containerfile ."
   else
-    podman build --format docker -t nazar-base -f containers/base/Containerfile .
+    podman build --format docker -t nazar-base -f core/containers/base/Containerfile .
   fi
 
   # Build and deploy each service container

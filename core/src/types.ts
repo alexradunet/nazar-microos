@@ -72,7 +72,6 @@ export interface NazarConfig {
   primary_user: string;
   timezone?: string;
   heartbeat?: { interval?: string };
-  ttyd?: { port?: number };
   agent?: { skills_dir?: string; persona_dir?: string };
   evolution?: { max_containers_per_evolution?: number };
   firewall?: { restrict_to_tailscale?: boolean; open_ports?: number[] };

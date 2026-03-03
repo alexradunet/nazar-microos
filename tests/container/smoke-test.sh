@@ -27,7 +27,7 @@ run_test() {
 
 # Build all container images
 echo "=== Building containers ==="
-podman build -t nazar-base -f containers/base/Containerfile .
+podman build -t nazar-base -f core/containers/base/Containerfile .
 podman build -t nazar-heartbeat -f containers/heartbeat/Containerfile .
 podman build -t nazar-signal-cli -f containers/signal-cli/Containerfile .
 podman build -t nazar-signal-bridge -f containers/signal-bridge/Containerfile .

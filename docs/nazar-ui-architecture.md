@@ -369,7 +369,7 @@ files.push({
 |--------|------|--------|
 | CREATE | `containers/nazar-ui/Containerfile` | FROM nazar-base, build + run service |
 | CREATE | `sysconfig/bound-images/nazar-ui.image` | Bound image declaration |
-| MODIFY | `containers/base/Containerfile` | Add `COPY services/nazar-ui/package.json` |
+| MODIFY | `core/containers/base/Containerfile` | Add `COPY services/nazar-ui/package.json` |
 | MODIFY | `tsconfig.json` (root) | Add `{ "path": "services/nazar-ui" }` to references |
 | MODIFY | `Makefile` | Add nazar-ui to containers target |
 | MODIFY | `sysconfig/nazar.yaml.default` | Add `ui:` block |
@@ -540,7 +540,7 @@ When overlay HUD is needed (system status bar, notification badges), swap cage f
 | `packages/nazar-core/src/config.ts` | Add ui port validation |
 | `packages/nazar-core/src/setup.ts` | Add nazar-ui Quadlet generation |
 | `packages/nazar-core/src/__tests__/setup.test.ts` | Update file list assertion |
-| `containers/base/Containerfile` | Add nazar-ui package.json |
+| `core/containers/base/Containerfile` | Add nazar-ui package.json |
 | `tsconfig.json` (root) | Add nazar-ui reference |
 | `Makefile` | Add nazar-ui container build |
 | `sysconfig/nazar.yaml.default` | Add `ui:` block |
