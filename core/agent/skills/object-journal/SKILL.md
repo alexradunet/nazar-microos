@@ -25,7 +25,7 @@ Journal objects use frontmatter fields:
 ### Write today's journal
 
 ```bash
-nazar-object create journal "$(date +%Y-%m-%d)" --title="Daily Journal" --area=personal
+nazar-core object create journal "$(date +%Y-%m-%d)" --title="Daily Journal" --area=personal
 ```
 
 Then append body content by editing the file directly.
@@ -33,31 +33,31 @@ Then append body content by editing the file directly.
 ### Write a named entry
 
 ```bash
-nazar-object create journal "2026-02-27-evening" --title="Evening Reflection" --area=personal --tags=reflection,gratitude
+nazar-core object create journal "2026-02-27-evening" --title="Evening Reflection" --area=personal --tags=reflection,gratitude
 ```
 
 ### Read a specific entry
 
 ```bash
-nazar-object read journal 2026-02-27
+nazar-core object read journal 2026-02-27
 ```
 
 ### List recent entries
 
 ```bash
-nazar-object list journal
+nazar-core object list journal
 ```
 
 ### Search journal content
 
 ```bash
-nazar-object search "gratitude"
+nazar-core object search "gratitude"
 ```
 
 ### Link journal to other objects
 
 ```bash
-nazar-object link journal/2026-02-27 task/prepare-taxes
+nazar-core object link journal/2026-02-27 task/prepare-taxes
 ```
 
 ## Behavior Guidelines

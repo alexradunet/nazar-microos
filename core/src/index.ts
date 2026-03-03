@@ -66,7 +66,6 @@ export type {
   Capability,
   CapabilityConfig,
   CapabilityRegistration,
-  CliCommand,
   CoreServices,
   LeafServices,
 } from "./capability.js";

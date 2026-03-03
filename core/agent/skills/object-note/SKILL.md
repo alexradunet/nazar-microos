@@ -26,7 +26,7 @@ Note objects use frontmatter fields:
 ### Create a note
 
 ```bash
-nazar-object create note "coreos-gpu-passthrough" --title="CoreOS GPU Passthrough" --area=tech --tags=coreos,gpu,virtualization
+nazar-core object create note "coreos-gpu-passthrough" --title="CoreOS GPU Passthrough" --area=tech --tags=coreos,gpu,virtualization
 ```
 
 Then append body content by editing the file directly.
@@ -34,25 +34,25 @@ Then append body content by editing the file directly.
 ### Read a note
 
 ```bash
-nazar-object read note microos-gpu-passthrough
+nazar-core object read note microos-gpu-passthrough
 ```
 
 ### Search notes
 
 ```bash
-nazar-object search "GPU passthrough"
+nazar-core object search "GPU passthrough"
 ```
 
 ### List notes by area
 
 ```bash
-nazar-object list note --area=tech
+nazar-core object list note --area=tech
 ```
 
 ### Link notes to other objects
 
 ```bash
-nazar-object link note/microos-gpu-passthrough task/setup-vm
+nazar-core object link note/microos-gpu-passthrough task/setup-vm
 ```
 
 ## Behavior Guidelines
@@ -62,4 +62,4 @@ nazar-object link note/microos-gpu-passthrough task/setup-vm
 - Use the `resource` field for PARA resource categorization.
 - Suggest linking notes to related tasks, journal entries, or other notes.
 - For archiving outdated notes, update status to `archived` rather than deleting.
-- When searching, prefer `nazar-object search` for full-text and `nazar-object list note --area=X` for categorical browsing.
+- When searching, prefer `nazar-core object search` for full-text and `nazar-core object list note --area=X` for categorical browsing.

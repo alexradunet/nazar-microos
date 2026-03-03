@@ -79,7 +79,7 @@ If expected sections are missing, log an error and ask the user to intervene.
 ### Step 1: Create Evolution Object
 
 ```bash
-nazar-object create evolution "<slug>" \
+nazar-core object create evolution "<slug>" \
   --title="<title>" --status=proposed --agent=hermes \
   --risk=<low|medium|high> --area=<area>
 ```
@@ -87,7 +87,7 @@ nazar-object create evolution "<slug>" \
 ### Step 2: Spawn Athena for Planning
 
 ```bash
-nazar-object update evolution "<slug>" --status=planning --agent=athena
+nazar-core object update evolution "<slug>" --status=planning --agent=athena
 pi -p "<evolution request context + handoff template>" \
   --skill skills/athena-technical-architect/SKILL.md
 ```
@@ -97,7 +97,7 @@ Parse the implementation plan from Athena's response.
 ### Step 3: Spawn Hephaestus for Implementation
 
 ```bash
-nazar-object update evolution "<slug>" --status=implementing --agent=hephaestus
+nazar-core object update evolution "<slug>" --status=implementing --agent=hephaestus
 pi -p "<implementation plan + acceptance criteria>" \
   --skill skills/hephaestus-maintainer/SKILL.md
 ```
@@ -107,7 +107,7 @@ Parse the change package from Hephaestus's response.
 ### Step 4: Spawn Themis for Review
 
 ```bash
-nazar-object update evolution "<slug>" --status=reviewing --agent=themis
+nazar-core object update evolution "<slug>" --status=reviewing --agent=themis
 pi -p "<change package + plan scope for comparison>" \
   --skill skills/themis-reviewer/SKILL.md
 ```
@@ -123,7 +123,7 @@ Parse the verdict from Themis's response.
 ### Step 6: Spawn Athena for Conformance
 
 ```bash
-nazar-object update evolution "<slug>" --status=conformance --agent=athena
+nazar-core object update evolution "<slug>" --status=conformance --agent=athena
 pi -p "<original plan + change package + review report>" \
   --skill skills/athena-technical-architect/SKILL.md
 ```
@@ -136,11 +136,11 @@ Present conformance summary to the user. Update evolution based on decision:
 
 ```bash
 # If approved:
-nazar-object update evolution "<slug>" --status=approved --agent=human
+nazar-core object update evolution "<slug>" --status=approved --agent=human
 # After apply:
-nazar-object update evolution "<slug>" --status=applied --agent=hermes
+nazar-core object update evolution "<slug>" --status=applied --agent=hermes
 # If rejected:
-nazar-object update evolution "<slug>" --status=rejected --agent=human
+nazar-core object update evolution "<slug>" --status=rejected --agent=human
 ```
 
 ## Rework Loop (Max 2 Cycles)
@@ -154,7 +154,7 @@ When Themis returns `rework`:
 
 ```bash
 # Track rework count in evolution body
-nazar-object update evolution "<slug>" --status=implementing --agent=hephaestus
+nazar-core object update evolution "<slug>" --status=implementing --agent=hephaestus
 # Append rework notes below frontmatter
 ```
 
@@ -171,7 +171,7 @@ When Nazar identifies a need for a new containerized service (e.g. user asks "tr
 ### Creation
 
 ```bash
-nazar-object create evolution "<slug>" \
+nazar-core object create evolution "<slug>" \
   --title="<description>" --status=proposed --agent=hermes \
   --risk=medium --area=containers
 ```

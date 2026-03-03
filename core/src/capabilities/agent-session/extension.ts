@@ -8,13 +8,12 @@
  * - Log agent and tool lifecycle events for observability
  *
  * Heavy OS context (bootc status, services, containers, bridge lists) is NOT
- * pre-loaded here. The agent can inspect system state on demand via:
- *   nazar-core os status|services|containers
- *   nazar-core bridge list
+ * pre-loaded here. The agent inspects system state on demand via direct
+ * shell commands (bootc, systemctl, podman, journalctl).
  *
  * Does NOT register Pi tools directly — tool registration requires the full
  * Pi ExtensionAPI which is only available inside the SDK runtime.
- * For CLI-based tools, see capabilities/object-tools/ and capabilities/os-tools/.
+ * For the object store CLI, see cli.ts (object subcommand).
  * For the AgentBridge that wires this extension, see ./pi-agent-bridge.ts.
  *
  * Registered via extensionFactories on DefaultResourceLoader.
@@ -133,14 +132,16 @@ export function createNazarExtension(
                 "",
                 "## Available CLI Tools",
                 "Object store: `nazar-core object create|read|list|update|search|link`",
-                "OS operations: `nazar-core os status|upgrade-check|upgrade|services|logs|containers|timers|restart-service|restart-container`",
+                "OS operations: `bootc status`, `systemctl list-units 'nazar-*'`, `podman ps --filter name=nazar-`, `journalctl -u <service>`",
                 "Bridge management: `nazar-core bridge list|install|remove`",
                 "",
                 "## System Inspection",
                 "Use these commands to inspect system state on demand:",
-                "- `nazar-core os status` — bootc and system status",
-                "- `nazar-core os services` — list nazar services and their states",
-                "- `nazar-core os containers` — list running containers and health",
+                "- `bootc status` — OS image, staged updates, rollback availability",
+                "- `systemctl list-units 'nazar-*' --no-pager` — list nazar services and states",
+                "- `podman ps --format json --filter 'name=nazar-'` — running containers and health",
+                "- `journalctl -u <service> --no-pager -n 50` — recent service logs",
+                "- `systemctl list-timers 'nazar-*' --no-pager` — scheduled timers",
                 "- `nazar-core bridge list` — available and installed bridges",
               ];
 

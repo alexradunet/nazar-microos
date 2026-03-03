@@ -43,16 +43,16 @@ describe("createNazarExtension", () => {
       "should include System Inspection section",
     );
     assert.ok(
-      content.includes("nazar-core os status"),
-      "should mention nazar-core os status",
+      content.includes("bootc status"),
+      "should mention bootc status",
     );
     assert.ok(
-      content.includes("nazar-core os services"),
-      "should mention nazar-core os services",
+      content.includes("systemctl list-units"),
+      "should mention systemctl list-units",
     );
     assert.ok(
-      content.includes("nazar-core os containers"),
-      "should mention nazar-core os containers",
+      content.includes("podman ps"),
+      "should mention podman ps",
     );
     assert.ok(
       content.includes("nazar-core bridge list"),

@@ -6,7 +6,7 @@
  * ```
  * register(cap)            → capability is known to the registry
  *   └─ initCapability(name) → cap.init(config) called once, registration stored
- *       └─ getExtensionFactories() / getSkillPaths() / getCliCommands()
+ *       └─ getExtensionFactories() / getSkillPaths()
  *           └─ disposeAll() → cap.dispose() called in reverse registration order
  * ```
  *
@@ -62,16 +62,6 @@ export interface CoreServices extends LeafServices {
   objectStore: IObjectStore;
 }
 
-/** CLI command contributed by a capability. */
-export interface CliCommand {
-  name: string;
-  description: string;
-  run(
-    args: string[],
-    flags: Record<string, string>,
-    boolFlags: Set<string>,
-  ): Promise<void> | void;
-}
 
 /**
  * What a capability contributes when initialized.
@@ -87,8 +77,7 @@ export interface CapabilityRegistration {
   extensionFactory?: ExtensionFactory;
   /** Pi skill directories provided by this capability. */
   skillPaths?: string[];
-  /** CLI subcommands provided by this capability. */
-  cliCommands?: CliCommand[];
+
   /** Validate the capability's config section. Returns error messages. */
   validateConfig?: (config: NazarConfig) => string[];
 }

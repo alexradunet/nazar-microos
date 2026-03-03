@@ -83,8 +83,6 @@ Present the available modules with recommended defaults:
 | Module           | Default | Description                      |
 | ---------------- | ------- | -------------------------------- |
 | `tailscale`      | on      | VPN for secure remote access     |
-| `syncthing`      | on      | File synchronization             |
-| `ttyd`           | on      | Web terminal (Tailscale-only)    |
 | `objects`        | on      | Object store data directory      |
 | `heartbeat`      | off     | Periodic agent observation cycle |
 | `signal`         | off     | Signal messaging channel         |
@@ -163,8 +161,6 @@ All module enable flags live in `/etc/nazar/nazar.yaml`:
 ```yaml
 modules:
   tailscale: true
-  syncthing: true
-  ttyd: true
   objects: true
   heartbeat: false
   signal: false

@@ -27,31 +27,31 @@ Task objects use frontmatter fields:
 ### Add a task
 
 ```bash
-nazar-object create task "fix-bike-tire" --title="Fix bike tire" --status=active --priority=high --area=household
+nazar-core object create task "fix-bike-tire" --title="Fix bike tire" --status=active --priority=high --area=household
 ```
 
 ### Complete a task
 
 ```bash
-nazar-object update task "fix-bike-tire" --status=done
+nazar-core object update task "fix-bike-tire" --status=done
 ```
 
 ### List active tasks
 
 ```bash
-nazar-object list task --status=active
+nazar-core object list task --status=active
 ```
 
 ### List tasks by area
 
 ```bash
-nazar-object list task --area=household
+nazar-core object list task --area=household
 ```
 
 ### List tasks by project
 
 ```bash
-nazar-object list task --project=home-renovation
+nazar-core object list task --project=home-renovation
 ```
 
 ### Check overdue tasks
@@ -61,7 +61,7 @@ List all active tasks and compare `due` dates to today.
 ### Link task to person or event
 
 ```bash
-nazar-object link task/fix-bike-tire person/alice
+nazar-core object link task/fix-bike-tire person/alice
 ```
 
 ## Behavior Guidelines

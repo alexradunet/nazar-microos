@@ -51,7 +51,7 @@ Any -> rejected | stalled
 ### Create an evolution
 
 ```bash
-nazar-object create evolution "add-health-tracking" \
+nazar-core object create evolution "add-health-tracking" \
   --title="Add health tracking object type" \
   --status=proposed --agent=hermes --risk=low --area=objects
 ```
@@ -59,32 +59,32 @@ nazar-object create evolution "add-health-tracking" \
 ### Read an evolution
 
 ```bash
-nazar-object read evolution "add-health-tracking"
+nazar-core object read evolution "add-health-tracking"
 ```
 
 ### Update status and agent
 
 ```bash
-nazar-object update evolution "add-health-tracking" --status=planning --agent=athena
+nazar-core object update evolution "add-health-tracking" --status=planning --agent=athena
 ```
 
 ### List evolutions by status
 
 ```bash
-nazar-object list evolution --status=proposed
-nazar-object list evolution --status=implementing
+nazar-core object list evolution --status=proposed
+nazar-core object list evolution --status=implementing
 ```
 
 ### List active evolutions (not terminal)
 
 ```bash
-nazar-object list evolution | grep -v -E 'status: (applied|rejected)'
+nazar-core object list evolution | grep -v -E 'status: (applied|rejected)'
 ```
 
 ### Link evolution to related objects
 
 ```bash
-nazar-object link evolution/add-health-tracking task/research-health-apis
+nazar-core object link evolution/add-health-tracking task/research-health-apis
 ```
 
 ## Behavior Guidelines
@@ -103,7 +103,7 @@ When `area: containers`, the evolution object includes a `containers` list of se
 ### Creating a container evolution
 
 ```bash
-nazar-object create evolution "add-whisper-stt" \
+nazar-core object create evolution "add-whisper-stt" \
   --title="Add Whisper C++ speech recognition" \
   --status=proposed --agent=hermes --risk=medium \
   --area=containers

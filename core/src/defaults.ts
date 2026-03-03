@@ -16,7 +16,6 @@
  *
  * Phase 2 — Capabilities that need leaf services
  *   object-store  (needs: frontmatterParser, systemExecutor)
- *   os-tools      (needs: systemExecutor)
  *   discovery     (needs: frontmatterParser, systemExecutor)
  *   → After this phase, IObjectStore is available.
  *
@@ -37,7 +36,6 @@ import { DiscoveryCapability } from "./capabilities/discovery/index.js";
 import { EvolutionCapability } from "./capabilities/evolution/index.js";
 import { FrontmatterCapability } from "./capabilities/frontmatter/index.js";
 import { ObjectStoreCapability } from "./capabilities/object-store/index.js";
-import { OsToolsCapability } from "./capabilities/os-tools/index.js";
 import { PersonaCapability } from "./capabilities/persona/index.js";
 import { SetupCapability } from "./capabilities/setup/index.js";
 import { SystemExecutorCapability } from "./capabilities/system-executor/index.js";
@@ -55,7 +53,6 @@ export function createDefaultRegistry(): CapabilityRegistry {
   registry.register(new ObjectStoreCapability());
   registry.register(new AffordancesCapability());
   registry.register(new SetupCapability());
-  registry.register(new OsToolsCapability());
   registry.register(new EvolutionCapability());
   registry.register(new DiscoveryCapability());
   registry.register(new AgentSessionCapability());
@@ -82,7 +79,6 @@ export async function createInitializedRegistry(
   const objectStore = new ObjectStoreCapability();
   const affordances = new AffordancesCapability();
   const setup = new SetupCapability();
-  const osTools = new OsToolsCapability();
   const evolution = new EvolutionCapability();
   const discovery = new DiscoveryCapability();
   const agentSession = new AgentSessionCapability();
@@ -95,7 +91,6 @@ export async function createInitializedRegistry(
     objectStore,
     affordances,
     setup,
-    osTools,
     evolution,
     discovery,
     agentSession,
@@ -128,7 +123,6 @@ export async function createInitializedRegistry(
   const phase2Config: CapabilityConfig = { nazar, services: leafServices };
 
   await registry.initCapability("object-store", phase2Config);
-  await registry.initCapability("os-tools", phase2Config);
   await registry.initCapability("discovery", phase2Config);
 
   // Phase 3: Full services (with object store), init dependents

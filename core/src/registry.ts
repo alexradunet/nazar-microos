@@ -6,7 +6,7 @@
  *   - Store capability instances by name
  *   - Initialize capabilities on demand or all at once
  *   - Aggregate cross-capability outputs (extension factories, skill paths,
- *     CLI commands, config validators)
+ *     config validators)
  *   - Dispose all capabilities in reverse registration order on shutdown
  *
  * Does NOT handle: initialization ordering or phased bootstrapping. That

@@ -20,7 +20,7 @@ find "${NAZAR_OBJECTS_DIR:-$HOME/Nazar/data/objects}" -name '*.md' -mmin -60 -ty
 
 ```bash
 # List active tasks (check due dates against today)
-nazar-object list task --status=active
+nazar-core object list task --status=active
 ```
 
 Compare `due` fields against today's date. Flag any overdue items.
@@ -30,7 +30,7 @@ Compare `due` fields against today's date. Flag any overdue items.
 Check if today's journal entry exists:
 
 ```bash
-nazar-object read journal "$(date +%Y-%m-%d)" 2>/dev/null
+nazar-core object read journal "$(date +%Y-%m-%d)" 2>/dev/null
 ```
 
 If not, and it's after morning hours, consider creating a gentle prompt.
@@ -57,7 +57,7 @@ Based on observations, choose one of:
 Create a system journal entry:
 
 ```bash
-nazar-object create journal "$(date +%Y-%m-%d)-heartbeat-$(date +%H%M)" \
+nazar-core object create journal "$(date +%Y-%m-%d)-heartbeat-$(date +%H%M)" \
   --title="Heartbeat $(date +%H:%M)" \
   --area=system \
   --tags=heartbeat,automated

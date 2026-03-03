@@ -155,8 +155,8 @@
   "hotPaths": [
     {
       "path": "",
-      "accessCount": 104,
-      "lastAccessed": 1772571864274,
+      "accessCount": 119,
+      "lastAccessed": 1772579555080,
       "type": "directory"
     },
     {
@@ -250,6 +250,12 @@
       "type": "file"
     },
     {
+      "path": "package.json",
+      "accessCount": 10,
+      "lastAccessed": 1772579001026,
+      "type": "file"
+    },
+    {
       "path": "nazar-core/src/ports/agent-bridge.ts",
       "accessCount": 9,
       "lastAccessed": 1772561958053,
@@ -271,12 +277,6 @@
       "path": "nazar-core/src/extension.ts",
       "accessCount": 8,
       "lastAccessed": 1772562722326,
-      "type": "file"
-    },
-    {
-      "path": "package.json",
-      "accessCount": 8,
-      "lastAccessed": 1772570815382,
       "type": "file"
     },
     {
@@ -412,6 +412,12 @@
       "type": "directory"
     },
     {
+      "path": "README.md",
+      "accessCount": 3,
+      "lastAccessed": 1772572624871,
+      "type": "file"
+    },
+    {
       "path": "nazar-core/src/capabilities/persona/fs-persona-loader.ts",
       "accessCount": 2,
       "lastAccessed": 1772553813572,
@@ -433,12 +439,6 @@
       "path": "nazar-core/agent/skills/tdd/SKILL.md",
       "accessCount": 2,
       "lastAccessed": 1772562012066,
-      "type": "file"
-    },
-    {
-      "path": "README.md",
-      "accessCount": 2,
-      "lastAccessed": 1772570922717,
       "type": "file"
     },
     {
