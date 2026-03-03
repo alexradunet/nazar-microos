@@ -2,6 +2,7 @@ FROM nazar-base
 
 USER root
 # whatsapp-web.js needs Chromium for Puppeteer
+# Chromium version unpinned: tracks Debian stable; pinning would break on point releases
 RUN apt-get update && apt-get install -y chromium --no-install-recommends && rm -rf /var/lib/apt/lists/*
 COPY bridges/whatsapp/ bridges/whatsapp/
 RUN npm -w bridges/whatsapp run build

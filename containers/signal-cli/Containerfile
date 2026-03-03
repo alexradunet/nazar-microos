@@ -1,4 +1,5 @@
-FROM docker.io/eclipse-temurin:25-jre
+# To update digest: see https://hub.docker.com/_/eclipse-temurin/tags?name=25-jre
+FROM docker.io/eclipse-temurin:25-jre@sha256:847c75a57084a3cf398066cd2b992b7893441cf69efa2e597c4286d425d77643
 
 ARG SIGNAL_CLI_VERSION=0.14.0
 
@@ -6,9 +7,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates netcat-openbsd \
   && rm -rf /var/lib/apt/lists/*
 
+# To update hash: curl -fsSL <url> | sha256sum
+ARG SIGNAL_CLI_SHA256=ae99227274245ed6dc12030f767a658ed074f6efdd2917be9cfe1ee43aea5136
+
 RUN curl -fsSL \
   "https://github.com/AsamK/signal-cli/releases/download/v${SIGNAL_CLI_VERSION}/signal-cli-${SIGNAL_CLI_VERSION}.tar.gz" \
   -o /tmp/signal-cli.tar.gz \
+  && echo "${SIGNAL_CLI_SHA256}  /tmp/signal-cli.tar.gz" | sha256sum -c - \
   && tar -xzf /tmp/signal-cli.tar.gz -C /opt --strip-components=1 \
   && rm /tmp/signal-cli.tar.gz
 

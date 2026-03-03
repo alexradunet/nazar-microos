@@ -70,7 +70,19 @@ export function readConfig(configPath: string): NazarConfig {
     }
   }
 
-  return config as unknown as NazarConfig;
+  return {
+    hostname: config.hostname as string,
+    primary_user: config.primary_user as string,
+    timezone: config.timezone as string | undefined,
+    heartbeat: heartbeat as NazarConfig["heartbeat"],
+    ttyd: ttyd as NazarConfig["ttyd"],
+    signal: config.signal as NazarConfig["signal"],
+    whatsapp: config.whatsapp as NazarConfig["whatsapp"],
+    ui: ui as NazarConfig["ui"],
+    pi: config.pi as NazarConfig["pi"],
+    evolution: config.evolution as NazarConfig["evolution"],
+    firewall: config.firewall as NazarConfig["firewall"],
+  };
 }
 
 /**

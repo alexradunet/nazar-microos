@@ -71,18 +71,30 @@ export class SignalBotChannel implements MessageChannel {
   private healthInterval?: ReturnType<typeof setInterval>;
   private processingQueue: Promise<void> = Promise.resolve();
   private lineBuffer = "";
+  private queueDepth = 0;
+  private static readonly MAX_QUEUE_DEPTH = 100;
 
   constructor(config: SignalBridgeConfig) {
     this.config = config;
   }
 
   private enqueue(fn: () => Promise<void>): void {
-    this.processingQueue = this.processingQueue.then(fn).catch((err) => {
-      console.error(
-        "Queue error:",
-        err instanceof Error ? err.message : String(err),
-      );
-    });
+    if (this.queueDepth >= SignalBotChannel.MAX_QUEUE_DEPTH) {
+      console.warn(`Queue full (${this.queueDepth} pending), dropping message`);
+      return;
+    }
+    this.queueDepth++;
+    this.processingQueue = this.processingQueue
+      .then(fn)
+      .catch((err) => {
+        console.error(
+          "Queue error:",
+          err instanceof Error ? err.message : String(err),
+        );
+      })
+      .finally(() => {
+        this.queueDepth--;
+      });
   }
 
   onMessage(handler: (msg: IncomingMessage) => Promise<string>): void {
@@ -134,7 +146,8 @@ export class SignalBotChannel implements MessageChannel {
             `Failed to connect to signal-cli after ${MAX_RETRIES} attempts: ${msg}`,
           );
         }
-        const delay = BASE_DELAY_MS * 2 ** (attempt - 1);
+        const baseDelay = BASE_DELAY_MS * 2 ** (attempt - 1);
+        const delay = Math.round(baseDelay * (0.5 + Math.random() * 0.5));
         console.log(
           `Connection attempt ${attempt}/${MAX_RETRIES} failed (${msg}), retrying in ${delay}ms...`,
         );
@@ -196,6 +209,7 @@ export class SignalBotChannel implements MessageChannel {
     try {
       msg = JSON.parse(line) as Record<string, unknown>;
     } catch {
+      console.warn("Malformed JSON-RPC line:", line.substring(0, 200));
       return;
     }
 
@@ -288,6 +302,15 @@ async function main(): Promise<void> {
     return suffix ? `${response.text}\n\n${suffix}` : response.text;
   });
   await channel.connect();
+
+  const shutdown = async () => {
+    console.log("Shutting down gracefully...");
+    bridge.dispose();
+    await channel.disconnect();
+    process.exit(0);
+  };
+  process.on("SIGTERM", shutdown);
+  process.on("SIGINT", shutdown);
 }
 
 // Only run main when executed directly (not when imported for tests).

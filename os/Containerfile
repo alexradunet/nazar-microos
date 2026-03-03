@@ -8,7 +8,7 @@ RUN dnf install -y \
     && rm -rf /var/log/dnf5.log /var/cache/libdnf5 /var/lib/dnf /var/cache/ldconfig
 
 # Pi coding agent
-RUN HOME=/tmp npm install -g @mariozechner/pi-coding-agent
+RUN HOME=/tmp npm install -g @mariozechner/pi-coding-agent@0.55.3
 
 # System user + directory definitions (systemd creates at boot)
 COPY os/sysconfig/sysusers.d/nazar.conf /usr/lib/sysusers.d/nazar.conf

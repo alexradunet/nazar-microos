@@ -1,4 +1,5 @@
-FROM docker.io/node:22-slim
+# To update digest: see https://hub.docker.com/_/node/tags?name=22-slim
+FROM docker.io/node:22-slim@sha256:7cc56ef285a8568121537d17b05e72128f01b89c54607b51acf084a50ef483f3
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \

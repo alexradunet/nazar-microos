@@ -55,7 +55,7 @@ interface AgentSession {
 
 // --- AgentBridge class ---
 
-const DEFAULT_MAX_SESSIONS = 50;
+const DEFAULT_MAX_SESSIONS = Number(process.env.NAZAR_MAX_SESSIONS) || 50;
 
 export class AgentBridge {
   private config: BridgeConfig;
@@ -156,46 +156,51 @@ export class AgentBridge {
     }
 
     const activeSession = session;
-    const agentPromise = new Promise<AgentResponse>((resolve, reject) => {
-      let accumulated = "";
-      const unsub = activeSession.subscribe((event: AgentSessionEvent) => {
-        if (
-          event.type === "message_update" &&
-          event.assistantMessageEvent?.type === "text_delta"
-        ) {
-          accumulated += event.assistantMessageEvent.delta;
-        }
-        if (event.type === "auto_compaction_start") {
-          console.log(`[${from}] Auto-compaction started`);
-        }
-        if (event.type === "auto_compaction_end") {
-          console.log(`[${from}] Auto-compaction completed`);
-        }
-        if (
-          event.type === "idle" ||
-          event.type === "agent_end" ||
-          event.type === "turn_end"
-        ) {
-          unsub();
-          const raw = accumulated.trim() || "(no response)";
-          resolve(parseAgentResponse(raw));
-        }
-        if (event.type === "error") {
-          unsub();
-          reject(new Error(event.message));
-        }
+    let unsub: (() => void) | undefined;
+    try {
+      const agentPromise = new Promise<AgentResponse>((resolve, reject) => {
+        let accumulated = "";
+        unsub = activeSession.subscribe((event: AgentSessionEvent) => {
+          if (
+            event.type === "message_update" &&
+            event.assistantMessageEvent?.type === "text_delta"
+          ) {
+            accumulated += event.assistantMessageEvent.delta;
+          }
+          if (event.type === "auto_compaction_start") {
+            console.log(`[${from}] Auto-compaction started`);
+          }
+          if (event.type === "auto_compaction_end") {
+            console.log(`[${from}] Auto-compaction completed`);
+          }
+          if (
+            event.type === "idle" ||
+            event.type === "agent_end" ||
+            event.type === "turn_end"
+          ) {
+            unsub?.();
+            const raw = accumulated.trim() || "(no response)";
+            resolve(parseAgentResponse(raw));
+          }
+          if (event.type === "error") {
+            unsub?.();
+            reject(new Error(event.message));
+          }
+        });
+        activeSession.prompt(text).catch(reject);
       });
-      activeSession.prompt(text).catch(reject);
-    });
 
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(
-        () => reject(new Error("Agent response timed out")),
-        this.config.timeoutMs,
-      );
-    });
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(
+          () => reject(new Error("Agent response timed out")),
+          this.config.timeoutMs,
+        );
+      });
 
-    return Promise.race([agentPromise, timeoutPromise]);
+      return await Promise.race([agentPromise, timeoutPromise]);
+    } finally {
+      unsub?.();
+    }
   }
 
   dispose(): void {

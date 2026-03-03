@@ -66,18 +66,30 @@ export class WhatsAppBotChannel implements MessageChannel {
   private client?: import("whatsapp-web.js").Client;
   private healthInterval?: ReturnType<typeof setInterval>;
   private processingQueue: Promise<void> = Promise.resolve();
+  private queueDepth = 0;
+  private static readonly MAX_QUEUE_DEPTH = 100;
 
   constructor(config: WhatsAppBridgeConfig) {
     this.config = config;
   }
 
   private enqueue(fn: () => Promise<void>): void {
-    this.processingQueue = this.processingQueue.then(fn).catch((err) => {
-      console.error(
-        "Queue error:",
-        err instanceof Error ? err.message : String(err),
-      );
-    });
+    if (this.queueDepth >= WhatsAppBotChannel.MAX_QUEUE_DEPTH) {
+      console.warn(`Queue full (${this.queueDepth} pending), dropping message`);
+      return;
+    }
+    this.queueDepth++;
+    this.processingQueue = this.processingQueue
+      .then(fn)
+      .catch((err) => {
+        console.error(
+          "Queue error:",
+          err instanceof Error ? err.message : String(err),
+        );
+      })
+      .finally(() => {
+        this.queueDepth--;
+      });
   }
 
   onMessage(handler: (msg: IncomingMessage) => Promise<string>): void {
@@ -186,7 +198,21 @@ export class WhatsAppBotChannel implements MessageChannel {
       });
     });
 
-    await client.initialize();
+    const initTimeout = 60_000;
+    await Promise.race([
+      client.initialize(),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                `WhatsApp client.initialize() timed out after ${initTimeout}ms`,
+              ),
+            ),
+          initTimeout,
+        ),
+      ),
+    ]);
     this.client = client;
 
     console.log("WhatsApp client initialized");
@@ -234,6 +260,15 @@ async function main(): Promise<void> {
     return suffix ? `${response.text}\n\n${suffix}` : response.text;
   });
   await channel.connect();
+
+  const shutdown = async () => {
+    console.log("Shutting down gracefully...");
+    bridge.dispose();
+    await channel.disconnect();
+    process.exit(0);
+  };
+  process.on("SIGTERM", shutdown);
+  process.on("SIGINT", shutdown);
 }
 
 // Only run main when executed directly (not when imported for tests).
