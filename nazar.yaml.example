@@ -18,7 +18,7 @@ signal:
 ui:
   port: 3000
 
-pi:
+agent:
   skills_dir: /usr/local/share/nazar/skills
   persona_dir: /usr/local/share/nazar/persona
 

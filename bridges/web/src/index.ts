@@ -1,11 +1,7 @@
-import fs from "node:fs";
 import http from "node:http";
-import path from "node:path";
-import {
-  type AgentSessionCapability,
-  bridgeNazarConfig,
-  createInitializedRegistry,
-} from "@nazar/core";
+import type { IncomingMessage, MessageChannel } from "@nazar/core";
+import { bootstrapBridge } from "@nazar/core";
+import type { WebBridgeConfig } from "./config.js";
 import { loadConfig } from "./config.js";
 import { handleAgentAction } from "./routes/agents.js";
 import { handleChat } from "./routes/chat.js";
@@ -13,30 +9,29 @@ import { serveStatic } from "./routes/static.js";
 import { renderChatPage } from "./templates/chat.js";
 import { renderLayout } from "./templates/layout.js";
 
+/**
+ * No-op MessageChannel for the Web bridge.
+ * The HTTP server handles message routing directly via bridge.processMessage(),
+ * so the channel adapter is a structural shim for bootstrapBridge().
+ */
+class WebChannel implements MessageChannel {
+  readonly name = "web";
+  onMessage(_handler: (msg: IncomingMessage) => Promise<string>): void {}
+  async sendMessage(_to: string, _text: string): Promise<void> {}
+  async connect(): Promise<void> {}
+  async disconnect(): Promise<void> {}
+}
+
 async function main(): Promise<void> {
   const config = loadConfig();
 
-  // Validate Pi agent config directory has required files
-  const authFile = path.join(config.piDir, "auth.json");
-  if (!fs.existsSync(authFile)) {
-    throw new Error(
-      `Pi agent auth not found at ${authFile}. ` +
-        "Provision it to /var/lib/nazar/pi-config/agent/ on the host.",
-    );
-  }
-
-  console.log("Nazar Web Bridge starting...");
-  console.log(`  Port: ${config.port}`);
-  console.log(`  Pi dir: ${config.piDir}`);
-  console.log(`  Objects dir: ${config.objectsDir}`);
-  console.log(`  Persona dir: ${config.personaDir}`);
-  console.log(`  System MD: ${config.systemMdPath || "(none)"}`);
-  console.log(`  Pi model: ${config.piModel || "(default)"}`);
-  console.log(`  Pi transport: ${config.piTransport || "(default)"}`);
-
-  const registry = await createInitializedRegistry(bridgeNazarConfig());
-  const agentSession = registry.get<AgentSessionCapability>("agent-session");
-  const bridge = agentSession.createBridge(config);
+  const { bridge } = await bootstrapBridge({
+    config,
+    createChannel: () => new WebChannel(),
+    logExtra: (c: WebBridgeConfig) => {
+      console.log(`  Port: ${c.port}`);
+    },
+  });
 
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", `http://${req.headers.host}`);

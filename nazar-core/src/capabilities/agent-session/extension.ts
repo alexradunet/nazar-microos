@@ -26,7 +26,22 @@ interface SessionBeforeCompactResult {
 type ExtensionEvent =
   | { type: "context"; messages: AgentMessage[] }
   | { type: "tool_call"; tool: string; input: Record<string, unknown> }
-  | { type: "session_before_compact" };
+  | { type: "session_before_compact" }
+  | { type: "agent_start" }
+  | { type: "agent_end"; messages: unknown[] }
+  | {
+      type: "tool_execution_start";
+      toolCallId: string;
+      toolName: string;
+      args: unknown;
+    }
+  | {
+      type: "tool_execution_end";
+      toolCallId: string;
+      toolName: string;
+      result: unknown;
+      isError: boolean;
+    };
 
 type ExtensionEventResult =
   | ContextEventResult
@@ -45,6 +60,10 @@ export interface ExtensionFactory {
   create(): Extension;
 }
 
+export interface NazarExtensionConfig {
+  channelName?: string;
+}
+
 /** Dangerous bash patterns that should be blocked in tool calls. */
 const BLOCKED_PATTERNS = [
   /\brm\s+-rf\s+\//, // rm -rf /
@@ -59,7 +78,36 @@ function isDangerousCommand(command: string): boolean {
   return BLOCKED_PATTERNS.some((p) => p.test(command));
 }
 
-export function createNazarExtension(): ExtensionFactory {
+function getCompactionInstructions(channelName?: string): string {
+  switch (channelName) {
+    case "signal":
+      return (
+        "Preserve: user identity, current task, objects referenced. " +
+        "Use concise format — Signal is mobile-first. " +
+        "Discard: intermediate tool outputs, verbose logs."
+      );
+    case "web":
+      return (
+        "Preserve: user identity, current task, objects referenced, UI navigation state. " +
+        "Discard: intermediate tool outputs, verbose logs, redundant context."
+      );
+    case "whatsapp":
+      return (
+        "Preserve: user identity, current task, objects referenced. " +
+        "Use concise format — WhatsApp is mobile-first. " +
+        "Discard: intermediate tool outputs, verbose logs."
+      );
+    default:
+      return (
+        "Preserve: user identity, current task, objects referenced, and conversation tone. " +
+        "Discard: intermediate tool outputs, verbose logs, and redundant context."
+      );
+  }
+}
+
+export function createNazarExtension(
+  config?: NazarExtensionConfig,
+): ExtensionFactory {
   return {
     create(): Extension {
       return {
@@ -100,11 +148,33 @@ export function createNazarExtension(): ExtensionFactory {
             case "session_before_compact": {
               return {
                 compaction: {
-                  instructions:
-                    "Preserve: user identity, current task, objects referenced, and conversation tone. " +
-                    "Discard: intermediate tool outputs, verbose logs, and redundant context.",
+                  instructions: getCompactionInstructions(config?.channelName),
                 },
               } satisfies SessionBeforeCompactResult;
+            }
+
+            case "agent_start": {
+              console.log("[nazar] Agent turn started");
+              return;
+            }
+
+            case "agent_end": {
+              console.log("[nazar] Agent turn completed");
+              return;
+            }
+
+            case "tool_execution_start": {
+              console.log(
+                `[nazar] Tool: ${event.toolName} (${event.toolCallId})`,
+              );
+              return;
+            }
+
+            case "tool_execution_end": {
+              console.log(
+                `[nazar] Tool: ${event.toolName} ${event.isError ? "FAILED" : "OK"}`,
+              );
+              return;
             }
 
             default:

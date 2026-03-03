@@ -27,14 +27,14 @@ function makeConfig(
     personaDir: path.join(tmpDir, "persona"),
     systemMdPath: "",
     channelName: "WhatsApp",
-    piCommand: "printf",
-    piDir: tmpDir,
+    agentCommand: "printf",
+    agentDir: tmpDir,
     repoRoot: tmpDir,
     objectsDir: path.join(tmpDir, "objects"),
     skillsDir: path.join(tmpDir, "skills"),
     timeoutMs: 5_000,
-    piModel: undefined,
-    piTransport: undefined,
+    model: undefined,
+    transport: undefined,
     ...overrides,
   };
 }

@@ -10,7 +10,11 @@ export {
 } from "./affordances.js";
 // --- Concrete implementations ---
 export type { BridgeConfig } from "./agent-bridge.js";
-export { AgentBridge, isAllowed, validatePhoneNumber } from "./agent-bridge.js";
+export {
+  AgentBridge,
+  isAllowed,
+  validatePhoneNumber,
+} from "./agent-bridge.js";
 export type { BootstrapOptions, BootstrapResult } from "./bridge-bootstrap.js";
 // --- Bridge bootstrap ---
 export {

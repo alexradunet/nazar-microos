@@ -4,7 +4,7 @@
  */
 export type { BridgeConfig } from "./capabilities/agent-session/pi-agent-bridge.js";
 export {
+  AgentBridge,
   isAllowed,
-  PiAgentBridge as AgentBridge,
   validatePhoneNumber,
 } from "./capabilities/agent-session/pi-agent-bridge.js";

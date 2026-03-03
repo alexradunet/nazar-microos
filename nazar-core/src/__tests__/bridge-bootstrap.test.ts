@@ -18,12 +18,12 @@ describe("loadBaseBridgeConfig", () => {
     assert.equal(config.channelName, "Test");
     assert.deepEqual(config.allowedContacts, []);
     assert.equal(config.timeoutMs, 120_000);
-    assert.ok(config.piDir);
+    assert.ok(config.agentDir);
     assert.ok(config.objectsDir);
     assert.ok(config.skillsDir);
     assert.ok(config.personaDir);
     assert.ok(config.repoRoot);
-    assert.ok(config.piCommand);
+    assert.ok(config.agentCommand);
   });
 });
 

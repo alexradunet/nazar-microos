@@ -77,7 +77,7 @@ export class YamlConfigReader implements IConfigReader {
       signal: config.signal as NazarConfig["signal"],
       whatsapp: config.whatsapp as NazarConfig["whatsapp"],
       ui: ui as NazarConfig["ui"],
-      pi: config.pi as NazarConfig["pi"],
+      agent: config.agent as NazarConfig["agent"],
       evolution: config.evolution as NazarConfig["evolution"],
       firewall: config.firewall as NazarConfig["firewall"],
     };

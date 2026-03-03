@@ -7,16 +7,17 @@ export type { IncomingMessage } from "./ports/message-channel.js";
 // Re-export value types from ports that are also used as standalone types
 export type { ObjectData, ObjectRef } from "./ports/object-store.js";
 
-/** Configuration for Pi agent integration. */
+/** Configuration for agent integration. */
 export interface AgentConfig {
-  piCommand: string;
-  piDir: string;
+  agentCommand: string;
+  agentDir: string;
   repoRoot: string;
   objectsDir: string;
   skillsDir: string;
   timeoutMs: number;
-  piModel?: string;
-  piTransport?: "sse" | "websocket" | "auto";
+  model?: string;
+  transport?: "sse" | "websocket" | "auto";
+  sessionsDir?: string;
 }
 
 /** Nazar system configuration (nazar.yaml schema). */
@@ -29,7 +30,7 @@ export interface NazarConfig {
   signal?: { phone_number?: string; allowed_contacts?: string[] };
   whatsapp?: { allowed_contacts?: string[] };
   ui?: { port?: number };
-  pi?: { skills_dir?: string; persona_dir?: string };
+  agent?: { skills_dir?: string; persona_dir?: string };
   evolution?: { max_containers_per_evolution?: number };
   firewall?: { restrict_to_tailscale?: boolean; open_ports?: number[] };
 }

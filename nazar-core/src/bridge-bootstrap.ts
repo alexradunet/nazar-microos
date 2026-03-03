@@ -14,8 +14,8 @@ import path from "node:path";
 import { formatAffordancesAsText } from "./affordances.js";
 import type { AgentSessionCapability } from "./capabilities/agent-session/index.js";
 import type {
+  AgentBridge,
   BridgeConfig,
-  PiAgentBridge,
 } from "./capabilities/agent-session/pi-agent-bridge.js";
 import { createInitializedRegistry } from "./defaults.js";
 import type { IncomingMessage, MessageChannel } from "./ports/index.js";
@@ -30,16 +30,18 @@ export function loadBaseBridgeConfig(channelName: string): BridgeConfig {
       process.env.NAZAR_PERSONA_DIR || "/usr/local/share/nazar/persona",
     systemMdPath: process.env.NAZAR_SYSTEM_MD || "",
     channelName,
-    piCommand: process.env.NAZAR_PI_COMMAND || "pi",
-    piDir: process.env.PI_CODING_AGENT_DIR || `${process.env.HOME}/.pi/agent`,
+    agentCommand: process.env.NAZAR_PI_COMMAND || "pi",
+    agentDir:
+      process.env.PI_CODING_AGENT_DIR || `${process.env.HOME}/.pi/agent`,
     repoRoot: process.env.NAZAR_REPO_ROOT || "/var/lib/nazar",
     objectsDir: process.env.NAZAR_OBJECTS_DIR || "/var/lib/nazar/objects",
     skillsDir: process.env.NAZAR_SKILLS_DIR || "/usr/local/share/nazar/skills",
     timeoutMs: 120_000,
-    piModel: process.env.NAZAR_PI_MODEL || undefined,
-    piTransport:
+    model: process.env.NAZAR_PI_MODEL || undefined,
+    transport:
       (process.env.NAZAR_PI_TRANSPORT as "sse" | "websocket" | "auto") ||
       undefined,
+    sessionsDir: process.env.NAZAR_SESSIONS_DIR || "/var/lib/nazar/sessions",
   };
 }
 
@@ -114,7 +116,7 @@ export interface BootstrapOptions<C extends BridgeConfig> {
 
 /** Result from bootstrapBridge(). */
 export interface BootstrapResult {
-  bridge: PiAgentBridge;
+  bridge: AgentBridge;
   registry: CapabilityRegistry;
   shutdown: () => Promise<void>;
 }
@@ -130,11 +132,11 @@ export async function bootstrapBridge<C extends BridgeConfig>(
 ): Promise<BootstrapResult> {
   const { config, createChannel, validate, logExtra } = opts;
 
-  // Validate Pi agent config directory has required files
-  const authFile = path.join(config.piDir, "auth.json");
+  // Validate agent config directory has required files
+  const authFile = path.join(config.agentDir, "auth.json");
   if (!fs.existsSync(authFile)) {
     throw new Error(
-      `Pi agent auth not found at ${authFile}. ` +
+      `Agent auth not found at ${authFile}. ` +
         "Provision it to /var/lib/nazar/pi-config/agent/ on the host.",
     );
   }
@@ -144,12 +146,12 @@ export async function bootstrapBridge<C extends BridgeConfig>(
 
   // Startup logging
   console.log(`Nazar ${config.channelName} Bridge starting...`);
-  console.log(`  Pi dir: ${config.piDir}`);
+  console.log(`  Agent dir: ${config.agentDir}`);
   console.log(`  Objects dir: ${config.objectsDir}`);
   console.log(`  Persona dir: ${config.personaDir}`);
   console.log(`  System MD: ${config.systemMdPath || "(none)"}`);
-  console.log(`  Pi model: ${config.piModel || "(default)"}`);
-  console.log(`  Pi transport: ${config.piTransport || "(default)"}`);
+  console.log(`  Model: ${config.model || "(default)"}`);
+  console.log(`  Transport: ${config.transport || "(default)"}`);
   logExtra?.(config);
   console.log(
     `  Allowed contacts: ${config.allowedContacts.length === 0 ? "all" : config.allowedContacts.join(", ")}`,

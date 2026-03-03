@@ -1,10 +1,11 @@
 /**
- * PiAgentBridge — channel-agnostic Pi AgentSession integration.
+ * AgentBridge — channel-agnostic AgentSession integration.
  *
  * Uses the CapabilityRegistry to compose extension factories and skill paths
  * from ALL capabilities when creating new sessions.
  */
 
+import fs from "node:fs";
 import type { ExtensionFactory } from "../../extension.js";
 import type { IAgentBridge } from "../../ports/agent-bridge.js";
 import type { IPersonaLoader } from "../../ports/persona-loader.js";
@@ -13,7 +14,7 @@ import type { AgentResponse } from "../affordances/parser.js";
 import { parseAgentResponse } from "../affordances/parser.js";
 import { SessionPool } from "./session-pool.js";
 
-/** Base config for any message bridge with Pi agent integration. */
+/** Base config for any message bridge with agent integration. */
 export interface BridgeConfig extends AgentConfig {
   allowedContacts: string[];
   personaDir: string;
@@ -54,11 +55,11 @@ interface AgentSession {
   compact?(guidance?: string): Promise<unknown>;
 }
 
-// --- PiAgentBridge class ---
+// --- AgentBridge class ---
 
 const DEFAULT_MAX_SESSIONS = Number(process.env.NAZAR_MAX_SESSIONS) || 50;
 
-export class PiAgentBridge implements IAgentBridge {
+export class AgentBridge implements IAgentBridge {
   private config: BridgeConfig;
   private pool: SessionPool<AgentSession>;
   private extensionFactories: ExtensionFactory[];
@@ -102,16 +103,12 @@ export class PiAgentBridge implements IAgentBridge {
       const authStorage = AuthStorage.create();
 
       // Resolve model from env var
-      const model = this.config.piModel
-        ? getModel(this.config.piModel)
-        : undefined;
+      const model = this.config.model ? getModel(this.config.model) : undefined;
 
       // Settings with compaction + transport
       const settingsManager = SettingsManager.inMemory({
         compaction: { enabled: true },
-        ...(this.config.piTransport
-          ? { transport: this.config.piTransport }
-          : {}),
+        ...(this.config.transport ? { transport: this.config.transport } : {}),
       });
 
       // Load persona and system context for system prompt injection
@@ -128,7 +125,7 @@ export class PiAgentBridge implements IAgentBridge {
 
       // Resource loader with skills + extensions from all capabilities
       const cwd = this.config.repoRoot;
-      const agentDir = this.config.piDir;
+      const agentDir = this.config.agentDir;
       const resourceLoader = new DefaultResourceLoader({
         cwd,
         agentDir,
@@ -141,8 +138,13 @@ export class PiAgentBridge implements IAgentBridge {
       });
       await resourceLoader.reload();
 
+      if (this.config.sessionsDir) {
+        fs.mkdirSync(this.config.sessionsDir, { recursive: true });
+      }
       const { session: s } = await createAgentSession({
-        sessionManager: SessionManager.inMemory(),
+        sessionManager: this.config.sessionsDir
+          ? SessionManager.create(this.config.sessionsDir)
+          : SessionManager.inMemory(),
         authStorage,
         modelRegistry: new ModelRegistry(authStorage),
         settingsManager,
