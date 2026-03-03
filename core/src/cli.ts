@@ -245,8 +245,8 @@ async function evolveCmd(parsed: ParsedArgs): Promise<void> {
 
 // --- Bridge subcommand ---
 
-const REFERENCE_BRIDGES_DIR =
-  process.env.NAZAR_REFERENCE_DIR ?? "/usr/local/share/nazar/reference/bridges";
+const MANIFESTS_DIR =
+  process.env.NAZAR_MANIFESTS_DIR ?? "/usr/local/share/nazar/manifests";
 
 async function bridgeCmd(parsed: ParsedArgs): Promise<void> {
   const configPath = parsed.flags.config ?? NAZAR_CONFIG;
@@ -308,14 +308,14 @@ async function bridgeCmd(parsed: ParsedArgs): Promise<void> {
       break;
     }
     case "list": {
-      // Scan reference bridges directory and installed bridge containers
+      // Scan manifests directory and installed bridge containers
       const dirs = listReferenceBridges();
       if (dirs.length === 0) {
         console.log("No reference bridges found.");
       } else {
         console.log("Available bridges:");
         for (const d of dirs) {
-          const mPath = path.join(REFERENCE_BRIDGES_DIR, d, "manifest.yaml");
+          const mPath = path.join(MANIFESTS_DIR, d, "manifest.yaml");
           try {
             const raw = fs.readFileSync(mPath, "utf-8");
             const m = parseBridgeManifest(raw);
@@ -345,11 +345,7 @@ async function bridgeCmd(parsed: ParsedArgs): Promise<void> {
       }
 
       // Find the manifest to know which files to remove
-      const mPath = path.join(
-        REFERENCE_BRIDGES_DIR,
-        bridgeName,
-        "manifest.yaml",
-      );
+      const mPath = path.join(MANIFESTS_DIR, bridgeName, "manifest.yaml");
       let raw: string;
       try {
         raw = fs.readFileSync(mPath, "utf-8");
@@ -429,9 +425,9 @@ async function bridgeCmd(parsed: ParsedArgs): Promise<void> {
 
 function listReferenceBridges(): string[] {
   try {
-    return fs.readdirSync(REFERENCE_BRIDGES_DIR).filter((e) => {
+    return fs.readdirSync(MANIFESTS_DIR).filter((e) => {
       try {
-        return fs.statSync(path.join(REFERENCE_BRIDGES_DIR, e)).isDirectory();
+        return fs.statSync(path.join(MANIFESTS_DIR, e)).isDirectory();
       } catch {
         return false;
       }

@@ -232,7 +232,7 @@ describe("CLI", () => {
         ].join("\n"),
       );
       const r = runCli(["bridge", "list"], {
-        NAZAR_REFERENCE_DIR: refDir,
+        NAZAR_MANIFESTS_DIR: refDir,
       });
       assert.equal(r.exitCode, 0);
       assert.ok(r.stdout.includes("test-bridge"));
@@ -251,12 +251,11 @@ describe("CLI", () => {
       const configPath = path.join(tmpDir, "nazar.yaml");
       fs.writeFileSync(
         configPath,
-        "hostname: nazar-box\nprimary_user: alex\nheartbeat:\n  interval: 30m\nttyd:\n  port: 7681\n",
+        "hostname: nazar-box\nprimary_user: alex\nheartbeat:\n  interval: 30m\n",
       );
       const r = runCli(["setup", "--dry-run", `--config=${configPath}`]);
       assert.equal(r.exitCode, 0);
       assert.ok(r.stdout.includes("nazar-heartbeat.container"));
-      assert.ok(r.stdout.includes("nazar-ttyd.container"));
       assert.ok(r.stdout.includes("dry-run"));
     });
   });

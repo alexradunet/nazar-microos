@@ -118,8 +118,8 @@ deploy_images() {
 
   # Build and deploy each service container
   local containers=(
-    "heartbeat|containers/heartbeat/Containerfile|localhost/nazar-heartbeat:latest"
-    "signal-cli|containers/signal-cli/Containerfile|localhost/nazar-signal-cli:latest"
+    "heartbeat|core/containers/heartbeat/Containerfile|localhost/nazar-heartbeat:latest"
+    "signal-cli|bridges/signal/containers/signal-cli/Containerfile|localhost/nazar-signal-cli:latest"
     "signal-bridge|bridges/signal/Containerfile|localhost/nazar-signal-bridge:latest"
     "web-bridge|bridges/web/Containerfile|localhost/nazar-web-bridge:latest"
     "whatsapp-bridge|bridges/whatsapp/Containerfile|localhost/nazar-whatsapp-bridge:latest"

@@ -161,36 +161,6 @@ export class QuadletSetupGenerator {
       ].join("\n"),
     });
 
-    // --- Syncthing ---
-    files.push({
-      path: path.join(outputDir, "nazar-syncthing.container"),
-      content: renderQuadletContainer({
-        name: "nazar-syncthing",
-        image: "docker.io/syncthing/syncthing:latest",
-        description: "Nazar Syncthing",
-        volumes: ["/var/lib/nazar:/var/syncthing:rw,z"],
-        publishPorts: [
-          "8384:8384",
-          "22000:22000/tcp",
-          "22000:22000/udp",
-          "21027:21027/udp",
-        ],
-        noNewPrivileges: true,
-      }),
-    });
-
-    // --- ttyd (web terminal) ---
-    const ttydPort = configValue(config, "ttyd.port", 7681);
-    files.push({
-      path: path.join(outputDir, "nazar-ttyd.container"),
-      content: renderQuadletContainer({
-        name: "nazar-ttyd",
-        image: "docker.io/tsl0922/ttyd:latest",
-        description: "Nazar Web Terminal (ttyd)",
-        publishPorts: [`${ttydPort}:7681`],
-      }),
-    });
-
     return files;
   }
 }

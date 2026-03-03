@@ -33,7 +33,7 @@ configSchema:
 setupInstructions: |
   1. Build web-bridge container: `podman build -t nazar-web-bridge bridges/web/`
   2. Optionally configure: Add `bridges.web.port` to nazar.yaml (default: 3000)
-  3. Install: `nazar-core bridge install /usr/local/share/nazar/reference/bridges/web/manifest.yaml`
+  3. Install: `nazar-core bridge install /usr/local/share/nazar/manifests/web/manifest.yaml`
 compactionInstructions: |
   You are resuming after context compaction on the Web UI channel.
   - You can use richer formatting and structured output

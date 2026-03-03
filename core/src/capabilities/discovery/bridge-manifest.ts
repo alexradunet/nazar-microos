@@ -33,8 +33,8 @@ export interface ConfigSchemaField {
  * needed to install a bridge: containers, pods, timers, config schema,
  * setup instructions, and agent skills.
  *
- * Lives at `reference/bridges/<name>/manifest.yaml` and is processed by
- * `nazar-core bridge install`.
+ * Lives at `bridges/<name>/manifest.yaml` or `infra/<name>/manifest.yaml`
+ * and is processed by `nazar-core bridge install`.
  */
 export interface BridgeManifest {
   apiVersion: "nazar.dev/v1";

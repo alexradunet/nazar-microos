@@ -25,7 +25,7 @@ When a user wants to set up a new bridge (e.g., "set up Signal", "install WhatsA
 
 ## Bridge Manifests
 
-Reference manifests are stored at `/usr/local/share/nazar/reference/bridges/<name>/manifest.yaml`. Each manifest declares:
+Reference manifests are stored at `/usr/local/share/nazar/manifests/<name>/manifest.yaml`. Each manifest declares:
 - Containers to create (with Quadlet specs)
 - Pods for shared networking (Signal uses this)
 - Config schema (what goes in nazar.yaml)

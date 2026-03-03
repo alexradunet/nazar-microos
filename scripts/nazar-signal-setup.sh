@@ -27,7 +27,7 @@ ensure_image() {
     fail "Container image not found: $IMAGE"
     echo ""
     echo "Build it from the project root:"
-    echo "  podman build -t nazar-signal-cli -f containers/signal-cli/Containerfile ."
+    echo "  podman build -t nazar-signal-cli -f bridges/signal/containers/signal-cli/Containerfile ."
     echo ""
     echo "Or deploy from the host:"
     echo "  nazar deploy --images"

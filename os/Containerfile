@@ -55,7 +55,12 @@ COPY core/agent/context/SYSTEM.md /usr/local/share/nazar/pi-config/agent/SYSTEM.
 COPY core/agent/context/APPEND_SYSTEM.md /usr/local/share/nazar/pi-config/agent/APPEND_SYSTEM.md
 COPY core/agent/persona/ /usr/local/share/nazar/persona/
 COPY core/agent/skills/ /usr/local/share/nazar/skills/
-COPY reference/bridges/ /usr/local/share/nazar/reference/bridges/
+# Service manifests (bridges + infra)
+COPY bridges/signal/manifest.yaml bridges/signal/body-channel.md /usr/local/share/nazar/manifests/signal/
+COPY bridges/web/manifest.yaml bridges/web/body-channel.md /usr/local/share/nazar/manifests/web/
+COPY bridges/whatsapp/manifest.yaml bridges/whatsapp/body-channel.md /usr/local/share/nazar/manifests/whatsapp/
+COPY infra/syncthing/manifest.yaml /usr/local/share/nazar/manifests/syncthing/
+COPY infra/ttyd/manifest.yaml /usr/local/share/nazar/manifests/ttyd/
 
 # Logically-bound container images (pulled on first boot)
 COPY os/sysconfig/bound-images/ /usr/share/containers/systemd/

@@ -33,7 +33,7 @@ configSchema:
 setupInstructions: |
   1. Build whatsapp-bridge container: `podman build -t nazar-whatsapp-bridge bridges/whatsapp/`
   2. Optionally configure: Add `bridges.whatsapp.allowed_contacts` to nazar.yaml
-  3. Install: `nazar-core bridge install /usr/local/share/nazar/reference/bridges/whatsapp/manifest.yaml`
+  3. Install: `nazar-core bridge install /usr/local/share/nazar/manifests/whatsapp/manifest.yaml`
   4. Scan QR code: Check container logs for the WhatsApp Web QR code
 compactionInstructions: |
   You are resuming after context compaction on a WhatsApp messaging channel.

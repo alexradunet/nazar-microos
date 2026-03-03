@@ -102,7 +102,6 @@ describe("generateQuadletFiles", () => {
     hostname: "nazar-box",
     primary_user: "alex",
     heartbeat: { interval: "30m" },
-    ttyd: { port: 7681 },
   };
 
   it("generates all expected files", () => {
@@ -111,8 +110,6 @@ describe("generateQuadletFiles", () => {
     assert.deepEqual(names, [
       "nazar-heartbeat.container",
       "nazar-heartbeat.timer",
-      "nazar-syncthing.container",
-      "nazar-ttyd.container",
     ]);
   });
 
@@ -142,21 +139,6 @@ describe("generateQuadletFiles", () => {
     const timer = files.find((f) => f.path.endsWith("nazar-heartbeat.timer"));
     assert.ok(timer);
     assert.ok(timer.content.includes("OnCalendar=*-*-* 0/2:00:00"));
-  });
-
-  it("ttyd uses configured port", () => {
-    const files = generateQuadletFiles(baseConfig, "/out");
-    const ttyd = files.find((f) => f.path.endsWith("nazar-ttyd.container"));
-    assert.ok(ttyd);
-    assert.ok(ttyd.content.includes("PublishPort=7681:7681"));
-  });
-
-  it("ttyd uses custom port", () => {
-    const config = { ...baseConfig, ttyd: { port: 9999 } };
-    const files = generateQuadletFiles(config, "/out");
-    const ttyd = files.find((f) => f.path.endsWith("nazar-ttyd.container"));
-    assert.ok(ttyd);
-    assert.ok(ttyd.content.includes("PublishPort=9999:7681"));
   });
 
   it("uses default heartbeat interval when not configured", () => {
