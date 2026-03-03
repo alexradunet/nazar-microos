@@ -159,6 +159,7 @@ export class AgentBridge implements IAgentBridge {
 
     const activeSession = session;
     let unsub: (() => void) | undefined;
+    let timer: ReturnType<typeof setTimeout>;
     try {
       const agentPromise = new Promise<AgentResponse>((resolve, reject) => {
         let accumulated = "";
@@ -193,7 +194,7 @@ export class AgentBridge implements IAgentBridge {
       });
 
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(
+        timer = setTimeout(
           () => reject(new Error("Agent response timed out")),
           this.config.timeoutMs,
         );
@@ -201,6 +202,7 @@ export class AgentBridge implements IAgentBridge {
 
       return await Promise.race([agentPromise, timeoutPromise]);
     } finally {
+      clearTimeout(timer!);
       unsub?.();
     }
   }

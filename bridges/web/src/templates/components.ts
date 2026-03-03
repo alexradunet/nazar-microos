@@ -26,10 +26,16 @@ export function markdownToHtml(text: string): string {
   );
 
   // Bold
-  html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(
+    /\*\*(.+?)\*\*/g,
+    (_match, content) => `<strong>${escapeHtml(content)}</strong>`,
+  );
 
   // Italic
-  html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
+  html = html.replace(
+    /\*(.+?)\*/g,
+    (_match, content) => `<em>${escapeHtml(content)}</em>`,
+  );
 
   // Links — escape both label and URL, restrict to safe schemes
   const SAFE_URL_SCHEME = /^https?:|^mailto:/i;

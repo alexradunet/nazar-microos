@@ -15,7 +15,7 @@ export interface CapabilityManifest {
 
 /** Parse a YAML string into a CapabilityManifest. Throws on invalid YAML. */
 export function parseManifest(raw: string): CapabilityManifest {
-  const doc = YAML.load(raw);
+  const doc = YAML.load(raw, { schema: YAML.JSON_SCHEMA });
   if (!doc || typeof doc !== "object") {
     throw new Error("invalid manifest: expected YAML object");
   }

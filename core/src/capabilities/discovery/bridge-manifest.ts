@@ -62,7 +62,7 @@ export interface BridgeManifest {
 
 /** Parse a YAML string into a BridgeManifest. Throws on invalid YAML. */
 export function parseBridgeManifest(raw: string): BridgeManifest {
-  const doc = YAML.load(raw);
+  const doc = YAML.load(raw, { schema: YAML.JSON_SCHEMA });
   if (!doc || typeof doc !== "object") {
     throw new Error("invalid bridge manifest: expected YAML object");
   }
@@ -215,5 +215,10 @@ function resolveKey(obj: Record<string, unknown>, key: string): unknown {
 
 /** Escape a string for safe embedding in a JSON string value. */
 function escapeJsonString(s: string): string {
-  return s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  return s
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r")
+    .replace(/\t/g, "\\t");
 }
