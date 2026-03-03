@@ -12,8 +12,7 @@
   },
   "dependencies": {
     "@nazar/core": "*",
-    "@mariozechner/pi-coding-agent": "*",
-    "ajv": "^8.17.0"
+    "@mariozechner/pi-coding-agent": "*"
   },
   "devDependencies": {
     "@types/node": "^25.0.0",

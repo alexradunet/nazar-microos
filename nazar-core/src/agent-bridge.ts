@@ -80,8 +80,12 @@ export class AgentBridge {
     const { getModel } = (await import("@mariozechner/pi-ai")) as any;
 
     let session = this.sessions.get(from);
-    if (!session) {
-      // Evict oldest session if at capacity
+    if (session) {
+      // Move to end of Map iteration order (pseudo-LRU)
+      this.sessions.delete(from);
+      this.sessions.set(from, session);
+    } else {
+      // Evict least-recently-used session if at capacity
       if (this.sessions.size >= this.maxSessions) {
         const oldest = this.sessions.keys().next().value;
         if (oldest !== undefined) {

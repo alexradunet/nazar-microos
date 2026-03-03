@@ -3,7 +3,7 @@ FROM nazar-base
 USER root
 
 # nazar-object shim (delegates to nazar-core built in nazar-base)
-RUN printf '#!/usr/bin/env bash\nexec node /app/packages/nazar-core/dist/cli.js object "$@"\n' > /usr/local/bin/nazar-object \
+RUN printf '#!/usr/bin/env bash\nexec node /app/nazar-core/dist/cli.js object "$@"\n' > /usr/local/bin/nazar-object \
     && chmod +x /usr/local/bin/nazar-object
 
 # Copy heartbeat skill and persona (use /usr/local/share to match OS image convention)

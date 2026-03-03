@@ -17,8 +17,8 @@ export function serveStatic(pathname: string, res: http.ServerResponse): void {
   const relative = pathname.replace(/^\/static\//, "");
   const filePath = path.join(STATIC_DIR, relative);
 
-  // Prevent directory traversal
-  if (!filePath.startsWith(STATIC_DIR)) {
+  // Prevent directory traversal (trailing sep blocks sibling dir matches)
+  if (!filePath.startsWith(STATIC_DIR + path.sep)) {
     res.writeHead(403).end("Forbidden");
     return;
   }

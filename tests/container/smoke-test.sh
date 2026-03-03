@@ -40,7 +40,7 @@ run_test "nazar-base: node works" \
 # Test 2: Base image has nazar-core importable
 run_test "nazar-base: @nazar/core importable" \
   podman run --rm nazar-base node -e "
-    import('./packages/nazar-core/dist/index.js').then(m => {
+    import('./nazar-core/dist/index.js').then(m => {
       if (typeof m.ObjectStore === 'function') console.log('OK');
       else { console.error('ObjectStore not found'); process.exit(1); }
     })
@@ -56,7 +56,7 @@ run_test "nazar-signal-cli: signal-cli binary exists" \
 
 # Test 5: Signal bridge container has the built JS
 run_test "nazar-signal-bridge: dist/index.js exists" \
-  podman run --rm nazar-signal-bridge test -f services/signal-bridge/dist/index.js
+  podman run --rm nazar-signal-bridge test -f bridges/signal/dist/index.js
 
 echo "========================================="
 echo "Results: $passed passed, $failed failed"

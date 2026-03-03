@@ -170,8 +170,14 @@
   "hotPaths": [
     {
       "path": "",
-      "accessCount": 65,
-      "lastAccessed": 1772526297288,
+      "accessCount": 97,
+      "lastAccessed": 1772529405669,
+      "type": "directory"
+    },
+    {
+      "path": "scripts/nazar-deploy.sh",
+      "accessCount": 72,
+      "lastAccessed": 1772528883881,
       "type": "directory"
     },
     {
@@ -181,21 +187,15 @@
       "type": "file"
     },
     {
-      "path": "scripts/nazar-deploy.sh",
-      "accessCount": 62,
-      "lastAccessed": 1772528198122,
+      "path": "Makefile",
+      "accessCount": 47,
+      "lastAccessed": 1772528926532,
       "type": "directory"
     },
     {
       "path": "packages/nazar-core/src/setup.ts",
       "accessCount": 46,
       "lastAccessed": 1772527498055,
-      "type": "directory"
-    },
-    {
-      "path": "Makefile",
-      "accessCount": 44,
-      "lastAccessed": 1772527984500,
       "type": "directory"
     },
     {
@@ -212,8 +212,8 @@
     },
     {
       "path": "scripts/nazar-vm.sh",
-      "accessCount": 34,
-      "lastAccessed": 1772483062226,
+      "accessCount": 35,
+      "lastAccessed": 1772528884220,
       "type": "file"
     },
     {
@@ -224,20 +224,20 @@
     },
     {
       "path": "scripts/nazar",
-      "accessCount": 31,
-      "lastAccessed": 1772527503174,
+      "accessCount": 32,
+      "lastAccessed": 1772528883556,
       "type": "directory"
     },
     {
-      "path": "containers/signal-cli/Containerfile",
-      "accessCount": 27,
-      "lastAccessed": 1772483551829,
+      "path": "containers/base/Containerfile",
+      "accessCount": 28,
+      "lastAccessed": 1772528896048,
       "type": "file"
     },
     {
-      "path": "containers/base/Containerfile",
-      "accessCount": 26,
-      "lastAccessed": 1772528198285,
+      "path": "containers/signal-cli/Containerfile",
+      "accessCount": 28,
+      "lastAccessed": 1772528896628,
       "type": "file"
     },
     {
@@ -265,9 +265,21 @@
       "type": "directory"
     },
     {
+      "path": "package.json",
+      "accessCount": 18,
+      "lastAccessed": 1772528926090,
+      "type": "file"
+    },
+    {
       "path": "skills/signal-setup/SKILL.md",
       "accessCount": 17,
       "lastAccessed": 1772479415983,
+      "type": "file"
+    },
+    {
+      "path": "containers/heartbeat/Containerfile",
+      "accessCount": 17,
+      "lastAccessed": 1772529722169,
       "type": "file"
     },
     {
@@ -295,21 +307,9 @@
       "type": "file"
     },
     {
-      "path": "package.json",
-      "accessCount": 15,
-      "lastAccessed": 1772527927580,
-      "type": "file"
-    },
-    {
-      "path": "containers/heartbeat/Containerfile",
-      "accessCount": 14,
-      "lastAccessed": 1772482881152,
-      "type": "file"
-    },
-    {
       "path": "nazar.yaml.example",
-      "accessCount": 14,
-      "lastAccessed": 1772527497874,
+      "accessCount": 15,
+      "lastAccessed": 1772528902659,
       "type": "file"
     },
     {
@@ -343,6 +343,12 @@
       "type": "file"
     },
     {
+      "path": "tests/container/smoke-test.sh",
+      "accessCount": 10,
+      "lastAccessed": 1772529729567,
+      "type": "file"
+    },
+    {
       "path": "CLAUDE.md",
       "accessCount": 9,
       "lastAccessed": 1772528027242,
@@ -362,14 +368,14 @@
     },
     {
       "path": "containers/heartbeat/entrypoint.sh",
-      "accessCount": 6,
-      "lastAccessed": 1772482481069,
+      "accessCount": 7,
+      "lastAccessed": 1772528885067,
       "type": "file"
     },
     {
       "path": "tests/integration/run.sh",
-      "accessCount": 5,
-      "lastAccessed": 1772462958648,
+      "accessCount": 6,
+      "lastAccessed": 1772528886293,
       "type": "file"
     },
     {
@@ -388,12 +394,6 @@
       "path": "sysconfig/profile.d/tailscale-login.sh",
       "accessCount": 5,
       "lastAccessed": 1772481350420,
-      "type": "file"
-    },
-    {
-      "path": "tests/container/smoke-test.sh",
-      "accessCount": 5,
-      "lastAccessed": 1772482518927,
       "type": "file"
     },
     {

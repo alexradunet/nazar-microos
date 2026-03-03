@@ -31,10 +31,14 @@ export function markdownToHtml(text: string): string {
   // Italic
   html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
 
-  // Links
+  // Links — escape both label and URL, restrict to safe schemes
+  const SAFE_URL_SCHEME = /^https?:|^mailto:/i;
   html = html.replace(
     /\[([^\]]+)\]\(([^)]+)\)/g,
-    '<a href="$2" target="_blank" rel="noopener">$1</a>',
+    (_match, label: string, url: string) => {
+      const safeUrl = SAFE_URL_SCHEME.test(url) ? escapeHtml(url) : "#";
+      return `<a href="${safeUrl}" target="_blank" rel="noopener">${escapeHtml(label)}</a>`;
+    },
   );
 
   // Line breaks (preserve double newlines as paragraphs)

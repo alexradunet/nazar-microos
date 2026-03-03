@@ -20,7 +20,11 @@ export class ObjectStore implements IObjectStore {
   }
 
   private objectPath(type: string, slug: string): string {
-    return path.join(this.objectsDir, type, `${slug}.md`);
+    const resolved = path.join(this.objectsDir, type, `${slug}.md`);
+    if (!resolved.startsWith(this.objectsDir + path.sep)) {
+      throw new Error(`path traversal blocked: ${type}/${slug}`);
+    }
+    return resolved;
   }
 
   private nowIso(): string {
