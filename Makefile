@@ -4,7 +4,7 @@ IMAGE_TAG  := latest
 REGISTRY_PORT := 5000
 REGISTRY_IMAGE := localhost:$(REGISTRY_PORT)/nazar-os:$(IMAGE_TAG)
 
-.PHONY: image qcow2 chunked-oci containers registry push clean
+.PHONY: image qcow2 iso chunked-oci containers registry push push-ghcr clean
 
 image:
 	podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f os/Containerfile .
@@ -30,6 +30,18 @@ containers:
 	podman build -t localhost/nazar-web-bridge:latest -f bridges/web/Containerfile .
 	podman build -t localhost/nazar-whatsapp-bridge:latest -f bridges/whatsapp/Containerfile .
 
+iso:
+	@test -f os/bootc/config.toml || { echo "ERROR: Copy os/bootc/config.toml.example to os/bootc/config.toml"; exit 1; }
+	sudo podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f os/Containerfile .
+	@mkdir -p _output
+	sudo podman run --rm -i --privileged --pull=newer \
+	  --security-opt label=type:unconfined_t \
+	  -v ./os/bootc/config.toml:/config.toml:ro \
+	  -v ./_output:/output \
+	  -v /var/lib/containers/storage:/var/lib/containers/storage \
+	  quay.io/centos-bootc/bootc-image-builder:latest \
+	  --type iso --config /config.toml $(IMAGE_NAME):$(IMAGE_TAG)
+
 chunked-oci:
 	podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f os/Containerfile .
 	@mkdir -p _output
@@ -54,6 +66,12 @@ registry:
 push: image registry
 	podman tag $(IMAGE_NAME):$(IMAGE_TAG) $(REGISTRY_IMAGE)
 	podman push --tls-verify=false $(REGISTRY_IMAGE)
+
+push-ghcr:
+	@test -n "$(GHCR_REPO)" || { echo "ERROR: Set GHCR_REPO (e.g., ghcr.io/youruser/nazar-os)"; exit 1; }
+	podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f os/Containerfile .
+	podman tag $(IMAGE_NAME):$(IMAGE_TAG) $(GHCR_REPO):$(IMAGE_TAG)
+	podman push $(GHCR_REPO):$(IMAGE_TAG)
 
 clean:
 	rm -rf _output/

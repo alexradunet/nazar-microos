@@ -176,8 +176,8 @@
     },
     {
       "path": "scripts/nazar-deploy.sh",
-      "accessCount": 72,
-      "lastAccessed": 1772528883881,
+      "accessCount": 74,
+      "lastAccessed": 1772533362587,
       "type": "directory"
     },
     {
@@ -188,8 +188,8 @@
     },
     {
       "path": "Makefile",
-      "accessCount": 47,
-      "lastAccessed": 1772528926532,
+      "accessCount": 54,
+      "lastAccessed": 1772533825295,
       "type": "directory"
     },
     {
@@ -212,8 +212,8 @@
     },
     {
       "path": "scripts/nazar-vm.sh",
-      "accessCount": 35,
-      "lastAccessed": 1772528884220,
+      "accessCount": 37,
+      "lastAccessed": 1772533357079,
       "type": "file"
     },
     {
@@ -223,16 +223,16 @@
       "type": "file"
     },
     {
+      "path": "scripts/nazar",
+      "accessCount": 34,
+      "lastAccessed": 1772533363028,
+      "type": "directory"
+    },
+    {
       "path": "containers/signal-bridge/Containerfile",
       "accessCount": 32,
       "lastAccessed": 1772527888605,
       "type": "file"
-    },
-    {
-      "path": "scripts/nazar",
-      "accessCount": 32,
-      "lastAccessed": 1772528883556,
-      "type": "directory"
     },
     {
       "path": "containers/base/Containerfile",
@@ -379,6 +379,12 @@
       "type": "file"
     },
     {
+      "path": "README.md",
+      "accessCount": 6,
+      "lastAccessed": 1772533233533,
+      "type": "file"
+    },
+    {
       "path": "skills/persona-harvest/SKILL.md",
       "accessCount": 5,
       "lastAccessed": 1772464503665,
@@ -394,12 +400,6 @@
       "path": "sysconfig/profile.d/tailscale-login.sh",
       "accessCount": 5,
       "lastAccessed": 1772481350420,
-      "type": "file"
-    },
-    {
-      "path": "README.md",
-      "accessCount": 5,
-      "lastAccessed": 1772482954703,
       "type": "file"
     },
     {
