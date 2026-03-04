@@ -3,7 +3,7 @@ FROM quay.io/fedora/fedora-bootc:42@sha256:90c2d851663ec0ebf66121786d9d9e488f8e2
 
 # System packages
 RUN dnf install -y \
-      git-core nodejs22 tailscale vim-minimal htop tmux \
+      git-core nodejs tailscale vim-minimal htop tmux \
     && dnf clean all \
     && rm -rf /var/log/dnf5.log /var/cache/libdnf5 /var/lib/dnf /var/cache/ldconfig
 
@@ -45,7 +45,8 @@ COPY scripts/nazar /usr/local/bin/nazar
 COPY scripts/nazar-vm.sh /usr/local/bin/nazar-vm
 COPY scripts/nazar-deploy.sh /usr/local/bin/nazar-deploy
 COPY scripts/nazar-signal-setup.sh /usr/local/bin/nazar-signal-setup
-RUN chmod 0755 /usr/local/bin/nazar /usr/local/bin/nazar-vm /usr/local/bin/nazar-deploy /usr/local/bin/nazar-signal-setup \
+COPY os/sysconfig/nazar-heartbeat.sh /usr/local/bin/nazar-heartbeat
+RUN chmod 0755 /usr/local/bin/nazar /usr/local/bin/nazar-vm /usr/local/bin/nazar-deploy /usr/local/bin/nazar-signal-setup /usr/local/bin/nazar-heartbeat \
     && mkdir -p /etc/nazar /usr/local/share/nazar/persona /usr/local/share/nazar/skills /usr/local/share/nazar/pi-config/agent
 
 # Config, docs, persona, skills

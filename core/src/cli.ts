@@ -77,6 +77,8 @@ function printRefs(
 const NAZAR_CONFIG = process.env.NAZAR_CONFIG ?? "/etc/nazar/nazar.yaml";
 const NAZAR_OBJECTS_DIR =
   process.env.NAZAR_OBJECTS_DIR ?? "/var/lib/nazar/objects";
+const SYSTEMD_UNIT_DIR =
+  process.env.SYSTEMD_UNIT_DIR ?? "/etc/systemd/system";
 const QUADLET_OUTPUT_DIR =
   process.env.QUADLET_OUTPUT_DIR ?? "/etc/containers/systemd";
 
@@ -178,7 +180,7 @@ function objectCmd(parsed: ParsedArgs): void {
 
 function setupCmd(parsed: ParsedArgs): void {
   const configPath = parsed.flags.config ?? NAZAR_CONFIG;
-  const outputDir = parsed.flags["output-dir"] ?? QUADLET_OUTPUT_DIR;
+  const outputDir = parsed.flags["output-dir"] ?? SYSTEMD_UNIT_DIR;
   const dryRun = parsed.boolFlags.has("dry-run");
 
   const config = readConfig(configPath);

@@ -28,7 +28,6 @@ run_test() {
 # Build all container images
 echo "=== Building containers ==="
 podman build -t nazar-base -f core/containers/base/Containerfile .
-podman build -t nazar-heartbeat -f containers/heartbeat/Containerfile .
 podman build -t nazar-signal-cli -f containers/signal-cli/Containerfile .
 podman build -t nazar-signal-bridge -f containers/signal-bridge/Containerfile .
 echo ""
@@ -46,11 +45,7 @@ run_test "nazar-base: @nazar/core importable" \
     })
   "
 
-# Test 3: Heartbeat container starts
-run_test "nazar-heartbeat: entrypoint runs" \
-  podman run --rm nazar-heartbeat
-
-# Test 4: Signal CLI binary works
+# Test 3: Signal CLI binary works
 run_test "nazar-signal-cli: signal-cli binary exists" \
   podman run --rm nazar-signal-cli signal-cli --version
 

@@ -24,13 +24,14 @@ You are running on a Fedora bootc system managed by Nazar.
 | `nazar evolve status [slug]` | Show evolution state |
 | `nazar object <cmd>` | Object store CRUD (`create`, `read`, `list`, `update`, `search`, `link`) |
 
-## Services (Containers)
+## Core Services
 
-| Service | Image | Purpose |
-|---------|-------|---------|
-| `nazar-heartbeat` | `nazar-heartbeat` | Periodic Pi heartbeat (timer, oneshot) |
+| Service | Type | Purpose |
+|---------|------|---------|
+| `nazar-heartbeat.service` | Native systemd oneshot | Periodic Pi heartbeat (triggered by timer) |
+| `nazar-heartbeat.timer` | Native systemd timer | Schedules heartbeat runs |
 
-Additional services may be installed via bridge manifests. Run `nazar evolve status` or `nazar bridge list` to see installed bridges.
+Additional services (bridges) may be installed as Podman Quadlet containers via bridge manifests. Run `nazar evolve status` or `nazar bridge list` to see installed bridges.
 
 ## File Locations
 
@@ -38,7 +39,8 @@ Additional services may be installed via bridge manifests. Run `nazar evolve sta
 |------|----------|
 | `/etc/nazar/nazar.yaml` | System configuration |
 | `/var/lib/nazar/objects/` | Object store (journals, tasks, notes, etc.) |
-| `/etc/containers/systemd/` | Generated Quadlet .container files |
+| `/etc/systemd/system/` | Heartbeat .service + .timer |
+| `/etc/containers/systemd/` | Generated Quadlet .container files (bridges) |
 | `/usr/local/share/nazar/persona/` | OpenPersona identity files |
 | `/usr/local/share/nazar/skills/` | Pi agent skills |
 | `/var/lib/nazar/evolution/` | Evolution state |

@@ -119,29 +119,52 @@ export function renderQuadletTimer(spec: TimerSpec): string {
   return lines.join("\n");
 }
 
+/** Render a plain systemd .service unit file. */
+export function renderSystemdService(spec: {
+  description: string;
+  user?: string;
+  environment?: Record<string, string>;
+  execStart: string;
+}): string {
+  const lines: string[] = [];
+  lines.push("[Unit]");
+  lines.push(`Description=${spec.description}`);
+  lines.push("");
+  lines.push("[Service]");
+  lines.push("Type=oneshot");
+  if (spec.user) {
+    lines.push(`User=${spec.user}`);
+  }
+  if (spec.environment) {
+    for (const [key, val] of Object.entries(spec.environment)) {
+      lines.push(`Environment=${key}=${val}`);
+    }
+  }
+  lines.push(`ExecStart=${spec.execStart}`);
+  lines.push("");
+  return lines.join("\n");
+}
+
 export class QuadletSetupGenerator {
   generate(config: NazarConfig, outputDir: string): GeneratedFile[] {
     const files: GeneratedFile[] = [];
 
-    // --- Heartbeat (.container + .timer) ---
+    // --- Heartbeat (.service + .timer) ---
     const interval = configValue(config, "heartbeat.interval", "30m");
     const onCalendar = parseInterval(interval);
 
     files.push({
-      path: path.join(outputDir, "nazar-heartbeat.container"),
-      content: renderQuadletContainer({
-        name: "nazar-heartbeat",
-        image: "localhost/nazar-heartbeat:latest",
+      path: path.join(outputDir, "nazar-heartbeat.service"),
+      content: renderSystemdService({
         description: "Nazar Heartbeat Service",
-        volumes: [
-          "/var/lib/nazar/objects:/data/objects:ro,z",
-          "/etc/nazar:/etc/nazar:ro,z",
-        ],
-        environment: { NAZAR_CONFIG: "/etc/nazar/nazar.yaml" },
-        readOnly: true,
-        noNewPrivileges: true,
-        serviceType: "oneshot",
-        restart: "no",
+        user: "nazar-agent",
+        environment: {
+          NAZAR_OBJECTS_DIR: "/var/lib/nazar/objects",
+          NAZAR_SKILLS_DIR: "/usr/local/share/nazar/skills",
+          NAZAR_PERSONA_DIR: "/usr/local/share/nazar/persona",
+          NAZAR_CONFIG: "/etc/nazar/nazar.yaml",
+        },
+        execStart: "/usr/local/bin/nazar-heartbeat",
       }),
     });
 

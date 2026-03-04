@@ -255,7 +255,7 @@ describe("CLI", () => {
       );
       const r = runCli(["setup", "--dry-run", `--config=${configPath}`]);
       assert.equal(r.exitCode, 0);
-      assert.ok(r.stdout.includes("nazar-heartbeat.container"));
+      assert.ok(r.stdout.includes("nazar-heartbeat.service"));
       assert.ok(r.stdout.includes("dry-run"));
     });
   });

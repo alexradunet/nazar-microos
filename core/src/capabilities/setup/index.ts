@@ -9,6 +9,7 @@ export {
   parseInterval,
   QuadletSetupGenerator,
   renderQuadletContainer,
+  renderSystemdService,
 } from "./quadlet-generator.js";
 
 export class SetupCapability implements Capability {

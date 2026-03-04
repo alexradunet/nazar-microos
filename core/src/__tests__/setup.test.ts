@@ -4,6 +4,7 @@ import {
   parseInterval,
   QuadletSetupGenerator,
   renderQuadletContainer,
+  renderSystemdService,
 } from "../capabilities/setup/quadlet-generator.js";
 
 const _setupGenerator = new QuadletSetupGenerator();
@@ -97,6 +98,32 @@ describe("renderQuadletContainer", () => {
   });
 });
 
+describe("renderSystemdService", () => {
+  it("renders a oneshot service with user and environment", () => {
+    const content = renderSystemdService({
+      description: "Test Service",
+      user: "test-user",
+      environment: { FOO: "bar", BAZ: "qux" },
+      execStart: "/usr/local/bin/test",
+    });
+    assert.ok(content.includes("[Unit]"));
+    assert.ok(content.includes("Description=Test Service"));
+    assert.ok(content.includes("Type=oneshot"));
+    assert.ok(content.includes("User=test-user"));
+    assert.ok(content.includes("Environment=FOO=bar"));
+    assert.ok(content.includes("Environment=BAZ=qux"));
+    assert.ok(content.includes("ExecStart=/usr/local/bin/test"));
+  });
+
+  it("omits User when not specified", () => {
+    const content = renderSystemdService({
+      description: "Test",
+      execStart: "/bin/true",
+    });
+    assert.ok(!content.includes("User="));
+  });
+});
+
 describe("generateQuadletFiles", () => {
   const baseConfig: NazarConfig = {
     hostname: "nazar-box",
@@ -105,24 +132,25 @@ describe("generateQuadletFiles", () => {
   };
 
   it("generates all expected files", () => {
-    const files = generateQuadletFiles(baseConfig, "/etc/containers/systemd");
+    const files = generateQuadletFiles(baseConfig, "/etc/systemd/system");
     const names = files.map((f) => f.path.split("/").pop());
     assert.deepEqual(names, [
-      "nazar-heartbeat.container",
+      "nazar-heartbeat.service",
       "nazar-heartbeat.timer",
     ]);
   });
 
-  it("heartbeat container has correct structure", () => {
+  it("heartbeat service has correct structure", () => {
     const files = generateQuadletFiles(baseConfig, "/out");
-    const hb = files.find((f) => f.path.endsWith("nazar-heartbeat.container"));
+    const hb = files.find((f) => f.path.endsWith("nazar-heartbeat.service"));
     assert.ok(hb);
     assert.ok(hb.content.includes("Description=Nazar Heartbeat Service"));
-    assert.ok(hb.content.includes("Image=localhost/nazar-heartbeat:latest"));
     assert.ok(hb.content.includes("Type=oneshot"));
-    assert.ok(hb.content.includes("Restart=no"));
-    assert.ok(hb.content.includes("ReadOnly=true"));
-    assert.ok(hb.content.includes("NoNewPrivileges=true"));
+    assert.ok(hb.content.includes("User=nazar-agent"));
+    assert.ok(hb.content.includes("ExecStart=/usr/local/bin/nazar-heartbeat"));
+    assert.ok(
+      hb.content.includes("Environment=NAZAR_OBJECTS_DIR=/var/lib/nazar/objects"),
+    );
   });
 
   it("heartbeat timer uses configured interval", () => {

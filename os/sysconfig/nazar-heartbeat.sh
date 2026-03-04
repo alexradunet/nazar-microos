@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Heartbeat container entrypoint.
-# Runs Pi in print mode with the heartbeat skill to perform a single
-# observation cycle, then exits (container is run as a oneshot by the timer).
+# Nazar heartbeat — runs Pi in print mode with the heartbeat skill to perform
+# a single observation cycle, then exits (run as a oneshot by systemd timer).
 
 SKILLS_DIR="${NAZAR_SKILLS_DIR:-/usr/local/share/nazar/skills}"
 PERSONA_DIR="${NAZAR_PERSONA_DIR:-/usr/local/share/nazar/persona}"
@@ -15,7 +14,7 @@ if command -v pi >/dev/null 2>&1; then
     "Run a heartbeat cycle: scan recent objects, check overdue tasks, log observations."
 else
   echo "Pi agent not available — running basic heartbeat check"
-  OBJECTS_DIR="${NAZAR_OBJECTS_DIR:-/data/objects}"
+  OBJECTS_DIR="${NAZAR_OBJECTS_DIR:-/var/lib/nazar/objects}"
   if [[ -d "$OBJECTS_DIR" ]]; then
     count=$(find "$OBJECTS_DIR" -name '*.md' -type f 2>/dev/null | wc -l)
     echo "Objects found: $count"
