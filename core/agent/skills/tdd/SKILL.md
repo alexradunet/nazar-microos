@@ -1,9 +1,9 @@
 ---
 name: tdd
-description: Enforce strict test-driven development for all code changes in Nazar (features, bugs, and edge cases).
+description: Enforce strict test-driven development for all code changes in Bloom (features, bugs, and edge cases).
 ---
 
-# TDD Skill (Nazar)
+# TDD Skill (Bloom)
 
 You must treat TDD as a hard requirement, not a preference.
 
@@ -74,16 +74,16 @@ When reporting work, include:
 3. What edge-case/regression tests were added
 4. Exact commands run and test results
 
-## Nazar-Specific Guardrails
+## Bloom-Specific Guardrails
 
 - Prefer small, reversible changes.
 - Keep edits surgical and explain intent before impactful changes.
-- Prefer declarative configuration via `nazar.yaml` for system behavior.
+- Prefer declarative configuration via `pibloom.yaml` for system behavior.
 - Do not access secrets or protected paths.
 
 ## Test Commands
 
-- **TypeScript unit tests**: `npm -w packages/nazar-core test`
+- **TypeScript unit tests**: `npm -w packages/pibloom-core test`
 - **All tests**: `npm test`
 - **Lint check**: `npx biome check`
 

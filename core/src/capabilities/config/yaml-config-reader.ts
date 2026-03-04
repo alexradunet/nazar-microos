@@ -1,11 +1,11 @@
 import fs from "node:fs";
 import YAML from "js-yaml";
 import type { IConfigReader } from "../../ports/config-reader.js";
-import type { NazarConfig } from "../../types.js";
+import type { PibloomConfig } from "../../types.js";
 import { configValue } from "./config-value.js";
 
 export class YamlConfigReader implements IConfigReader {
-  read(configPath: string): NazarConfig {
+  read(configPath: string): PibloomConfig {
     let raw: string;
     try {
       raw = fs.readFileSync(configPath, "utf-8");
@@ -52,15 +52,15 @@ export class YamlConfigReader implements IConfigReader {
       hostname: config.hostname as string,
       primary_user: config.primary_user as string,
       timezone: config.timezone as string | undefined,
-      heartbeat: heartbeat as NazarConfig["heartbeat"],
-      agent: config.agent as NazarConfig["agent"],
-      evolution: config.evolution as NazarConfig["evolution"],
-      firewall: config.firewall as NazarConfig["firewall"],
-      bridges: config.bridges as NazarConfig["bridges"],
+      heartbeat: heartbeat as PibloomConfig["heartbeat"],
+      agent: config.agent as PibloomConfig["agent"],
+      evolution: config.evolution as PibloomConfig["evolution"],
+      firewall: config.firewall as PibloomConfig["firewall"],
+      bridges: config.bridges as PibloomConfig["bridges"],
     };
   }
 
-  value<T>(config: NazarConfig, path: string, defaultValue: T): T {
+  value<T>(config: PibloomConfig, path: string, defaultValue: T): T {
     return configValue(config, path, defaultValue);
   }
 }

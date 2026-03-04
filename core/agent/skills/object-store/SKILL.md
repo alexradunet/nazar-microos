@@ -1,18 +1,18 @@
 ---
 name: object-store
-description: Create, read, update, search, and link objects in the Nazar flat-file store
+description: Create, read, update, search, and link objects in the Bloom flat-file store
 ---
 
 # Object Store Skill
 
-Use this skill when the user wants to create, read, update, search, or link any type of object in the Nazar store. For evolution pipeline tracking, see `object-evolution`.
+Use this skill when the user wants to create, read, update, search, or link any type of object in the Bloom store. For evolution pipeline tracking, see `object-evolution`.
 
 ## Object Model
 
 Every object is a Markdown file with YAML frontmatter stored at:
 
 ```
-/var/lib/nazar/objects/<type>/<slug>.md
+/var/lib/pibloom/objects/<type>/<slug>.md
 ```
 
 ### Core frontmatter fields (all types)
@@ -32,7 +32,7 @@ Every object is a Markdown file with YAML frontmatter stored at:
 | `journal` | Daily entries, reflections, logs |
 | `task` | Actionable items with status and priority |
 | `note` | Reference notes, permanent records |
-| `evolution` | System configuration changes (nazar evolve) |
+| `evolution` | System configuration changes (pibloom evolve) |
 | *(custom)* | Any type the user or agent defines |
 
 ## PARA Methodology
@@ -46,37 +46,37 @@ Organize objects by PARA category using frontmatter:
 
 ## Commands
 
-All commands are run as `nazar-core object <subcommand>`.
+All commands are run as `pibloom-core object <subcommand>`.
 
 ### Create an object
 
 ```bash
-nazar-core object create <type> <slug> [--field=value ...]
+pibloom-core object create <type> <slug> [--field=value ...]
 ```
 
 Examples:
 
 ```bash
 # Create a task
-nazar-core object create task fix-bike-tire --title="Fix bike tire" --status=active --priority=high --area=household
+pibloom-core object create task fix-bike-tire --title="Fix bike tire" --status=active --priority=high --area=household
 
 # Create a note
-nazar-core object create note sourdough-recipe --title="Sourdough Recipe" --area=resource --tags=cooking,bread
+pibloom-core object create note sourdough-recipe --title="Sourdough Recipe" --area=resource --tags=cooking,bread
 
 # Create a custom type
-nazar-core object create person alice --title="Alice Smith" --email=alice@example.com
+pibloom-core object create person alice --title="Alice Smith" --email=alice@example.com
 ```
 
 ### Read an object
 
 ```bash
-nazar-core object read <type> <slug>
+pibloom-core object read <type> <slug>
 ```
 
 Example:
 
 ```bash
-nazar-core object read task fix-bike-tire
+pibloom-core object read task fix-bike-tire
 ```
 
 Prints YAML frontmatter followed by the Markdown body.
@@ -84,58 +84,58 @@ Prints YAML frontmatter followed by the Markdown body.
 ### List objects
 
 ```bash
-nazar-core object list [type] [--field=value ...]
+pibloom-core object list [type] [--field=value ...]
 ```
 
 Examples:
 
 ```bash
 # List all objects across all types
-nazar-core object list
+pibloom-core object list
 
 # List all tasks
-nazar-core object list task
+pibloom-core object list task
 
 # List active tasks in the household area
-nazar-core object list task --status=active --area=household
+pibloom-core object list task --status=active --area=household
 
 # List notes tagged "cooking"
-nazar-core object list note --tags=cooking
+pibloom-core object list note --tags=cooking
 ```
 
 ### Update frontmatter fields
 
 ```bash
-nazar-core object update <type> <slug> --field=value [--field=value ...]
+pibloom-core object update <type> <slug> --field=value [--field=value ...]
 ```
 
 Examples:
 
 ```bash
 # Complete a task
-nazar-core object update task fix-bike-tire --status=done
+pibloom-core object update task fix-bike-tire --status=done
 
 # Add a due date
-nazar-core object update task fix-bike-tire --due=2026-03-10
+pibloom-core object update task fix-bike-tire --due=2026-03-10
 
 # Change priority
-nazar-core object update task fix-bike-tire --priority=low
+pibloom-core object update task fix-bike-tire --priority=low
 ```
 
 ### Search across all objects
 
 ```bash
-nazar-core object search <pattern>
+pibloom-core object search <pattern>
 ```
 
 Examples:
 
 ```bash
 # Find any object mentioning "gratitude"
-nazar-core object search gratitude
+pibloom-core object search gratitude
 
 # Find objects containing a phone number
-nazar-core object search "+49"
+pibloom-core object search "+49"
 ```
 
 Returns a list of `type/slug` references for matching objects.
@@ -143,17 +143,17 @@ Returns a list of `type/slug` references for matching objects.
 ### Link two objects
 
 ```bash
-nazar-core object link <type/slug> <type/slug>
+pibloom-core object link <type/slug> <type/slug>
 ```
 
 Example:
 
 ```bash
 # Link a task to a person
-nazar-core object link task/fix-bike-tire person/alice
+pibloom-core object link task/fix-bike-tire person/alice
 
 # Link a journal entry to a task
-nazar-core object link journal/2026-03-03 task/fix-bike-tire
+pibloom-core object link journal/2026-03-03 task/fix-bike-tire
 ```
 
 Links are bidirectional — both objects gain a reference to the other in their `links` field.

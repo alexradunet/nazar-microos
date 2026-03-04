@@ -22,7 +22,8 @@ export class EvolutionCapability implements Capability {
     }
     const quadletDir =
       process.env.QUADLET_OUTPUT_DIR ?? "/etc/containers/systemd";
-    const configPath = process.env.NAZAR_CONFIG ?? "/etc/nazar/nazar.yaml";
+    const configPath =
+      process.env.PIBLOOM_CONFIG ?? "/etc/pibloom/pibloom.yaml";
     this.manager = new EvolveManager(
       config.services.objectStore,
       config.services.systemExecutor,

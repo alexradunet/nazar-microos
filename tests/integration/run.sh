@@ -30,7 +30,7 @@ echo ""
 echo "=== Running assertions ==="
 
 # Test 1: Bridge container is running
-status=$($COMPOSE_CMD -f compose.yaml ps --format json 2>/dev/null | grep -c "nazar-test-bridge" || echo "0")
+status=$($COMPOSE_CMD -f compose.yaml ps --format json 2>/dev/null | grep -c "pibloom-test-bridge" || echo "0")
 if [ "$status" -gt 0 ]; then
   echo "PASS: Bridge container started"
 else

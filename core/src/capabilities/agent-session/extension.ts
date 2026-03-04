@@ -1,5 +1,5 @@
 /**
- * Nazar Pi extension — adds runtime context, tool guardrails, and compaction guidance.
+ * piBloom Pi extension — adds runtime context, tool guardrails, and compaction guidance.
  *
  * Hooks into Pi SDK extension events to:
  * - Inject lightweight runtime context on every agent turn (context event)
@@ -77,7 +77,7 @@ export interface ExtensionFactory {
   create(): Extension;
 }
 
-export interface NazarExtensionConfig {
+export interface PibloomExtensionConfig {
   channelName?: string;
   compactionInstructions?: string;
   objectStore?: IObjectStore;
@@ -100,7 +100,7 @@ function isDangerousCommand(command: string): boolean {
 const DEFAULT_COMPACTION_INSTRUCTIONS =
   "You are resuming after context compaction. Key guidelines:\n" +
   "- Preserve the user's name and conversation context\n" +
-  "- Maintain your persona (Pi/Nazar) and current task state\n" +
+  "- Maintain your persona (Pi/Bloom) and current task state\n" +
   "- Keep any pending action items or promises\n" +
   "- Discard verbose command outputs and intermediate steps";
 
@@ -108,41 +108,41 @@ function getCompactionInstructions(compactionInstructions?: string): string {
   return compactionInstructions ?? DEFAULT_COMPACTION_INSTRUCTIONS;
 }
 
-export function createNazarExtension(
-  config?: NazarExtensionConfig,
+export function createPibloomExtension(
+  config?: PibloomExtensionConfig,
 ): ExtensionFactory {
   return {
     create(): Extension {
       return {
-        name: "nazar",
+        name: "pibloom",
 
         async on(event: ExtensionEvent): Promise<ExtensionEventResult> {
           switch (event.type) {
             case "context": {
               // Lightweight context: paths and guidance only.
-              // Use nazar-core CLI tools to inspect system state on demand.
+              // Use pibloom-core CLI tools to inspect system state on demand.
               const lines = [
-                "## Nazar Runtime Context",
+                "## piBloom Runtime Context",
                 `- Timestamp: ${new Date().toISOString()}`,
-                `- Host: ${process.env.HOSTNAME || "nazar-box"}`,
-                `- Config path: ${process.env.NAZAR_CONFIG || "/etc/nazar/nazar.yaml"}`,
-                `- Objects dir: ${process.env.NAZAR_OBJECTS_DIR || "/var/lib/nazar/objects"}`,
-                `- Skills dir: ${process.env.NAZAR_SKILLS_DIR || "/usr/local/share/nazar/skills"}`,
-                `- Sessions dir: ${process.env.NAZAR_SESSIONS_DIR || "/var/lib/nazar/sessions"}`,
+                `- Host: ${process.env.HOSTNAME || "pibloom-box"}`,
+                `- Config path: ${process.env.PIBLOOM_CONFIG || "/etc/pibloom/pibloom.yaml"}`,
+                `- Objects dir: ${process.env.PIBLOOM_OBJECTS_DIR || "/var/lib/pibloom/objects"}`,
+                `- Skills dir: ${process.env.PIBLOOM_SKILLS_DIR || "/usr/local/share/pibloom/skills"}`,
+                `- Sessions dir: ${process.env.PIBLOOM_SESSIONS_DIR || "/var/lib/pibloom/sessions"}`,
                 "",
                 "## Available CLI Tools",
-                "Object store: `nazar-core object create|read|list|update|search|link`",
-                "OS operations: `bootc status`, `systemctl list-units 'nazar-*'`, `podman ps --filter name=nazar-`, `journalctl -u <service>`",
-                "Bridge management: `nazar-core bridge list|install|remove`",
+                "Object store: `pibloom-core object create|read|list|update|search|link`",
+                "OS operations: `bootc status`, `systemctl list-units 'pibloom-*'`, `podman ps --filter name=pibloom-`, `journalctl -u <service>`",
+                "Bridge management: `pibloom-core bridge list|install|remove`",
                 "",
                 "## System Inspection",
                 "Use these commands to inspect system state on demand:",
                 "- `bootc status` — OS image, staged updates, rollback availability",
-                "- `systemctl list-units 'nazar-*' --no-pager` — list nazar services and states",
-                "- `podman ps --format json --filter 'name=nazar-'` — running containers and health",
+                "- `systemctl list-units 'pibloom-*' --no-pager` — list pibloom services and states",
+                "- `podman ps --format json --filter 'name=pibloom-'` — running containers and health",
                 "- `journalctl -u <service> --no-pager -n 50` — recent service logs",
-                "- `systemctl list-timers 'nazar-*' --no-pager` — scheduled timers",
-                "- `nazar-core bridge list` — available and installed bridges",
+                "- `systemctl list-timers 'pibloom-*' --no-pager` — scheduled timers",
+                "- `pibloom-core bridge list` — available and installed bridges",
               ];
 
               if (config?.objectStore) {
@@ -195,25 +195,25 @@ export function createNazarExtension(
             }
 
             case "agent_start": {
-              console.log("[nazar] Agent turn started");
+              console.log("[pibloom] Agent turn started");
               return;
             }
 
             case "agent_end": {
-              console.log("[nazar] Agent turn completed");
+              console.log("[pibloom] Agent turn completed");
               return;
             }
 
             case "tool_execution_start": {
               console.log(
-                `[nazar] Tool: ${event.toolName} (${event.toolCallId})`,
+                `[pibloom] Tool: ${event.toolName} (${event.toolCallId})`,
               );
               return;
             }
 
             case "tool_execution_end": {
               console.log(
-                `[nazar] Tool: ${event.toolName} ${event.isError ? "FAILED" : "OK"}`,
+                `[pibloom] Tool: ${event.toolName} ${event.isError ? "FAILED" : "OK"}`,
               );
               return;
             }

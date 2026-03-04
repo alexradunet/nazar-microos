@@ -105,16 +105,16 @@ describe("EvolveManager", () => {
   let manager: EvolveManager;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "nazar-evolve-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "pibloom-evolve-"));
     objectsDir = path.join(tmpDir, "objects");
     quadletDir = path.join(tmpDir, "quadlet");
-    configPath = path.join(tmpDir, "nazar.yaml");
+    configPath = path.join(tmpDir, "pibloom.yaml");
 
     fs.mkdirSync(objectsDir, { recursive: true });
     fs.mkdirSync(quadletDir, { recursive: true });
     fs.writeFileSync(
       configPath,
-      "hostname: nazar-box\nprimary_user: alex\nevolution:\n  max_containers_per_evolution: 3\n",
+      "hostname: pibloom-box\nprimary_user: alex\nevolution:\n  max_containers_per_evolution: 3\n",
     );
 
     store = new ObjectStore(objectsDir);
@@ -144,9 +144,9 @@ describe("EvolveManager", () => {
   describe("install", () => {
     it("generates Quadlet files and starts services", async () => {
       createEvolution("test-evo", [
-        { name: "nazar-foo", image: "docker.io/foo:latest" },
+        { name: "pibloom-foo", image: "docker.io/foo:latest" },
       ]);
-      executor.healthyServices.add("nazar-foo");
+      executor.healthyServices.add("pibloom-foo");
 
       const result = await manager.install({
         slug: "test-evo",
@@ -156,7 +156,7 @@ describe("EvolveManager", () => {
 
       // Should have written a Quadlet file
       assert.equal(executor.writeCalls.length, 1);
-      assert.ok(executor.writeCalls[0].path.endsWith("nazar-foo.container"));
+      assert.ok(executor.writeCalls[0].path.endsWith("pibloom-foo.container"));
       assert.ok(
         executor.writeCalls[0].content.includes("Image=docker.io/foo:latest"),
       );
@@ -175,17 +175,17 @@ describe("EvolveManager", () => {
           c.cmd === "sudo" &&
           c.args[0] === "systemctl" &&
           c.args[1] === "start" &&
-          c.args[2] === "nazar-foo.service",
+          c.args[2] === "pibloom-foo.service",
       );
       assert.ok(startCall);
     });
 
     it("rejects when container count exceeds max", async () => {
       createEvolution("big-evo", [
-        { name: "nazar-a", image: "img:1" },
-        { name: "nazar-b", image: "img:2" },
-        { name: "nazar-c", image: "img:3" },
-        { name: "nazar-d", image: "img:4" },
+        { name: "pibloom-a", image: "img:1" },
+        { name: "pibloom-b", image: "img:2" },
+        { name: "pibloom-c", image: "img:3" },
+        { name: "pibloom-d", image: "img:4" },
       ]);
 
       await assert.rejects(
@@ -210,7 +210,7 @@ describe("EvolveManager", () => {
       const raw = fs.readFileSync(filePath, "utf-8");
       const updated = raw.replace(
         "---\n",
-        "---\ncontainers:\n  - name: 'nazar-test'\n",
+        "---\ncontainers:\n  - name: 'pibloom-test'\n",
       );
       fs.writeFileSync(filePath, updated);
 
@@ -221,7 +221,7 @@ describe("EvolveManager", () => {
     });
 
     it("rolls back on health check failure", async () => {
-      createEvolution("unhealthy", [{ name: "nazar-sick", image: "img:1" }]);
+      createEvolution("unhealthy", [{ name: "pibloom-sick", image: "img:1" }]);
       // Don't add to healthyServices — health check will fail
 
       await assert.rejects(
@@ -231,12 +231,12 @@ describe("EvolveManager", () => {
 
       // Should have removed the Quadlet file
       assert.ok(
-        executor.removedFiles.some((f) => f.includes("nazar-sick.container")),
+        executor.removedFiles.some((f) => f.includes("pibloom-sick.container")),
       );
     });
 
     it("dry-run does not write files or start services", async () => {
-      createEvolution("dry-evo", [{ name: "nazar-dry", image: "img:1" }]);
+      createEvolution("dry-evo", [{ name: "pibloom-dry", image: "img:1" }]);
 
       const result = await manager.install({
         slug: "dry-evo",
@@ -250,7 +250,7 @@ describe("EvolveManager", () => {
 
   describe("rollback", () => {
     it("stops services and removes Quadlet files", async () => {
-      createEvolution("roll-evo", [{ name: "nazar-roll", image: "img:1" }]);
+      createEvolution("roll-evo", [{ name: "pibloom-roll", image: "img:1" }]);
 
       const result = await manager.rollback({ slug: "roll-evo" });
       assert.ok(result.includes("rolled back"));
@@ -261,7 +261,7 @@ describe("EvolveManager", () => {
       );
       assert.ok(stopCall);
       assert.ok(
-        executor.removedFiles.some((f) => f.includes("nazar-roll.container")),
+        executor.removedFiles.some((f) => f.includes("pibloom-roll.container")),
       );
     });
   });
@@ -302,7 +302,7 @@ describe("EvolveManager", () => {
 describe("renderQuadletPod", () => {
   it("produces correct .pod content with all fields", () => {
     const result = renderQuadletPod({
-      name: "nazar-signal",
+      name: "pibloom-signal",
       description: "Signal Pod",
       after: "network-online.target",
       wantedBy: "multi-user.target",
@@ -316,17 +316,17 @@ describe("renderQuadletPod", () => {
   });
 
   it("uses name as description when description is omitted", () => {
-    const result = renderQuadletPod({ name: "nazar-foo" });
-    assert.ok(result.includes("Description=nazar-foo"));
+    const result = renderQuadletPod({ name: "pibloom-foo" });
+    assert.ok(result.includes("Description=pibloom-foo"));
   });
 
   it("uses default.target when wantedBy is omitted", () => {
-    const result = renderQuadletPod({ name: "nazar-foo" });
+    const result = renderQuadletPod({ name: "pibloom-foo" });
     assert.ok(result.includes("WantedBy=default.target"));
   });
 
   it("omits After= line when after is not set", () => {
-    const result = renderQuadletPod({ name: "nazar-foo" });
+    const result = renderQuadletPod({ name: "pibloom-foo" });
     assert.ok(!result.includes("After="));
   });
 });
@@ -334,7 +334,7 @@ describe("renderQuadletPod", () => {
 describe("renderQuadletTimer", () => {
   it("produces correct .timer content with all fields", () => {
     const result = renderQuadletTimer({
-      name: "nazar-heartbeat",
+      name: "pibloom-heartbeat",
       description: "Heartbeat Timer",
       onCalendar: "*:0/30",
       persistent: true,
@@ -351,7 +351,7 @@ describe("renderQuadletTimer", () => {
 
   it("uses timers.target when wantedBy is omitted", () => {
     const result = renderQuadletTimer({
-      name: "nazar-t",
+      name: "pibloom-t",
       description: "T",
       onCalendar: "*:0/5",
     });
@@ -360,7 +360,7 @@ describe("renderQuadletTimer", () => {
 
   it("omits Persistent when persistent is false", () => {
     const result = renderQuadletTimer({
-      name: "nazar-t",
+      name: "pibloom-t",
       description: "T",
       onCalendar: "*:0/5",
       persistent: false,
@@ -378,7 +378,7 @@ describe("EvolveManager.installBridge", () => {
   const makeManifest = (
     overrides?: Partial<BridgeManifest>,
   ): BridgeManifest => ({
-    apiVersion: "nazar.dev/v1",
+    apiVersion: "pibloom.dev/v1",
     kind: "BridgeManifest",
     metadata: {
       name: "signal",
@@ -388,15 +388,15 @@ describe("EvolveManager.installBridge", () => {
     },
     containers: [
       {
-        name: "nazar-signal-bridge",
-        image: "localhost/nazar-signal-bridge:latest",
+        name: "pibloom-signal-bridge",
+        image: "localhost/pibloom-signal-bridge:latest",
         description: "Signal Bridge",
       },
     ],
-    pods: [{ name: "nazar-signal", description: "Signal Pod" }],
+    pods: [{ name: "pibloom-signal", description: "Signal Pod" }],
     timers: [
       {
-        name: "nazar-signal-heartbeat",
+        name: "pibloom-signal-heartbeat",
         description: "Signal Heartbeat",
         onCalendar: "*:0/30",
       },
@@ -405,14 +405,14 @@ describe("EvolveManager.installBridge", () => {
   });
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "nazar-bridge-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "pibloom-bridge-"));
     const objectsDir = path.join(tmpDir, "objects");
     quadletDir = path.join(tmpDir, "quadlet");
-    const configPath = path.join(tmpDir, "nazar.yaml");
+    const configPath = path.join(tmpDir, "pibloom.yaml");
 
     fs.mkdirSync(objectsDir, { recursive: true });
     fs.mkdirSync(quadletDir, { recursive: true });
-    fs.writeFileSync(configPath, "hostname: nazar-box\nprimary_user: alex\n");
+    fs.writeFileSync(configPath, "hostname: pibloom-box\nprimary_user: alex\n");
 
     const store = new ObjectStore(objectsDir);
     executor = new MockSystemExecutor();
@@ -425,9 +425,9 @@ describe("EvolveManager.installBridge", () => {
     });
 
     assert.ok(result.includes("[dry-run]"));
-    assert.ok(result.includes("nazar-signal.pod"));
-    assert.ok(result.includes("nazar-signal-bridge.container"));
-    assert.ok(result.includes("nazar-signal-heartbeat.timer"));
+    assert.ok(result.includes("pibloom-signal.pod"));
+    assert.ok(result.includes("pibloom-signal-bridge.container"));
+    assert.ok(result.includes("pibloom-signal-heartbeat.timer"));
     assert.ok(result.includes("[Pod]"));
     assert.ok(result.includes("[Container]"));
     assert.ok(result.includes("[Timer]"));
@@ -437,7 +437,7 @@ describe("EvolveManager.installBridge", () => {
   });
 
   it("writes pod, container, and timer files and starts services", async () => {
-    executor.healthyServices.add("nazar-signal-bridge");
+    executor.healthyServices.add("pibloom-signal-bridge");
 
     const result = await manager.installBridge(makeManifest(), {
       healthCheckTimeout: 2,
@@ -446,25 +446,27 @@ describe("EvolveManager.installBridge", () => {
     assert.ok(result.includes("installed successfully"));
 
     const paths = executor.writeCalls.map((w) => w.path);
-    assert.ok(paths.some((p) => p.endsWith("nazar-signal.pod")));
-    assert.ok(paths.some((p) => p.endsWith("nazar-signal-bridge.container")));
-    assert.ok(paths.some((p) => p.endsWith("nazar-signal-heartbeat.timer")));
+    assert.ok(paths.some((p) => p.endsWith("pibloom-signal.pod")));
+    assert.ok(paths.some((p) => p.endsWith("pibloom-signal-bridge.container")));
+    assert.ok(paths.some((p) => p.endsWith("pibloom-signal-heartbeat.timer")));
 
     // Pod started before containers
     const startCalls = executor.execCalls.filter(
       (c) => c.cmd === "sudo" && c.args[1] === "start",
     );
-    assert.ok(startCalls.some((c) => c.args[2] === "nazar-signal-pod.service"));
     assert.ok(
-      startCalls.some((c) => c.args[2] === "nazar-signal-bridge.service"),
+      startCalls.some((c) => c.args[2] === "pibloom-signal-pod.service"),
     );
     assert.ok(
-      startCalls.some((c) => c.args[2] === "nazar-signal-heartbeat.timer"),
+      startCalls.some((c) => c.args[2] === "pibloom-signal-bridge.service"),
+    );
+    assert.ok(
+      startCalls.some((c) => c.args[2] === "pibloom-signal-heartbeat.timer"),
     );
   });
 
   it("rollback removes .pod and .timer files on health check failure", async () => {
-    // nazar-signal-bridge is not healthy — health check fails
+    // pibloom-signal-bridge is not healthy — health check fails
 
     await assert.rejects(
       () => manager.installBridge(makeManifest(), { healthCheckTimeout: 1 }),
@@ -472,16 +474,16 @@ describe("EvolveManager.installBridge", () => {
     );
 
     assert.ok(
-      executor.removedFiles.some((f) => f.endsWith("nazar-signal.pod")),
+      executor.removedFiles.some((f) => f.endsWith("pibloom-signal.pod")),
     );
     assert.ok(
       executor.removedFiles.some((f) =>
-        f.endsWith("nazar-signal-bridge.container"),
+        f.endsWith("pibloom-signal-bridge.container"),
       ),
     );
     assert.ok(
       executor.removedFiles.some((f) =>
-        f.endsWith("nazar-signal-heartbeat.timer"),
+        f.endsWith("pibloom-signal-heartbeat.timer"),
       ),
     );
   });
@@ -490,13 +492,13 @@ describe("EvolveManager.installBridge", () => {
     const manifest = makeManifest({
       containers: [
         {
-          name: "nazar-signal-bridge",
+          name: "pibloom-signal-bridge",
           image: "localhost/{{registry}}/signal:{{version}}",
           description: "Signal",
         },
       ],
     });
-    executor.healthyServices.add("nazar-signal-bridge");
+    executor.healthyServices.add("pibloom-signal-bridge");
 
     await manager.installBridge(manifest, {
       bridgeConfig: { registry: "myrepo", version: "2.0.0" },
@@ -504,7 +506,7 @@ describe("EvolveManager.installBridge", () => {
     });
 
     const containerWrite = executor.writeCalls.find((w) =>
-      w.path.endsWith("nazar-signal-bridge.container"),
+      w.path.endsWith("pibloom-signal-bridge.container"),
     );
     assert.ok(containerWrite);
     assert.ok(

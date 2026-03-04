@@ -7,12 +7,12 @@ import type { IObjectStore } from "../../ports/object-store.js";
 import type { IPersonaLoader } from "../../ports/persona-loader.js";
 import type { ISystemExecutor } from "../../ports/system-executor.js";
 import type { CapabilityRegistry } from "../../registry.js";
-import { createNazarExtension } from "./extension.js";
+import { createPibloomExtension } from "./extension.js";
 import type { BridgeConfig } from "./pi-agent-bridge.js";
 import { AgentBridge } from "./pi-agent-bridge.js";
 
-export type { ExtensionFactory, NazarExtensionConfig } from "./extension.js";
-export { createNazarExtension } from "./extension.js";
+export type { ExtensionFactory, PibloomExtensionConfig } from "./extension.js";
+export { createPibloomExtension } from "./extension.js";
 export type { BridgeConfig } from "./pi-agent-bridge.js";
 export {
   AgentBridge,
@@ -49,9 +49,9 @@ export class AgentSessionCapability implements Capability {
    */
   createBridge(config: BridgeConfig): AgentBridge {
     const extensionFactories = this.registry?.getExtensionFactories() ?? [];
-    // Add channel-specific Nazar extension
+    // Add channel-specific piBloom extension
     extensionFactories.push(
-      createNazarExtension({
+      createPibloomExtension({
         channelName: config.channelName,
         objectStore: this.objectStore,
       }),

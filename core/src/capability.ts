@@ -23,7 +23,7 @@ import type { IFrontmatterParser } from "./ports/frontmatter-parser.js";
 import type { IObjectStore } from "./ports/object-store.js";
 import type { IPersonaLoader } from "./ports/persona-loader.js";
 import type { ISystemExecutor } from "./ports/system-executor.js";
-import type { NazarConfig } from "./types.js";
+import type { PibloomConfig } from "./types.js";
 
 /**
  * Configuration passed to each capability during init.
@@ -35,7 +35,7 @@ import type { NazarConfig } from "./types.js";
  * For phase details, see createInitializedRegistry() in defaults.ts.
  */
 export interface CapabilityConfig {
-  nazar: NazarConfig;
+  pibloom: PibloomConfig;
   services: Partial<CoreServices>;
 }
 
@@ -78,7 +78,7 @@ export interface CapabilityRegistration {
   skillPaths?: string[];
 
   /** Validate the capability's config section. Returns error messages. */
-  validateConfig?: (config: NazarConfig) => string[];
+  validateConfig?: (config: PibloomConfig) => string[];
 }
 
 /**

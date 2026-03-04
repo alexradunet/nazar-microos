@@ -2,7 +2,7 @@
  * IHealthReporter port — writes periodic health markers for container health checks.
  *
  * Each bridge container has a Podman/Docker HEALTHCHECK that reads a timestamp
- * file (e.g. /tmp/nazar-health). This port's implementation writes that file
+ * file (e.g. /tmp/pibloom-health). This port's implementation writes that file
  * at a configured interval. If the bridge process hangs or crashes, the file
  * timestamp goes stale and Podman marks the container unhealthy.
  *

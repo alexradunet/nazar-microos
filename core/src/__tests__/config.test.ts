@@ -13,7 +13,7 @@ describe("readConfig", () => {
   let tmpDir: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "nazar-config-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "pibloom-config-"));
   });
 
   afterEach(() => {
@@ -21,14 +21,14 @@ describe("readConfig", () => {
   });
 
   const writeYaml = (content: string): string => {
-    const p = path.join(tmpDir, "nazar.yaml");
+    const p = path.join(tmpDir, "pibloom.yaml");
     fs.writeFileSync(p, content);
     return p;
   };
 
   it("parses a valid config", () => {
     const p = writeYaml(`
-hostname: nazar-box
+hostname: pibloom-box
 primary_user: alex
 timezone: UTC
 heartbeat:
@@ -37,7 +37,7 @@ evolution:
   max_containers_per_evolution: 5
 `);
     const config = readConfig(p);
-    assert.equal(config.hostname, "nazar-box");
+    assert.equal(config.hostname, "pibloom-box");
     assert.equal(config.primary_user, "alex");
     assert.equal(config.heartbeat?.interval, "30m");
     assert.equal(config.evolution?.max_containers_per_evolution, 5);
@@ -56,7 +56,7 @@ evolution:
   });
 
   it("throws on missing primary_user", () => {
-    const p = writeYaml("hostname: nazar-box\n");
+    const p = writeYaml("hostname: pibloom-box\n");
     assert.throws(
       () => readConfig(p),
       /required field 'primary_user' is missing/,
@@ -70,7 +70,7 @@ evolution:
 
   it("throws on invalid heartbeat interval", () => {
     const p = writeYaml(`
-hostname: nazar-box
+hostname: pibloom-box
 primary_user: alex
 heartbeat:
   interval: 30x
@@ -81,7 +81,7 @@ heartbeat:
   it("accepts valid intervals: m, h, d", () => {
     for (const interval of ["5m", "2h", "3d"]) {
       const p = writeYaml(`
-hostname: nazar-box
+hostname: pibloom-box
 primary_user: alex
 heartbeat:
   interval: ${interval}
@@ -93,11 +93,11 @@ heartbeat:
 
   it("accepts config with only required fields", () => {
     const p = writeYaml(`
-hostname: nazar-box
+hostname: pibloom-box
 primary_user: alex
 `);
     const config = readConfig(p);
-    assert.equal(config.hostname, "nazar-box");
+    assert.equal(config.hostname, "pibloom-box");
     assert.equal(config.heartbeat, undefined);
   });
 });
@@ -105,7 +105,7 @@ primary_user: alex
 describe("configValue", () => {
   it("returns nested value", () => {
     const config = {
-      hostname: "nazar-box",
+      hostname: "pibloom-box",
       primary_user: "alex",
       heartbeat: { interval: "30m" },
     };
@@ -113,12 +113,12 @@ describe("configValue", () => {
   });
 
   it("returns default for missing path", () => {
-    const config = { hostname: "nazar-box", primary_user: "alex" };
+    const config = { hostname: "pibloom-box", primary_user: "alex" };
     assert.equal(configValue(config, "heartbeat.interval", "10m"), "10m");
   });
 
   it("returns top-level value", () => {
-    const config = { hostname: "nazar-box", primary_user: "alex" };
-    assert.equal(configValue(config, "hostname", "default"), "nazar-box");
+    const config = { hostname: "pibloom-box", primary_user: "alex" };
+    assert.equal(configValue(config, "hostname", "default"), "pibloom-box");
   });
 });

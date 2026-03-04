@@ -9,7 +9,7 @@ import {
 
 function validManifest(overrides?: Partial<BridgeManifest>): BridgeManifest {
   return {
-    apiVersion: "nazar.dev/v1",
+    apiVersion: "pibloom.dev/v1",
     kind: "BridgeManifest",
     metadata: {
       name: "signal",
@@ -19,8 +19,8 @@ function validManifest(overrides?: Partial<BridgeManifest>): BridgeManifest {
     },
     containers: [
       {
-        name: "nazar-signal-bridge",
-        image: "localhost/nazar-signal-bridge:latest",
+        name: "pibloom-signal-bridge",
+        image: "localhost/pibloom-signal-bridge:latest",
       },
     ],
     ...overrides,
@@ -30,7 +30,7 @@ function validManifest(overrides?: Partial<BridgeManifest>): BridgeManifest {
 describe("parseBridgeManifest", () => {
   it("parses valid YAML into BridgeManifest", () => {
     const yaml = `
-apiVersion: nazar.dev/v1
+apiVersion: pibloom.dev/v1
 kind: BridgeManifest
 metadata:
   name: signal
@@ -38,15 +38,15 @@ metadata:
   version: "1.0.0"
   channel: signal
 containers:
-  - name: nazar-signal-bridge
-    image: localhost/nazar-signal-bridge:latest
+  - name: pibloom-signal-bridge
+    image: localhost/pibloom-signal-bridge:latest
 `;
     const manifest = parseBridgeManifest(yaml);
-    assert.equal(manifest.apiVersion, "nazar.dev/v1");
+    assert.equal(manifest.apiVersion, "pibloom.dev/v1");
     assert.equal(manifest.kind, "BridgeManifest");
     assert.equal(manifest.metadata.name, "signal");
     assert.equal(manifest.containers.length, 1);
-    assert.equal(manifest.containers[0].name, "nazar-signal-bridge");
+    assert.equal(manifest.containers[0].name, "pibloom-signal-bridge");
   });
 
   it("throws on invalid YAML", () => {
@@ -59,7 +59,7 @@ containers:
 
   it("parses manifest with pods, timers, and configSchema", () => {
     const yaml = `
-apiVersion: nazar.dev/v1
+apiVersion: pibloom.dev/v1
 kind: BridgeManifest
 metadata:
   name: signal
@@ -67,16 +67,16 @@ metadata:
   version: "1.0.0"
   channel: signal
 containers:
-  - name: nazar-signal-cli
-    image: localhost/nazar-signal-cli:latest
-  - name: nazar-signal-bridge
-    image: localhost/nazar-signal-bridge:latest
-    pod: nazar-signal.pod
+  - name: pibloom-signal-cli
+    image: localhost/pibloom-signal-cli:latest
+  - name: pibloom-signal-bridge
+    image: localhost/pibloom-signal-bridge:latest
+    pod: pibloom-signal.pod
 pods:
-  - name: nazar-signal
+  - name: pibloom-signal
     description: Signal shared network namespace
 timers:
-  - name: nazar-signal-health
+  - name: pibloom-signal-health
     description: Signal health check
     onCalendar: "*:0/5"
 configSchema:
@@ -89,7 +89,7 @@ configSchema:
     const manifest = parseBridgeManifest(yaml);
     assert.equal(manifest.containers.length, 2);
     assert.equal(manifest.pods?.length, 1);
-    assert.equal(manifest.pods?.[0].name, "nazar-signal");
+    assert.equal(manifest.pods?.[0].name, "pibloom-signal");
     assert.equal(manifest.timers?.length, 1);
     assert.equal(manifest.timers?.[0].onCalendar, "*:0/5");
     assert.equal(manifest.configSchema?.length, 1);
@@ -105,7 +105,7 @@ describe("validateBridgeManifest", () => {
 
   it("rejects wrong apiVersion", () => {
     const errors = validateBridgeManifest(
-      validManifest({ apiVersion: "v2" as "nazar.dev/v1" }),
+      validManifest({ apiVersion: "v2" as "pibloom.dev/v1" }),
     );
     assert.ok(errors.some((e) => e.includes("apiVersion")));
   });
@@ -200,9 +200,13 @@ describe("validateBridgeManifest", () => {
   it("accepts full valid manifest with all optional fields", () => {
     const errors = validateBridgeManifest(
       validManifest({
-        pods: [{ name: "nazar-signal" }],
+        pods: [{ name: "pibloom-signal" }],
         timers: [
-          { name: "nazar-health", description: "Health", onCalendar: "*:0/5" },
+          {
+            name: "pibloom-health",
+            description: "Health",
+            onCalendar: "*:0/5",
+          },
         ],
         configSchema: [
           {
@@ -215,7 +219,7 @@ describe("validateBridgeManifest", () => {
         provides: [{ name: "signal-messaging", description: "Send/receive" }],
         requiredImages: [
           {
-            name: "nazar-signal-bridge",
+            name: "pibloom-signal-bridge",
             context: "bridges/signal",
             containerfile: "Containerfile",
           },
@@ -234,8 +238,8 @@ describe("resolveManifestTemplates", () => {
     const manifest = validManifest({
       containers: [
         {
-          name: "nazar-signal-bridge",
-          image: "localhost/nazar-signal-bridge:latest",
+          name: "pibloom-signal-bridge",
+          image: "localhost/pibloom-signal-bridge:latest",
           environment: { SIGNAL_PHONE: "{{phone_number}}" },
         },
       ],
@@ -253,8 +257,8 @@ describe("resolveManifestTemplates", () => {
     const manifest = validManifest({
       containers: [
         {
-          name: "nazar-signal-bridge",
-          image: "localhost/nazar-signal-bridge:latest",
+          name: "pibloom-signal-bridge",
+          image: "localhost/pibloom-signal-bridge:latest",
           environment: { MISSING: "{{not_in_config}}" },
         },
       ],
@@ -270,7 +274,7 @@ describe("resolveManifestTemplates", () => {
     const manifest = validManifest({
       containers: [
         {
-          name: "nazar-test",
+          name: "pibloom-test",
           image: "test:latest",
           environment: { NESTED: "{{auth.token}}" },
         },
@@ -286,7 +290,7 @@ describe("resolveManifestTemplates", () => {
     const manifest = validManifest({
       containers: [
         {
-          name: "nazar-test",
+          name: "pibloom-test",
           image: "test:latest",
           publishPorts: ["{{port}}:3000"],
         },
@@ -310,7 +314,7 @@ describe("resolveManifestTemplates", () => {
     const manifest = validManifest({
       containers: [
         {
-          name: "nazar-test",
+          name: "pibloom-test",
           image: "test:latest",
           environment: { VAL: "{{key}}" },
         },

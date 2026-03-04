@@ -27,8 +27,8 @@ export { CapabilityExtractor } from "./extractor.js";
 export type { CapabilityManifest } from "./manifest.js";
 export { parseManifest, validateManifest } from "./manifest.js";
 
-const DEFAULT_CAPABILITIES_DIR = "/var/lib/nazar/capabilities";
-const DEFAULT_SKILLS_DIR = "/var/lib/nazar/skills";
+const DEFAULT_CAPABILITIES_DIR = "/var/lib/pibloom/capabilities";
+const DEFAULT_SKILLS_DIR = "/var/lib/pibloom/skills";
 
 /**
  * Discovers capability manifests from host filesystem and aggregates

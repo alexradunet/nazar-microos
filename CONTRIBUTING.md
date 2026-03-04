@@ -1,4 +1,4 @@
-# Contributing to Nazar
+# Contributing to piBloom
 
 Contributions are welcome! This guide helps you find the right level of involvement.
 
@@ -36,18 +36,18 @@ npm run check
 ```
 
 Key files:
-- `packages/nazar-core/src/` — ObjectStore, FrontmatterParser, SetupAdapter, EvolutionAdapter
-- `scripts/nazar` — CLI router (delegates to nazar-core)
+- `packages/pibloom-core/src/` — ObjectStore, FrontmatterParser, SetupAdapter, EvolutionAdapter
+- `scripts/pibloom` — CLI router (delegates to pibloom-core)
 
 ### Tier 2: Containers
 
 Build and test container images.
 
 ```bash
-podman build -t nazar-base -f core/containers/base/Containerfile .
-podman build -t nazar-heartbeat -f core/containers/heartbeat/Containerfile .
-podman build -t nazar-signal-cli -f bridges/signal/containers/signal-cli/Containerfile .
-podman build -t nazar-signal-bridge -f containers/signal-bridge/Containerfile .
+podman build -t pibloom-base -f core/containers/base/Containerfile .
+podman build -t pibloom-heartbeat -f core/containers/heartbeat/Containerfile .
+podman build -t pibloom-signal-cli -f bridges/signal/containers/signal-cli/Containerfile .
+podman build -t pibloom-signal-bridge -f containers/signal-bridge/Containerfile .
 ```
 
 Key files:
@@ -63,14 +63,14 @@ Key files:
 - `os/sysconfig/` — systemd sysusers, tmpfiles, sudoers, service units
 - `os/bootc/config.toml.example` — SSH key config for bootc-image-builder
 - `Makefile` — Build OS image and QCOW2 disk
-- `nazar.yaml.example` — Config template
+- `pibloom.yaml.example` — Config template
 - `.github/workflows/` — CI/CD
 
 ## Development Conventions
 
 - **TDD first** — Write failing tests before implementation
 - **node:test** for TypeScript tests — zero framework deps
-- **js-yaml** for YAML parsing (via nazar-core)
+- **js-yaml** for YAML parsing (via pibloom-core)
 - **Hexagonal architecture** — Ports (interfaces) and Adapters (implementations)
 - **PARA methodology** — Projects, Areas, Resources, Archives for object organization
 
@@ -90,7 +90,7 @@ npm test
 npm run check
 
 # Setup dry-run
-NAZAR_CONFIG=nazar.yaml.example QUADLET_OUTPUT_DIR=/tmp/q nazar-core setup --dry-run
+PIBLOOM_CONFIG=pibloom.yaml.example QUADLET_OUTPUT_DIR=/tmp/q pibloom-core setup --dry-run
 
 # Build bootc OS image
 make image

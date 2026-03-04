@@ -1,28 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# nazar-vm.sh — Local dev VM lifecycle management via libvirt.
+# pibloom-vm.sh — Local dev VM lifecycle management via libvirt.
 #
 # Manages a Fedora bootc VM for local development and testing.
 # Runs on the HOST (not inside a toolbox).
 #
 # Usage:
-#   nazar-vm create    Build OS image, generate QCOW2, create VM
-#   nazar-vm start     Start the VM
-#   nazar-vm stop      Gracefully shut down the VM
-#   nazar-vm destroy   Remove VM and its storage
-#   nazar-vm ssh       SSH into the VM as core user
-#   nazar-vm ip        Show the VM's IP address
-#   nazar-vm upgrade   bootc upgrade the VM and optionally reboot
-#   nazar-vm status    Show VM state
+#   pibloom-vm create    Build OS image, generate QCOW2, create VM
+#   pibloom-vm start     Start the VM
+#   pibloom-vm stop      Gracefully shut down the VM
+#   pibloom-vm destroy   Remove VM and its storage
+#   pibloom-vm ssh       SSH into the VM as core user
+#   pibloom-vm ip        Show the VM's IP address
+#   pibloom-vm upgrade   bootc upgrade the VM and optionally reboot
+#   pibloom-vm status    Show VM state
 
-VM_NAME="${NAZAR_VM_NAME:-nazar-dev}"
-VM_MEMORY="${NAZAR_VM_MEMORY:-2048}"
-VM_VCPUS="${NAZAR_VM_VCPUS:-2}"
-VM_DISK_SIZE="${NAZAR_VM_DISK_SIZE:-20G}"
+VM_NAME="${PIBLOOM_VM_NAME:-pibloom-dev}"
+VM_MEMORY="${PIBLOOM_VM_MEMORY:-2048}"
+VM_VCPUS="${PIBLOOM_VM_VCPUS:-2}"
+VM_DISK_SIZE="${PIBLOOM_VM_DISK_SIZE:-20G}"
 VIRSH_URI="qemu:///system"
 
-IMAGE_NAME="localhost/nazar-os"
+IMAGE_NAME="localhost/pibloom-os"
 IMAGE_TAG="latest"
 
 # --- Helpers ---
@@ -79,7 +79,7 @@ wait_for_ip() {
 
 cmd_create() {
   ensure_sudo
-  vm_exists && die "VM '$VM_NAME' already exists. Run 'nazar vm destroy' first."
+  vm_exists && die "VM '$VM_NAME' already exists. Run 'pibloom vm destroy' first."
 
   [[ -f "$BOOTC_CONFIG" ]] || die "SSH key config not found: $BOOTC_CONFIG
 Copy os/bootc/config.toml.example to os/bootc/config.toml and add your SSH public key."
@@ -139,23 +139,23 @@ Copy os/bootc/config.toml.example to os/bootc/config.toml and add your SSH publi
   local ssh_opts="-o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
   info "Waiting for first-boot setup to complete..."
   local timeout=120 elapsed=0
-  while ! ssh $ssh_opts "core@${ip}" systemctl is-active nazar-setup.service 2>/dev/null | grep -qE "^(active|inactive)$"; do
+  while ! ssh $ssh_opts "core@${ip}" systemctl is-active pibloom-setup.service 2>/dev/null | grep -qE "^(active|inactive)$"; do
     sleep 5
     elapsed=$((elapsed + 5))
-    [[ $elapsed -ge $timeout ]] && { warn "Timed out waiting for nazar-setup.service"; break; }
+    [[ $elapsed -ge $timeout ]] && { warn "Timed out waiting for pibloom-setup.service"; break; }
   done
 
   info ""
   info "Deploying container images to VM..."
-  NAZAR_HOST="$ip" "$PROJECT_ROOT/scripts/nazar-deploy.sh" --images
+  PIBLOOM_HOST="$ip" "$PROJECT_ROOT/scripts/pibloom-deploy.sh" --images
   info ""
   info "VM is ready with all services. SSH in with:"
-  info "  nazar vm ssh"
+  info "  pibloom vm ssh"
 }
 
 cmd_start() {
   ensure_sudo
-  vm_exists || die "VM '$VM_NAME' does not exist. Run 'nazar vm create' first."
+  vm_exists || die "VM '$VM_NAME' does not exist. Run 'pibloom vm create' first."
   vm_running && { info "VM '$VM_NAME' is already running."; return; }
   info "Starting VM '$VM_NAME'..."
   virsh_cmd start "$VM_NAME"
@@ -194,7 +194,7 @@ cmd_destroy() {
 cmd_ssh() {
   ensure_sudo
   vm_exists || die "VM '$VM_NAME' does not exist."
-  vm_running || die "VM '$VM_NAME' is not running. Start it with: nazar vm start"
+  vm_running || die "VM '$VM_NAME' is not running. Start it with: pibloom vm start"
 
   local ip
   ip=$(get_vm_ip)
@@ -218,7 +218,7 @@ cmd_ip() {
 cmd_upgrade() {
   ensure_sudo
   vm_exists || die "VM '$VM_NAME' does not exist."
-  vm_running || die "VM '$VM_NAME' is not running. Start it with: nazar vm start"
+  vm_running || die "VM '$VM_NAME' is not running. Start it with: pibloom vm start"
 
   local ip
   ip=$(get_vm_ip)
@@ -229,7 +229,7 @@ cmd_upgrade() {
   info "Running bootc upgrade on VM..."
   # shellcheck disable=SC2086
   ssh $ssh_opts "core@${ip}" sudo bootc upgrade \
-    || die "bootc upgrade failed. Has the VM been switched to a registry image? Try: nazar deploy --os"
+    || die "bootc upgrade failed. Has the VM been switched to a registry image? Try: pibloom deploy --os"
 
   info ""
   info "Upgrade staged. A reboot is required to apply."
@@ -238,9 +238,9 @@ cmd_upgrade() {
     info "Rebooting VM..."
     # shellcheck disable=SC2086
     ssh $ssh_opts "core@${ip}" sudo systemctl reboot || true
-    info "VM is rebooting. Wait ~30s then reconnect with: nazar vm ssh"
+    info "VM is rebooting. Wait ~30s then reconnect with: pibloom vm ssh"
   else
-    info "Skipped reboot. Apply later with: nazar vm ssh -- sudo systemctl reboot"
+    info "Skipped reboot. Apply later with: pibloom vm ssh -- sudo systemctl reboot"
   fi
 }
 
@@ -281,7 +281,7 @@ case "$subcmd" in
   upgrade) cmd_upgrade ;;
   status)  cmd_status ;;
   *)
-    echo "Usage: nazar-vm <create|start|stop|destroy|ssh|ip|upgrade|status>" >&2
+    echo "Usage: pibloom-vm <create|start|stop|destroy|ssh|ip|upgrade|status>" >&2
     echo "" >&2
     echo "Commands:" >&2
     echo "  create   Build OS image, generate QCOW2, create VM" >&2

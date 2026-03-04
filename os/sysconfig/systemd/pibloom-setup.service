@@ -1,6 +1,6 @@
 [Unit]
-Description=Nazar First-Boot Setup
-ConditionPathExists=!/etc/nazar/.setup-complete
+Description=piBloom First-Boot Setup
+ConditionPathExists=!/etc/pibloom/.setup-complete
 After=network-online.target systemd-sysusers.service systemd-tmpfiles-setup.service
 Wants=network-online.target
 
@@ -8,21 +8,21 @@ Wants=network-online.target
 Type=oneshot
 ExecStart=/bin/bash -c '\
   set -e; \
-  /usr/local/bin/nazar apply; \
-  test -f /usr/local/share/nazar/persona/SOUL.md; \
-  test -f /usr/local/share/nazar/persona/BODY.md; \
-  test -f /usr/local/share/nazar/persona/FACULTY.md; \
-  test -f /usr/local/share/nazar/persona/SKILL.md; \
-  test -d /usr/local/share/nazar/skills; \
-  cp -r /usr/local/share/nazar/skills/* /var/lib/nazar/skills/core/; \
-  skills=$(cd /var/lib/nazar/skills/core && ls -1d */ | sed "s|/$||" | sed "s/^/  - /"); \
-  printf "apiVersion: nazar.dev/v1\nkind: CapabilityManifest\nmetadata:\n  name: core\n  description: Built-in Nazar core skills\n  version: \"1.0.0\"\nskills:\n%s\n" "$skills" > /var/lib/nazar/capabilities/_core.yaml; \
-  chown -R nazar-agent:nazar-agent /var/lib/nazar/skills /var/lib/nazar/capabilities; \
+  /usr/local/bin/pibloom apply; \
+  test -f /usr/local/share/pibloom/persona/SOUL.md; \
+  test -f /usr/local/share/pibloom/persona/BODY.md; \
+  test -f /usr/local/share/pibloom/persona/FACULTY.md; \
+  test -f /usr/local/share/pibloom/persona/SKILL.md; \
+  test -d /usr/local/share/pibloom/skills; \
+  cp -r /usr/local/share/pibloom/skills/* /var/lib/pibloom/skills/core/; \
+  skills=$(cd /var/lib/pibloom/skills/core && ls -1d */ | sed "s|/$||" | sed "s/^/  - /"); \
+  printf "apiVersion: pibloom.dev/v1\nkind: CapabilityManifest\nmetadata:\n  name: core\n  description: Built-in piBloom core skills\n  version: \"1.0.0\"\nskills:\n%s\n" "$skills" > /var/lib/pibloom/capabilities/_core.yaml; \
+  chown -R pibloom-agent:pibloom-agent /var/lib/pibloom/skills /var/lib/pibloom/capabilities; \
   mkdir -p /home/core/.pi/agent; \
-  ln -sfn /usr/local/share/nazar/skills /home/core/.pi/agent/skills; \
-  ln -sfn /usr/local/share/nazar/persona/SOUL.md /home/core/.pi/agent/SYSTEM.md; \
+  ln -sfn /usr/local/share/pibloom/skills /home/core/.pi/agent/skills; \
+  ln -sfn /usr/local/share/pibloom/persona/SOUL.md /home/core/.pi/agent/SYSTEM.md; \
   chown -R core:core /home/core/.pi'
-ExecStartPost=/usr/bin/touch /etc/nazar/.setup-complete
+ExecStartPost=/usr/bin/touch /etc/pibloom/.setup-complete
 RemainAfterExit=yes
 TimeoutStartSec=120
 

@@ -1,10 +1,10 @@
-# Nazar Evolution — restricted sudo for container service management.
-# NOTE: The nazar-* wildcard allows starting any unit matching that prefix.
+# piBloom Evolution — restricted sudo for container service management.
+# NOTE: The pibloom-* wildcard allows starting any unit matching that prefix.
 # This is an accepted risk — the evolution install flow validates container
-# names (must match /^nazar-[a-zA-Z0-9][a-zA-Z0-9._-]*$/) and requires
+# names (must match /^pibloom-[a-zA-Z0-9][a-zA-Z0-9._-]*$/) and requires
 # interactive approval before writing Quadlet files.
-nazar-agent ALL=(root) NOPASSWD: /usr/bin/systemctl daemon-reload
-nazar-agent ALL=(root) NOPASSWD: /usr/bin/systemctl start nazar-*
-nazar-agent ALL=(root) NOPASSWD: /usr/bin/systemctl stop nazar-*
-nazar-agent ALL=(root) NOPASSWD: /usr/bin/systemctl restart nazar-*
-nazar-agent ALL=(root) NOPASSWD: /usr/bin/systemctl is-active nazar-*
+pibloom-agent ALL=(root) NOPASSWD: /usr/bin/systemctl daemon-reload
+pibloom-agent ALL=(root) NOPASSWD: /usr/bin/systemctl start pibloom-*
+pibloom-agent ALL=(root) NOPASSWD: /usr/bin/systemctl stop pibloom-*
+pibloom-agent ALL=(root) NOPASSWD: /usr/bin/systemctl restart pibloom-*
+pibloom-agent ALL=(root) NOPASSWD: /usr/bin/systemctl is-active pibloom-*

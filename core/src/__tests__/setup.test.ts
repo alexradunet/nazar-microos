@@ -9,13 +9,13 @@ import {
 
 const _setupGenerator = new QuadletSetupGenerator();
 function generateQuadletFiles(
-  config: import("../types.js").NazarConfig,
+  config: import("../types.js").PibloomConfig,
   outputDir: string,
 ) {
   return _setupGenerator.generate(config, outputDir);
 }
 
-import type { NazarConfig } from "../types.js";
+import type { PibloomConfig } from "../types.js";
 
 describe("parseInterval", () => {
   it("converts minutes", () => {
@@ -41,7 +41,7 @@ describe("parseInterval", () => {
 describe("renderQuadletContainer", () => {
   it("renders a basic container", () => {
     const content = renderQuadletContainer({
-      name: "nazar-test",
+      name: "pibloom-test",
       image: "docker.io/test:latest",
       description: "Test Container",
     });
@@ -54,7 +54,7 @@ describe("renderQuadletContainer", () => {
 
   it("renders volumes and environment", () => {
     const content = renderQuadletContainer({
-      name: "nazar-test",
+      name: "pibloom-test",
       image: "test:latest",
       description: "Test",
       volumes: ["/host:/container:ro"],
@@ -66,7 +66,7 @@ describe("renderQuadletContainer", () => {
 
   it("renders publish ports", () => {
     const content = renderQuadletContainer({
-      name: "nazar-test",
+      name: "pibloom-test",
       image: "test:latest",
       description: "Test",
       publishPorts: ["8080:80", "443:443"],
@@ -77,17 +77,17 @@ describe("renderQuadletContainer", () => {
 
   it("renders pod membership", () => {
     const content = renderQuadletContainer({
-      name: "nazar-test",
+      name: "pibloom-test",
       image: "test:latest",
       description: "Test",
-      pod: "nazar-signal.pod",
+      pod: "pibloom-signal.pod",
     });
-    assert.ok(content.includes("Pod=nazar-signal.pod"));
+    assert.ok(content.includes("Pod=pibloom-signal.pod"));
   });
 
   it("renders oneshot service type", () => {
     const content = renderQuadletContainer({
-      name: "nazar-test",
+      name: "pibloom-test",
       image: "test:latest",
       description: "Test",
       serviceType: "oneshot",
@@ -125,8 +125,8 @@ describe("renderSystemdService", () => {
 });
 
 describe("generateQuadletFiles", () => {
-  const baseConfig: NazarConfig = {
-    hostname: "nazar-box",
+  const baseConfig: PibloomConfig = {
+    hostname: "pibloom-box",
     primary_user: "alex",
     heartbeat: { interval: "30m" },
   };
@@ -135,27 +135,31 @@ describe("generateQuadletFiles", () => {
     const files = generateQuadletFiles(baseConfig, "/etc/systemd/system");
     const names = files.map((f) => f.path.split("/").pop());
     assert.deepEqual(names, [
-      "nazar-heartbeat.service",
-      "nazar-heartbeat.timer",
+      "pibloom-heartbeat.service",
+      "pibloom-heartbeat.timer",
     ]);
   });
 
   it("heartbeat service has correct structure", () => {
     const files = generateQuadletFiles(baseConfig, "/out");
-    const hb = files.find((f) => f.path.endsWith("nazar-heartbeat.service"));
+    const hb = files.find((f) => f.path.endsWith("pibloom-heartbeat.service"));
     assert.ok(hb);
-    assert.ok(hb.content.includes("Description=Nazar Heartbeat Service"));
+    assert.ok(hb.content.includes("Description=piBloom Heartbeat Service"));
     assert.ok(hb.content.includes("Type=oneshot"));
-    assert.ok(hb.content.includes("User=nazar-agent"));
-    assert.ok(hb.content.includes("ExecStart=/usr/local/bin/nazar-heartbeat"));
+    assert.ok(hb.content.includes("User=pibloom-agent"));
     assert.ok(
-      hb.content.includes("Environment=NAZAR_OBJECTS_DIR=/var/lib/nazar/objects"),
+      hb.content.includes("ExecStart=/usr/local/bin/pibloom-heartbeat"),
+    );
+    assert.ok(
+      hb.content.includes(
+        "Environment=PIBLOOM_OBJECTS_DIR=/var/lib/pibloom/objects",
+      ),
     );
   });
 
   it("heartbeat timer uses configured interval", () => {
     const files = generateQuadletFiles(baseConfig, "/out");
-    const timer = files.find((f) => f.path.endsWith("nazar-heartbeat.timer"));
+    const timer = files.find((f) => f.path.endsWith("pibloom-heartbeat.timer"));
     assert.ok(timer);
     assert.ok(timer.content.includes("OnCalendar=*:0/30"));
     assert.ok(timer.content.includes("WantedBy=timers.target"));
@@ -164,18 +168,18 @@ describe("generateQuadletFiles", () => {
   it("heartbeat timer converts hour interval", () => {
     const config = { ...baseConfig, heartbeat: { interval: "2h" } };
     const files = generateQuadletFiles(config, "/out");
-    const timer = files.find((f) => f.path.endsWith("nazar-heartbeat.timer"));
+    const timer = files.find((f) => f.path.endsWith("pibloom-heartbeat.timer"));
     assert.ok(timer);
     assert.ok(timer.content.includes("OnCalendar=*-*-* 0/2:00:00"));
   });
 
   it("uses default heartbeat interval when not configured", () => {
-    const config: NazarConfig = {
-      hostname: "nazar-box",
+    const config: PibloomConfig = {
+      hostname: "pibloom-box",
       primary_user: "alex",
     };
     const files = generateQuadletFiles(config, "/out");
-    const timer = files.find((f) => f.path.endsWith("nazar-heartbeat.timer"));
+    const timer = files.find((f) => f.path.endsWith("pibloom-heartbeat.timer"));
     assert.ok(timer);
     assert.ok(timer.content.includes("OnCalendar=*:0/30"));
   });

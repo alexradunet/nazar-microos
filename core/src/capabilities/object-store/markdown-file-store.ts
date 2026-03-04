@@ -8,7 +8,7 @@ import type {
 } from "../../ports/object-store.js";
 import { JsYamlFrontmatterParser } from "../frontmatter/js-yaml-parser.js";
 
-// Canonical runtime implementation (used by Pi skills via nazar-core CLI).
+// Canonical runtime implementation (used by Pi skills via pibloom-core CLI).
 export class MarkdownFileStore implements IObjectStore {
   private readonly parser: IFrontmatterParser;
 

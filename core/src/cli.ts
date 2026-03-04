@@ -12,13 +12,13 @@ import { JsYamlFrontmatterParser } from "./capabilities/frontmatter/js-yaml-pars
 import { MarkdownFileStore as ObjectStore } from "./capabilities/object-store/markdown-file-store.js";
 import { QuadletSetupGenerator } from "./capabilities/setup/quadlet-generator.js";
 import { NodeSystemExecutor } from "./capabilities/system-executor/node-executor.js";
-import type { NazarConfig } from "./types.js";
+import type { PibloomConfig } from "./types.js";
 
 const _configReader = new YamlConfigReader();
 const readConfig = _configReader.read.bind(_configReader);
 
 const _setupGenerator = new QuadletSetupGenerator();
-function generateQuadletFiles(config: NazarConfig, outputDir: string) {
+function generateQuadletFiles(config: PibloomConfig, outputDir: string) {
   return _setupGenerator.generate(config, outputDir);
 }
 
@@ -74,18 +74,18 @@ function printRefs(
 
 // --- Env defaults ---
 
-const NAZAR_CONFIG = process.env.NAZAR_CONFIG ?? "/etc/nazar/nazar.yaml";
-const NAZAR_OBJECTS_DIR =
-  process.env.NAZAR_OBJECTS_DIR ?? "/var/lib/nazar/objects";
-const SYSTEMD_UNIT_DIR =
-  process.env.SYSTEMD_UNIT_DIR ?? "/etc/systemd/system";
+const PIBLOOM_CONFIG =
+  process.env.PIBLOOM_CONFIG ?? "/etc/pibloom/pibloom.yaml";
+const PIBLOOM_OBJECTS_DIR =
+  process.env.PIBLOOM_OBJECTS_DIR ?? "/var/lib/pibloom/objects";
+const SYSTEMD_UNIT_DIR = process.env.SYSTEMD_UNIT_DIR ?? "/etc/systemd/system";
 const QUADLET_OUTPUT_DIR =
   process.env.QUADLET_OUTPUT_DIR ?? "/etc/containers/systemd";
 
 // --- Object subcommands ---
 
 function objectCmd(parsed: ParsedArgs): void {
-  const objectsDir = parsed.flags["objects-dir"] ?? NAZAR_OBJECTS_DIR;
+  const objectsDir = parsed.flags["objects-dir"] ?? PIBLOOM_OBJECTS_DIR;
   const store = new ObjectStore(objectsDir);
 
   switch (parsed.subcommand) {
@@ -94,7 +94,7 @@ function objectCmd(parsed: ParsedArgs): void {
       const slug = parsed.positional[1];
       if (!type || !slug) {
         die(
-          "usage: nazar-core object create <type> <slug> [--field=value ...]",
+          "usage: pibloom-core object create <type> <slug> [--field=value ...]",
         );
       }
       const fields: Record<string, string> = {};
@@ -109,7 +109,7 @@ function objectCmd(parsed: ParsedArgs): void {
       const type = parsed.positional[0];
       const slug = parsed.positional[1];
       if (!type || !slug) {
-        die("usage: nazar-core object read <type> <slug>");
+        die("usage: pibloom-core object read <type> <slug>");
       }
       const obj = store.read(type, slug);
       // Output the raw file content (matches bash behavior)
@@ -123,7 +123,7 @@ function objectCmd(parsed: ParsedArgs): void {
       if (listAll) type = null;
       if (!type && !listAll) {
         die(
-          "usage: nazar-core object list <type> [--status=X ...] or nazar-core object list --all",
+          "usage: pibloom-core object list <type> [--status=X ...] or pibloom-core object list --all",
         );
       }
       const filters: Record<string, string> = {};
@@ -143,7 +143,9 @@ function objectCmd(parsed: ParsedArgs): void {
         Object.keys(parsed.flags).filter((k) => k !== "objects-dir").length ===
           0
       ) {
-        die("usage: nazar-core object update <type> <slug> --field=value ...");
+        die(
+          "usage: pibloom-core object update <type> <slug> --field=value ...",
+        );
       }
       const fields: Record<string, string> = {};
       for (const [k, v] of Object.entries(parsed.flags)) {
@@ -155,7 +157,7 @@ function objectCmd(parsed: ParsedArgs): void {
     case "search": {
       const pattern = parsed.positional[0];
       if (!pattern) {
-        die("usage: nazar-core object search <pattern>");
+        die("usage: pibloom-core object search <pattern>");
       }
       const refs = store.search(pattern);
       printRefs(refs);
@@ -165,21 +167,23 @@ function objectCmd(parsed: ParsedArgs): void {
       const refA = parsed.positional[0];
       const refB = parsed.positional[1];
       if (!refA || !refB) {
-        die("usage: nazar-core object link <type/slug> <type/slug>");
+        die("usage: pibloom-core object link <type/slug> <type/slug>");
       }
       const result = store.link(refA, refB);
       console.log(result);
       break;
     }
     default:
-      die("usage: nazar-core object <create|read|list|update|search|link> ...");
+      die(
+        "usage: pibloom-core object <create|read|list|update|search|link> ...",
+      );
   }
 }
 
 // --- Setup subcommand ---
 
 function setupCmd(parsed: ParsedArgs): void {
-  const configPath = parsed.flags.config ?? NAZAR_CONFIG;
+  const configPath = parsed.flags.config ?? PIBLOOM_CONFIG;
   const outputDir = parsed.flags["output-dir"] ?? SYSTEMD_UNIT_DIR;
   const dryRun = parsed.boolFlags.has("dry-run");
 
@@ -206,8 +210,8 @@ function setupCmd(parsed: ParsedArgs): void {
 // --- Evolve subcommand ---
 
 async function evolveCmd(parsed: ParsedArgs): Promise<void> {
-  const configPath = parsed.flags.config ?? NAZAR_CONFIG;
-  const objectsDir = parsed.flags["objects-dir"] ?? NAZAR_OBJECTS_DIR;
+  const configPath = parsed.flags.config ?? PIBLOOM_CONFIG;
+  const objectsDir = parsed.flags["objects-dir"] ?? PIBLOOM_OBJECTS_DIR;
   const quadletDir = parsed.flags["quadlet-dir"] ?? QUADLET_OUTPUT_DIR;
   const dryRun = parsed.boolFlags.has("dry-run");
 
@@ -218,7 +222,7 @@ async function evolveCmd(parsed: ParsedArgs): Promise<void> {
   switch (parsed.subcommand) {
     case "install": {
       const slug = parsed.positional[0];
-      if (!slug) die("usage: nazar-core evolve install <slug>");
+      if (!slug) die("usage: pibloom-core evolve install <slug>");
       const result = await manager.install({
         slug,
         dryRun,
@@ -229,7 +233,7 @@ async function evolveCmd(parsed: ParsedArgs): Promise<void> {
     }
     case "rollback": {
       const slug = parsed.positional[0];
-      if (!slug) die("usage: nazar-core evolve rollback <slug>");
+      if (!slug) die("usage: pibloom-core evolve rollback <slug>");
       const result = await manager.rollback({ slug, dryRun });
       console.log(result);
       break;
@@ -241,19 +245,19 @@ async function evolveCmd(parsed: ParsedArgs): Promise<void> {
       break;
     }
     default:
-      die("usage: nazar-core evolve <install|rollback|status> [args]");
+      die("usage: pibloom-core evolve <install|rollback|status> [args]");
   }
 }
 
 // --- Bridge subcommand ---
 
 const MANIFESTS_DIR =
-  process.env.NAZAR_MANIFESTS_DIR ?? "/usr/local/share/nazar/manifests";
+  process.env.PIBLOOM_MANIFESTS_DIR ?? "/usr/local/share/pibloom/manifests";
 
 async function bridgeCmd(parsed: ParsedArgs): Promise<void> {
-  const configPath = parsed.flags.config ?? NAZAR_CONFIG;
+  const configPath = parsed.flags.config ?? PIBLOOM_CONFIG;
   const quadletDir = parsed.flags["quadlet-dir"] ?? QUADLET_OUTPUT_DIR;
-  const objectsDir = parsed.flags["objects-dir"] ?? NAZAR_OBJECTS_DIR;
+  const objectsDir = parsed.flags["objects-dir"] ?? PIBLOOM_OBJECTS_DIR;
   const dryRun = parsed.boolFlags.has("dry-run");
 
   switch (parsed.subcommand) {
@@ -261,7 +265,7 @@ async function bridgeCmd(parsed: ParsedArgs): Promise<void> {
       const manifestPath = parsed.positional[0];
       if (!manifestPath) {
         die(
-          "usage: nazar-core bridge install <manifest-path> [--dry-run] [--config=path]",
+          "usage: pibloom-core bridge install <manifest-path> [--dry-run] [--config=path]",
         );
       }
 
@@ -279,7 +283,7 @@ async function bridgeCmd(parsed: ParsedArgs): Promise<void> {
         die(`invalid bridge manifest:\n  ${errors.join("\n  ")}`);
       }
 
-      // Read bridge config from nazar.yaml
+      // Read bridge config from pibloom.yaml
       let bridgeConfig: Record<string, unknown> = {};
       try {
         const config = readConfig(configPath);
@@ -343,7 +347,7 @@ async function bridgeCmd(parsed: ParsedArgs): Promise<void> {
     case "remove": {
       const bridgeName = parsed.positional[0];
       if (!bridgeName) {
-        die("usage: nazar-core bridge remove <bridge-name>");
+        die("usage: pibloom-core bridge remove <bridge-name>");
       }
 
       // Find the manifest to know which files to remove
@@ -421,7 +425,7 @@ async function bridgeCmd(parsed: ParsedArgs): Promise<void> {
       break;
     }
     default:
-      die("usage: nazar-core bridge <install|list|remove> ...");
+      die("usage: pibloom-core bridge <install|list|remove> ...");
   }
 }
 
@@ -479,7 +483,7 @@ async function main(): Promise<void> {
         break;
       default:
         console.error(
-          "Usage: nazar-core <object|setup|evolve|bridge> [subcommand] [args]",
+          "Usage: pibloom-core <object|setup|evolve|bridge> [subcommand] [args]",
         );
         console.error("");
         console.error("Commands:");

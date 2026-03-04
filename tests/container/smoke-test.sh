@@ -27,31 +27,31 @@ run_test() {
 
 # Build all container images
 echo "=== Building containers ==="
-podman build -t nazar-base -f core/containers/base/Containerfile .
-podman build -t nazar-signal-cli -f containers/signal-cli/Containerfile .
-podman build -t nazar-signal-bridge -f containers/signal-bridge/Containerfile .
+podman build -t pibloom-base -f core/containers/base/Containerfile .
+podman build -t pibloom-signal-cli -f containers/signal-cli/Containerfile .
+podman build -t pibloom-signal-bridge -f containers/signal-bridge/Containerfile .
 echo ""
 
 # Test 1: Base image has node
-run_test "nazar-base: node works" \
-  podman run --rm nazar-base node -e "console.log('OK')"
+run_test "pibloom-base: node works" \
+  podman run --rm pibloom-base node -e "console.log('OK')"
 
-# Test 2: Base image has nazar-core importable
-run_test "nazar-base: @nazar/core importable" \
-  podman run --rm nazar-base node -e "
-    import('./nazar-core/dist/index.js').then(m => {
+# Test 2: Base image has pibloom-core importable
+run_test "pibloom-base: @pibloom/core importable" \
+  podman run --rm pibloom-base node -e "
+    import('./pibloom-core/dist/index.js').then(m => {
       if (typeof m.ObjectStore === 'function') console.log('OK');
       else { console.error('ObjectStore not found'); process.exit(1); }
     })
   "
 
 # Test 3: Signal CLI binary works
-run_test "nazar-signal-cli: signal-cli binary exists" \
-  podman run --rm nazar-signal-cli signal-cli --version
+run_test "pibloom-signal-cli: signal-cli binary exists" \
+  podman run --rm pibloom-signal-cli signal-cli --version
 
 # Test 5: Signal bridge container has the built JS
-run_test "nazar-signal-bridge: dist/index.js exists" \
-  podman run --rm nazar-signal-bridge test -f bridges/signal/dist/index.js
+run_test "pibloom-signal-bridge: dist/index.js exists" \
+  podman run --rm pibloom-signal-bridge test -f bridges/signal/dist/index.js
 
 echo "========================================="
 echo "Results: $passed passed, $failed failed"

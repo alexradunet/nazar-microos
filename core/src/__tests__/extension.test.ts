@@ -1,23 +1,23 @@
 /**
- * Unit tests for Nazar Pi extension.
+ * Unit tests for piBloom Pi extension.
  */
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createNazarExtension } from "../capabilities/agent-session/extension.js";
+import { createPibloomExtension } from "../capabilities/agent-session/extension.js";
 import type { IObjectStore } from "../ports/object-store.js";
 
-describe("createNazarExtension", () => {
+describe("createPibloomExtension", () => {
   it("returns an ExtensionFactory with create()", () => {
-    const factory = createNazarExtension();
+    const factory = createPibloomExtension();
     assert.ok(typeof factory.create === "function");
     const ext = factory.create();
-    assert.equal(ext.name, "nazar");
+    assert.equal(ext.name, "pibloom");
     assert.ok(typeof ext.on === "function");
   });
 
   it("context event returns runtime context message", async () => {
-    const ext = createNazarExtension().create();
+    const ext = createPibloomExtension().create();
     const result = (await ext.on({
       type: "context",
       messages: [],
@@ -25,13 +25,13 @@ describe("createNazarExtension", () => {
     assert.ok(result.messages);
     assert.equal(result.messages.length, 1);
     assert.equal(result.messages[0].role, "user");
-    assert.ok(result.messages[0].content.includes("Nazar Runtime Context"));
+    assert.ok(result.messages[0].content.includes("piBloom Runtime Context"));
     assert.ok(result.messages[0].content.includes("Timestamp:"));
     assert.ok(result.messages[0].content.includes("Host:"));
   });
 
   it("context event includes System Inspection guidance section", async () => {
-    const ext = createNazarExtension().create();
+    const ext = createPibloomExtension().create();
     const result = (await ext.on({
       type: "context",
       messages: [],
@@ -49,13 +49,13 @@ describe("createNazarExtension", () => {
     );
     assert.ok(content.includes("podman ps"), "should mention podman ps");
     assert.ok(
-      content.includes("nazar-core bridge list"),
-      "should mention nazar-core bridge list",
+      content.includes("pibloom-core bridge list"),
+      "should mention pibloom-core bridge list",
     );
   });
 
   it("context event does not pre-load OS status, services, or containers", async () => {
-    const ext = createNazarExtension({ channelName: "whatsapp" }).create();
+    const ext = createPibloomExtension({ channelName: "whatsapp" }).create();
     const result = (await ext.on({
       type: "context",
       messages: [],
@@ -63,7 +63,7 @@ describe("createNazarExtension", () => {
     assert.ok(result.messages);
     const content = result.messages[0].content;
     assert.ok(
-      content.includes("Nazar Runtime Context"),
+      content.includes("piBloom Runtime Context"),
       "should have static context",
     );
     assert.ok(
@@ -90,7 +90,7 @@ describe("createNazarExtension", () => {
   });
 
   it("tool_call event blocks dangerous commands", async () => {
-    const ext = createNazarExtension().create();
+    const ext = createPibloomExtension().create();
     const dangerous = [
       "rm -rf /",
       "mkfs.ext4 /dev/sda1",
@@ -113,7 +113,7 @@ describe("createNazarExtension", () => {
   });
 
   it("tool_call event allows safe commands", async () => {
-    const ext = createNazarExtension().create();
+    const ext = createPibloomExtension().create();
     const safe = ["ls -la", "cat /etc/hostname", "echo hello", "git status"];
     for (const cmd of safe) {
       const result = await ext.on({
@@ -127,7 +127,7 @@ describe("createNazarExtension", () => {
   });
 
   it("session_before_compact event returns generic default compaction instructions", async () => {
-    const ext = createNazarExtension().create();
+    const ext = createPibloomExtension().create();
     const result = (await ext.on({
       type: "session_before_compact",
     })) as { compaction?: { instructions?: string } };
@@ -149,7 +149,7 @@ describe("createNazarExtension", () => {
 
   it("session_before_compact event uses custom compaction instructions when provided", async () => {
     const customInstructions = "Custom: preserve only the secret word.";
-    const ext = createNazarExtension({
+    const ext = createPibloomExtension({
       compactionInstructions: customInstructions,
     }).create();
     const result = (await ext.on({
@@ -193,7 +193,7 @@ describe("createNazarExtension", () => {
       },
       appendContent() {},
     };
-    const ext = createNazarExtension({
+    const ext = createPibloomExtension({
       objectStore: mockObjectStore,
     }).create();
     const result = (await ext.on({
@@ -221,7 +221,7 @@ describe("createNazarExtension", () => {
   });
 
   it("context event skips evolutions when objectStore is not provided", async () => {
-    const ext = createNazarExtension().create();
+    const ext = createPibloomExtension().create();
     const result = (await ext.on({
       type: "context",
       messages: [],

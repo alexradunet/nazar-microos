@@ -8,7 +8,7 @@ import type { IFrontmatterParser } from "../ports/frontmatter-parser.js";
 import type { ObjectData } from "../ports/object-store.js";
 
 function makeTmpDir(): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "nazar-test-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "pibloom-test-"));
 }
 
 // Mock parser for unit tests — records calls and returns predictable data.
@@ -194,7 +194,7 @@ describe("ObjectStore integration (real parser)", () => {
   });
 
   it("search throws on nonexistent directory", () => {
-    const badStore = new ObjectStore("/tmp/nonexistent-nazar-dir-12345");
+    const badStore = new ObjectStore("/tmp/nonexistent-pibloom-dir-12345");
     assert.throws(() => badStore.search("anything"), /not found/);
   });
 
@@ -250,7 +250,7 @@ describe("ObjectStore integration (real parser)", () => {
       area: "work",
       status: "active",
       priority: "high",
-      project: "nazar",
+      project: "pibloom",
       custom: "val",
     });
     const result = store.read("task", "ordered");

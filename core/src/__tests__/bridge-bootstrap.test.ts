@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  bridgeNazarConfig,
+  bridgePibloomConfig,
   HealthFileReporter,
   loadBaseBridgeConfig,
   MessageQueue,
@@ -27,9 +27,9 @@ describe("loadBaseBridgeConfig", () => {
   });
 });
 
-describe("bridgeNazarConfig", () => {
-  it("returns a valid NazarConfig with defaults", () => {
-    const config = bridgeNazarConfig();
+describe("bridgePibloomConfig", () => {
+  it("returns a valid PibloomConfig with defaults", () => {
+    const config = bridgePibloomConfig();
     assert.ok(config.hostname);
     assert.ok(config.primary_user);
   });

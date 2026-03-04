@@ -1,15 +1,15 @@
 ---
 name: persona-harvest
-description: Propose improvements to Nazar's OpenPersona layers through the evolution pipeline.
+description: Propose improvements to Bloom's OpenPersona layers through the evolution pipeline.
 ---
 
 # Persona Harvest Skill
 
-Use this skill when Nazar identifies opportunities to improve its persona layers based on interaction patterns.
+Use this skill when Bloom identifies opportunities to improve its persona layers based on interaction patterns.
 
 ## Purpose
 
-Persona layers (SOUL.md, BODY.md, FACULTY.md, SKILL.md) define how Nazar behaves. Over time, interactions reveal gaps, mismatches, or growth opportunities. This skill guides structured persona improvement proposals through the evolution pipeline.
+Persona layers (SOUL.md, BODY.md, FACULTY.md, SKILL.md) define how Bloom behaves. Over time, interactions reveal gaps, mismatches, or growth opportunities. This skill guides structured persona improvement proposals through the evolution pipeline.
 
 ## When to Trigger
 
@@ -26,7 +26,7 @@ Persona layers (SOUL.md, BODY.md, FACULTY.md, SKILL.md) define how Nazar behaves
    - BODY.md — channel adaptation, presence behavior
    - FACULTY.md — reasoning patterns, PARA methodology, reflection
    - SKILL.md — capability inventory, known limitations, tool preferences
-3. **Propose**: Create an evolution request using the Hermes -> Athena handoff template.
+3. **Propose**: Create an evolution request using the Root -> Stem handoff template.
 4. **Include in the request**:
    - Which persona layer(s) to change
    - Specific additions, removals, or modifications

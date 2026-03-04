@@ -1,5 +1,9 @@
 import path from "node:path";
-import type { ContainerSpec, GeneratedFile, NazarConfig } from "../../types.js";
+import type {
+  ContainerSpec,
+  GeneratedFile,
+  PibloomConfig,
+} from "../../types.js";
 import { configValue } from "../config/config-value.js";
 import type { PodSpec, TimerSpec } from "../discovery/bridge-manifest.js";
 
@@ -146,7 +150,7 @@ export function renderSystemdService(spec: {
 }
 
 export class QuadletSetupGenerator {
-  generate(config: NazarConfig, outputDir: string): GeneratedFile[] {
+  generate(config: PibloomConfig, outputDir: string): GeneratedFile[] {
     const files: GeneratedFile[] = [];
 
     // --- Heartbeat (.service + .timer) ---
@@ -154,25 +158,25 @@ export class QuadletSetupGenerator {
     const onCalendar = parseInterval(interval);
 
     files.push({
-      path: path.join(outputDir, "nazar-heartbeat.service"),
+      path: path.join(outputDir, "pibloom-heartbeat.service"),
       content: renderSystemdService({
-        description: "Nazar Heartbeat Service",
-        user: "nazar-agent",
+        description: "piBloom Heartbeat Service",
+        user: "pibloom-agent",
         environment: {
-          NAZAR_OBJECTS_DIR: "/var/lib/nazar/objects",
-          NAZAR_SKILLS_DIR: "/usr/local/share/nazar/skills",
-          NAZAR_PERSONA_DIR: "/usr/local/share/nazar/persona",
-          NAZAR_CONFIG: "/etc/nazar/nazar.yaml",
+          PIBLOOM_OBJECTS_DIR: "/var/lib/pibloom/objects",
+          PIBLOOM_SKILLS_DIR: "/usr/local/share/pibloom/skills",
+          PIBLOOM_PERSONA_DIR: "/usr/local/share/pibloom/persona",
+          PIBLOOM_CONFIG: "/etc/pibloom/pibloom.yaml",
         },
-        execStart: "/usr/local/bin/nazar-heartbeat",
+        execStart: "/usr/local/bin/pibloom-heartbeat",
       }),
     });
 
     files.push({
-      path: path.join(outputDir, "nazar-heartbeat.timer"),
+      path: path.join(outputDir, "pibloom-heartbeat.timer"),
       content: [
         "[Unit]",
-        "Description=Nazar Heartbeat Timer",
+        "Description=piBloom Heartbeat Timer",
         "",
         "[Timer]",
         `OnCalendar=${onCalendar}`,

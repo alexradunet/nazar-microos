@@ -41,7 +41,7 @@ describe("CLI", () => {
   let objectsDir: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "nazar-cli-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "pibloom-cli-"));
     objectsDir = path.join(tmpDir, "objects");
     fs.mkdirSync(objectsDir, { recursive: true });
   });
@@ -60,7 +60,7 @@ describe("CLI", () => {
     it("creates an object", () => {
       const r = runCli(
         ["object", "create", "journal", "test-1", "--title=Test Entry"],
-        { NAZAR_OBJECTS_DIR: objectsDir },
+        { PIBLOOM_OBJECTS_DIR: objectsDir },
       );
       assert.equal(r.exitCode, 0);
       assert.ok(r.stdout.includes("created journal/test-1"));
@@ -73,7 +73,7 @@ describe("CLI", () => {
 
     it("fails on missing args", () => {
       const r = runCli(["object", "create"], {
-        NAZAR_OBJECTS_DIR: objectsDir,
+        PIBLOOM_OBJECTS_DIR: objectsDir,
       });
       assert.equal(r.exitCode, 1);
       assert.ok(r.stderr.includes("usage:"));
@@ -83,10 +83,10 @@ describe("CLI", () => {
   describe("object read", () => {
     it("reads an object", () => {
       runCli(["object", "create", "note", "test-read", "--title=Read Me"], {
-        NAZAR_OBJECTS_DIR: objectsDir,
+        PIBLOOM_OBJECTS_DIR: objectsDir,
       });
       const r = runCli(["object", "read", "note", "test-read"], {
-        NAZAR_OBJECTS_DIR: objectsDir,
+        PIBLOOM_OBJECTS_DIR: objectsDir,
       });
       assert.equal(r.exitCode, 0);
       assert.ok(r.stdout.includes("title: Read Me"));
@@ -94,7 +94,7 @@ describe("CLI", () => {
 
     it("fails on nonexistent object", () => {
       const r = runCli(["object", "read", "note", "nope"], {
-        NAZAR_OBJECTS_DIR: objectsDir,
+        PIBLOOM_OBJECTS_DIR: objectsDir,
       });
       assert.equal(r.exitCode, 1);
       assert.ok(r.stderr.includes("object not found"));
@@ -104,13 +104,13 @@ describe("CLI", () => {
   describe("object list", () => {
     it("lists objects by type", () => {
       runCli(["object", "create", "task", "t1", "--title=Task One"], {
-        NAZAR_OBJECTS_DIR: objectsDir,
+        PIBLOOM_OBJECTS_DIR: objectsDir,
       });
       runCli(["object", "create", "task", "t2", "--title=Task Two"], {
-        NAZAR_OBJECTS_DIR: objectsDir,
+        PIBLOOM_OBJECTS_DIR: objectsDir,
       });
       const r = runCli(["object", "list", "task"], {
-        NAZAR_OBJECTS_DIR: objectsDir,
+        PIBLOOM_OBJECTS_DIR: objectsDir,
       });
       assert.equal(r.exitCode, 0);
       assert.ok(r.stdout.includes("task/t1"));
@@ -119,13 +119,13 @@ describe("CLI", () => {
 
     it("lists all objects with --all", () => {
       runCli(["object", "create", "task", "t1", "--title=Task"], {
-        NAZAR_OBJECTS_DIR: objectsDir,
+        PIBLOOM_OBJECTS_DIR: objectsDir,
       });
       runCli(["object", "create", "note", "n1", "--title=Note"], {
-        NAZAR_OBJECTS_DIR: objectsDir,
+        PIBLOOM_OBJECTS_DIR: objectsDir,
       });
       const r = runCli(["object", "list", "--all"], {
-        NAZAR_OBJECTS_DIR: objectsDir,
+        PIBLOOM_OBJECTS_DIR: objectsDir,
       });
       assert.equal(r.exitCode, 0);
       assert.ok(r.stdout.includes("task/t1"));
@@ -143,10 +143,10 @@ describe("CLI", () => {
           "searchable",
           "--title=Needle in haystack",
         ],
-        { NAZAR_OBJECTS_DIR: objectsDir },
+        { PIBLOOM_OBJECTS_DIR: objectsDir },
       );
       const r = runCli(["object", "search", "Needle"], {
-        NAZAR_OBJECTS_DIR: objectsDir,
+        PIBLOOM_OBJECTS_DIR: objectsDir,
       });
       assert.equal(r.exitCode, 0);
       assert.ok(r.stdout.includes("note/searchable"));
@@ -156,13 +156,13 @@ describe("CLI", () => {
   describe("object link", () => {
     it("links two objects", () => {
       runCli(["object", "create", "task", "a", "--title=A"], {
-        NAZAR_OBJECTS_DIR: objectsDir,
+        PIBLOOM_OBJECTS_DIR: objectsDir,
       });
       runCli(["object", "create", "note", "b", "--title=B"], {
-        NAZAR_OBJECTS_DIR: objectsDir,
+        PIBLOOM_OBJECTS_DIR: objectsDir,
       });
       const r = runCli(["object", "link", "task/a", "note/b"], {
-        NAZAR_OBJECTS_DIR: objectsDir,
+        PIBLOOM_OBJECTS_DIR: objectsDir,
       });
       assert.equal(r.exitCode, 0);
       assert.ok(r.stdout.includes("linked task/a <-> note/b"));
@@ -177,16 +177,16 @@ describe("CLI", () => {
     });
 
     it("installs a bridge manifest in dry-run mode", () => {
-      const configPath = path.join(tmpDir, "nazar.yaml");
+      const configPath = path.join(tmpDir, "pibloom.yaml");
       fs.writeFileSync(
         configPath,
-        'hostname: nazar-box\nprimary_user: alex\nbridges:\n  signal:\n    phone_number: "+4917612345678"\n    allowed_contacts: ["+4917699999999"]\n',
+        'hostname: pibloom-box\nprimary_user: alex\nbridges:\n  signal:\n    phone_number: "+4917612345678"\n    allowed_contacts: ["+4917699999999"]\n',
       );
       const manifestPath = path.join(tmpDir, "manifest.yaml");
       fs.writeFileSync(
         manifestPath,
         [
-          "apiVersion: nazar.dev/v1",
+          "apiVersion: pibloom.dev/v1",
           "kind: BridgeManifest",
           "metadata:",
           "  name: signal",
@@ -194,8 +194,8 @@ describe("CLI", () => {
           '  version: "1.0.0"',
           "  channel: signal",
           "containers:",
-          "  - name: nazar-signal-bridge",
-          "    image: localhost/nazar-signal-bridge:latest",
+          "  - name: pibloom-signal-bridge",
+          "    image: localhost/pibloom-signal-bridge:latest",
           "    description: Signal bridge",
           '    environment: { SIGNAL_PHONE: "{{phone_number}}" }',
         ].join("\n"),
@@ -209,7 +209,7 @@ describe("CLI", () => {
         `--objects-dir=${objectsDir}`,
       ]);
       assert.equal(r.exitCode, 0, `stderr: ${r.stderr}`);
-      assert.ok(r.stdout.includes("nazar-signal-bridge.container"));
+      assert.ok(r.stdout.includes("pibloom-signal-bridge.container"));
       assert.ok(r.stdout.includes("+4917612345678"));
     });
 
@@ -219,7 +219,7 @@ describe("CLI", () => {
       fs.writeFileSync(
         path.join(refDir, "test-bridge", "manifest.yaml"),
         [
-          "apiVersion: nazar.dev/v1",
+          "apiVersion: pibloom.dev/v1",
           "kind: BridgeManifest",
           "metadata:",
           "  name: test-bridge",
@@ -227,12 +227,12 @@ describe("CLI", () => {
           '  version: "1.0.0"',
           "  channel: test",
           "containers:",
-          "  - name: nazar-test",
+          "  - name: pibloom-test",
           "    image: test:latest",
         ].join("\n"),
       );
       const r = runCli(["bridge", "list"], {
-        NAZAR_MANIFESTS_DIR: refDir,
+        PIBLOOM_MANIFESTS_DIR: refDir,
       });
       assert.equal(r.exitCode, 0);
       assert.ok(r.stdout.includes("test-bridge"));
@@ -248,14 +248,14 @@ describe("CLI", () => {
 
   describe("setup", () => {
     it("generates Quadlet files in dry-run mode", () => {
-      const configPath = path.join(tmpDir, "nazar.yaml");
+      const configPath = path.join(tmpDir, "pibloom.yaml");
       fs.writeFileSync(
         configPath,
-        "hostname: nazar-box\nprimary_user: alex\nheartbeat:\n  interval: 30m\n",
+        "hostname: pibloom-box\nprimary_user: alex\nheartbeat:\n  interval: 30m\n",
       );
       const r = runCli(["setup", "--dry-run", `--config=${configPath}`]);
       assert.equal(r.exitCode, 0);
-      assert.ok(r.stdout.includes("nazar-heartbeat.service"));
+      assert.ok(r.stdout.includes("pibloom-heartbeat.service"));
       assert.ok(r.stdout.includes("dry-run"));
     });
   });

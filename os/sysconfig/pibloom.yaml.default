@@ -1,7 +1,7 @@
-# /etc/nazar/nazar.yaml — Nazar system configuration
-# Edit this file, then run: nazar apply
+# /etc/pibloom/pibloom.yaml — piBloom system configuration
+# Edit this file, then run: pibloom apply
 
-hostname: nazar-box
+hostname: pibloom-box
 primary_user: alex
 timezone: UTC
 
@@ -19,8 +19,8 @@ heartbeat:
 #     port: 3000
 
 agent:
-  skills_dir: /usr/local/share/nazar/skills
-  persona_dir: /usr/local/share/nazar/persona
+  skills_dir: /usr/local/share/pibloom/skills
+  persona_dir: /usr/local/share/pibloom/persona
 
 evolution:
   max_containers_per_evolution: 5

@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# nazar-signal-setup.sh — CLI helper for Signal account setup.
+# pibloom-signal-setup.sh — CLI helper for Signal account setup.
 #
 # Usage:
-#   nazar signal check                        Pre-flight: image, storage, accounts
-#   nazar signal link [--name NAME]           Link to existing Signal account (QR code)
-#   nazar signal register +NUMBER --captcha URL   Register a new number
-#   nazar signal verify +NUMBER CODE          Verify SMS code
-#   nazar signal accounts                     List configured accounts
+#   pibloom signal check                        Pre-flight: image, storage, accounts
+#   pibloom signal link [--name NAME]           Link to existing Signal account (QR code)
+#   pibloom signal register +NUMBER --captcha URL   Register a new number
+#   pibloom signal verify +NUMBER CODE          Verify SMS code
+#   pibloom signal accounts                     List configured accounts
 
-IMAGE="localhost/nazar-signal-cli:latest"
-STORAGE_DIR="/var/lib/nazar/signal-storage"
+IMAGE="localhost/pibloom-signal-cli:latest"
+STORAGE_DIR="/var/lib/pibloom/signal-storage"
 EXPECTED_UID=900
 
 die() { echo "ERROR: $*" >&2; exit 1; }
@@ -27,10 +27,10 @@ ensure_image() {
     fail "Container image not found: $IMAGE"
     echo ""
     echo "Build it from the project root:"
-    echo "  podman build -t nazar-signal-cli -f bridges/signal/containers/signal-cli/Containerfile ."
+    echo "  podman build -t pibloom-signal-cli -f bridges/signal/containers/signal-cli/Containerfile ."
     echo ""
     echo "Or deploy from the host:"
-    echo "  nazar deploy --images"
+    echo "  pibloom deploy --images"
     exit 1
   fi
 }
@@ -122,7 +122,7 @@ cmd_check() {
 }
 
 cmd_link() {
-  local name="Nazar"
+  local name="Bloom"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -155,8 +155,8 @@ cmd_register() {
     esac
   done
 
-  [[ -n "$number" ]] || die "Phone number required. Usage: nazar signal register +NUMBER --captcha URL"
-  [[ -n "$captcha" ]] || die "Captcha required. Usage: nazar signal register +NUMBER --captcha URL"
+  [[ -n "$number" ]] || die "Phone number required. Usage: pibloom signal register +NUMBER --captcha URL"
+  [[ -n "$captcha" ]] || die "Captcha required. Usage: pibloom signal register +NUMBER --captcha URL"
 
   ensure_image
   ensure_storage
@@ -169,8 +169,8 @@ cmd_verify() {
   local number="${1:-}"
   local code="${2:-}"
 
-  [[ -n "$number" ]] || die "Phone number required. Usage: nazar signal verify +NUMBER CODE"
-  [[ -n "$code" ]] || die "Verification code required. Usage: nazar signal verify +NUMBER CODE"
+  [[ -n "$number" ]] || die "Phone number required. Usage: pibloom signal verify +NUMBER CODE"
+  [[ -n "$code" ]] || die "Verification code required. Usage: pibloom signal verify +NUMBER CODE"
 
   ensure_image
   ensure_storage
@@ -188,7 +188,7 @@ cmd_accounts() {
 }
 
 cmd_setup_agent() {
-  local pi_config_dir="/var/lib/nazar/pi-config/agent"
+  local pi_config_dir="/var/lib/pibloom/pi-config/agent"
   local source_dir="${HOME}/.pi/agent"
 
   echo "=== Pi Agent Config Setup ==="
@@ -238,7 +238,7 @@ case "$cmd" in
   accounts)    cmd_accounts "$@" ;;
   setup-agent) cmd_setup_agent "$@" ;;
   --help|-h|help)
-    echo "Usage: nazar signal <check|link|register|verify|accounts|setup-agent>"
+    echo "Usage: pibloom signal <check|link|register|verify|accounts|setup-agent>"
     echo ""
     echo "Commands:"
     echo "  check                        Pre-flight: image, storage, accounts"
@@ -251,7 +251,7 @@ case "$cmd" in
   *)
     echo "Error: unknown signal command: ${cmd:-<none>}" >&2
     echo "" >&2
-    echo "Usage: nazar signal <check|link|register|verify|accounts|setup-agent>" >&2
+    echo "Usage: pibloom signal <check|link|register|verify|accounts|setup-agent>" >&2
     exit 1
     ;;
 esac

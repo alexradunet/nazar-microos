@@ -21,7 +21,7 @@ const loadSystemContext = _personaLoader.loadSystemContext.bind(_personaLoader);
 // ---------------------------------------------------------------------------
 
 function makeTmpDir(): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "nazar-persona-test-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "pibloom-persona-test-"));
 }
 
 function writePersonaFiles(dir: string, files: Record<string, string>): void {
@@ -104,16 +104,16 @@ describe("loadPersonaPrompt", () => {
     const dir = trackDir(makeTmpDir());
     const personaDir = path.join(dir, "persona");
     writePersonaFiles(personaDir, {
-      "SOUL.md": "# Soul\n\nI am Nazar.",
+      "SOUL.md": "# Soul\n\nI am Bloom.",
       "BODY.md": "# Body\n\n## Channel\n\n### Signal\n\n- Short messages.",
       "FACULTY.md": "# Faculty\n\nThink step by step.",
       "SKILL.md": "# Skill\n\nObject management.",
     });
 
     const result = loadPersonaPrompt(personaDir);
-    assert.ok(result.startsWith("# Nazar — Personal AI Companion"));
+    assert.ok(result.startsWith("# piBloom — Personal AI Companion"));
     assert.ok(result.includes("## Identity & Values"));
-    assert.ok(result.includes("I am Nazar"));
+    assert.ok(result.includes("I am Bloom"));
     assert.ok(result.includes("## Channel Behavior"));
     assert.ok(result.includes("## Cognitive Patterns"));
     assert.ok(result.includes("## Capabilities"));
@@ -123,7 +123,7 @@ describe("loadPersonaPrompt", () => {
     const dir = trackDir(makeTmpDir());
     const personaDir = path.join(dir, "persona");
     writePersonaFiles(personaDir, {
-      "SOUL.md": "# Soul\n\nI am Nazar.",
+      "SOUL.md": "# Soul\n\nI am Bloom.",
       "BODY.md":
         "# Body\n\n### Interactive TUI\n\n- Rich.\n\n### Signal\n\n- Mobile-first.\n\n## Presence\n\n- Responsive.",
       "FACULTY.md": "# Faculty\n\nReason.",
@@ -141,12 +141,12 @@ describe("loadPersonaPrompt", () => {
     const dir = trackDir(makeTmpDir());
     const personaDir = path.join(dir, "persona");
     writePersonaFiles(personaDir, {
-      "SOUL.md": "# Soul\n\nI am Nazar.",
+      "SOUL.md": "# Soul\n\nI am Bloom.",
     });
 
     const result = loadPersonaPrompt(personaDir);
     assert.ok(result.includes("Identity & Values"));
-    assert.ok(result.includes("I am Nazar"));
+    assert.ok(result.includes("I am Bloom"));
     // No BODY/FACULTY/SKILL sections
     assert.ok(!result.includes("Channel Behavior"));
     assert.ok(!result.includes("Cognitive Patterns"));

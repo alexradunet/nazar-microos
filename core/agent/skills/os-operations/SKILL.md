@@ -1,21 +1,21 @@
 ---
 name: os-operations
-description: Inspect, manage, and remediate the NazarOS system — bootc status, services, containers, timers, and evolutions
+description: Inspect, manage, and remediate the BloomOS system — bootc status, services, containers, timers, and evolutions
 ---
 
 # OS Operations Skill
 
-Use this skill when the user asks about the health or state of the NazarOS system, or when a heartbeat or error condition suggests infrastructure inspection is warranted.
+Use this skill when the user asks about the health or state of the BloomOS system, or when a heartbeat or error condition suggests infrastructure inspection is warranted.
 
-## NazarOS Architecture
+## BloomOS Architecture
 
-NazarOS runs on **Fedora bootc 42** — an immutable, image-based OS:
+BloomOS runs on **Fedora bootc 42** — an immutable, image-based OS:
 
 - `/usr` — read-only, managed by bootc OS image updates
-- `/etc` — writable, managed by `nazar setup` and Quadlet files
+- `/etc` — writable, managed by `pibloom setup` and Quadlet files
 - `/var` — persistent across reboots, holds object store and runtime data
 
-**Podman Quadlet** containers are managed by systemd. Each nazar service is a `.container` unit file in `/etc/containers/systemd/`. systemd starts and monitors them automatically.
+**Podman Quadlet** containers are managed by systemd. Each pibloom service is a `.container` unit file in `/etc/containers/systemd/`. systemd starts and monitors them automatically.
 
 ## Available Commands
 
@@ -51,12 +51,12 @@ sudo bootc upgrade
 ### Service Inspection
 
 ```bash
-# List all nazar-* systemd units and their active state
-systemctl list-units 'nazar-*' --no-pager
+# List all pibloom-* systemd units and their active state
+systemctl list-units 'pibloom-*' --no-pager
 
 # Show recent logs for a specific service (default: last 50 lines)
-journalctl -u nazar-heartbeat.service --no-pager -n 50
-journalctl -u nazar-whatsapp-bridge.service --no-pager -n 100
+journalctl -u pibloom-heartbeat.service --no-pager -n 50
+journalctl -u pibloom-whatsapp-bridge.service --no-pager -n 100
 ```
 
 Use after: a bridge stops responding, user reports missed messages, or a service appears degraded.
@@ -64,17 +64,17 @@ Use after: a bridge stops responding, user reports missed messages, or a service
 ### Restart Service
 
 ```bash
-# Restart a nazar-* systemd service (sudoers allows nazar-* only)
-sudo systemctl restart nazar-heartbeat.service
+# Restart a pibloom-* systemd service (sudoers allows pibloom-* only)
+sudo systemctl restart pibloom-heartbeat.service
 ```
 
-**Requires user confirmation.** Always use the `confirm` affordance before restarting a service. Only nazar-* services can be restarted (enforced by sudoers).
+**Requires user confirmation.** Always use the `confirm` affordance before restarting a service. Only pibloom-* services can be restarted (enforced by sudoers).
 
 ### Container Health
 
 ```bash
-# List running nazar-* containers with state and health status
-podman ps --format json --filter 'name=nazar-'
+# List running pibloom-* containers with state and health status
+podman ps --format json --filter 'name=pibloom-'
 ```
 
 Use after: checking if all containers are healthy, after a reboot, or when a service is unexpectedly unavailable.
@@ -82,17 +82,17 @@ Use after: checking if all containers are healthy, after a reboot, or when a ser
 ### Restart Container
 
 ```bash
-# Restart a nazar-* container (Quadlet containers are systemd units)
-sudo systemctl restart nazar-whatsapp-bridge.service
+# Restart a pibloom-* container (Quadlet containers are systemd units)
+sudo systemctl restart pibloom-whatsapp-bridge.service
 ```
 
-**Requires user confirmation.** Always use the `confirm` affordance before restarting. Only nazar-* units can be restarted (enforced by sudoers).
+**Requires user confirmation.** Always use the `confirm` affordance before restarting. Only pibloom-* units can be restarted (enforced by sudoers).
 
 ### Timer Schedule
 
 ```bash
-# List nazar-* systemd timers and their next scheduled run
-systemctl list-timers 'nazar-*' --no-pager
+# List pibloom-* systemd timers and their next scheduled run
+systemctl list-timers 'pibloom-*' --no-pager
 ```
 
 Use after: user asks when the next heartbeat runs, or to confirm timers survived a reboot.
@@ -102,7 +102,7 @@ Use after: user asks when the next heartbeat runs, or to confirm timers survived
 When inspecting system health, analyze the output of the commands above directly. Look for these patterns:
 
 ### Healthy signals
-- `systemctl list-units`: all nazar-* units show `active running`
+- `systemctl list-units`: all pibloom-* units show `active running`
 - `podman ps`: all containers show running state with healthy status
 - `systemctl list-timers`: timers show a future `NEXT` time
 - `bootc status`: booted image matches desired image, no staged image pending
@@ -117,7 +117,7 @@ When inspecting system health, analyze the output of the commands above directly
 
 - **CRITICAL**: Immediate attention required. A container has exited or a service has failed.
 - **WARNING**: Action may be needed. An OS update is staged awaiting reboot, or a container is unhealthy.
-- **INFO**: Informational. No nazar services are running (may be expected on first boot).
+- **INFO**: Informational. No pibloom services are running (may be expected on first boot).
 
 ### Responding to Issues
 
@@ -144,8 +144,8 @@ Always include a `confirm` field in affordance JSON before mutations:
 ```json
 {
   "type": "action",
-  "confirm": "Restart nazar-heartbeat.service?",
-  "command": "sudo systemctl restart nazar-heartbeat.service"
+  "confirm": "Restart pibloom-heartbeat.service?",
+  "command": "sudo systemctl restart pibloom-heartbeat.service"
 }
 ```
 
@@ -160,36 +160,36 @@ Always include a `confirm` field in affordance JSON before mutations:
 ```json
 {
   "type": "action",
-  "confirm": "Restart container nazar-whatsapp-bridge?",
-  "command": "sudo systemctl restart nazar-whatsapp-bridge.service"
+  "confirm": "Restart container pibloom-whatsapp-bridge?",
+  "command": "sudo systemctl restart pibloom-whatsapp-bridge.service"
 }
 ```
 
 ## Evolution Workflow
 
-Evolutions are managed changes to NazarOS containers and configuration. Use the `nazar-core evolve` CLI for structured evolution management.
+Evolutions are managed changes to BloomOS containers and configuration. Use the `pibloom-core evolve` CLI for structured evolution management.
 
 ### Available Evolution Commands
 
 ```bash
 # Check current evolution status
-nazar-core evolve status
+pibloom-core evolve status
 
 # Install an evolution (dry-run first to preview changes)
-nazar-core evolve install <slug> --dry-run
-nazar-core evolve install <slug>
+pibloom-core evolve install <slug> --dry-run
+pibloom-core evolve install <slug>
 
 # Rollback a previously installed evolution
-nazar-core evolve rollback <slug>
+pibloom-core evolve rollback <slug>
 ```
 
 ### Evolution Workflow Steps
 
-1. **Check status**: `nazar-core evolve status` — see pending and installed evolutions
-2. **Preview changes**: `nazar-core evolve install <slug> --dry-run` — always dry-run first
-3. **Confirm and install**: use `confirm` affordance, then `nazar-core evolve install <slug>`
+1. **Check status**: `pibloom-core evolve status` — see pending and installed evolutions
+2. **Preview changes**: `pibloom-core evolve install <slug> --dry-run` — always dry-run first
+3. **Confirm and install**: use `confirm` affordance, then `pibloom-core evolve install <slug>`
 4. **Monitor health**: after install, check services and containers for health
-5. **Rollback if needed**: if health degrades, use `confirm` affordance then `nazar-core evolve rollback <slug>`
+5. **Rollback if needed**: if health degrades, use `confirm` affordance then `pibloom-core evolve rollback <slug>`
 
 ### Pending Evolutions in Context
 
@@ -201,7 +201,7 @@ When `## Pending Evolutions` appears in the runtime context, it lists evolutions
 {
   "type": "action",
   "confirm": "Install evolution 'upgrade-signal-cli'? (dry-run passed)",
-  "command": "nazar-core evolve install upgrade-signal-cli"
+  "command": "pibloom-core evolve install upgrade-signal-cli"
 }
 ```
 
@@ -209,7 +209,7 @@ When `## Pending Evolutions` appears in the runtime context, it lists evolutions
 {
   "type": "action",
   "confirm": "Rollback evolution 'upgrade-signal-cli'? This will revert changes.",
-  "command": "nazar-core evolve rollback upgrade-signal-cli"
+  "command": "pibloom-core evolve rollback upgrade-signal-cli"
 }
 ```
 
@@ -217,12 +217,12 @@ When `## Pending Evolutions` appears in the runtime context, it lists evolutions
 
 | Situation | Command |
 |---|---|
-| User asks "is everything OK?" | `systemctl list-units 'nazar-*'` + `podman ps --filter name=nazar-` |
-| Missed heartbeat or stale data | `systemctl list-units 'nazar-*'`, `journalctl -u nazar-heartbeat.service` |
-| WhatsApp messages not arriving | `journalctl -u nazar-whatsapp-bridge.service --no-pager -n 100` |
+| User asks "is everything OK?" | `systemctl list-units 'pibloom-*'` + `podman ps --filter name=pibloom-` |
+| Missed heartbeat or stale data | `systemctl list-units 'pibloom-*'`, `journalctl -u pibloom-heartbeat.service` |
+| WhatsApp messages not arriving | `journalctl -u pibloom-whatsapp-bridge.service --no-pager -n 100` |
 | User asks about OS version | `bootc status` |
 | User asks about updates | `sudo bootc upgrade --check` |
-| After reboot | `systemctl list-units 'nazar-*'` + `podman ps --filter name=nazar-` + `systemctl list-timers 'nazar-*'` |
+| After reboot | `systemctl list-units 'pibloom-*'` + `podman ps --filter name=pibloom-` + `systemctl list-timers 'pibloom-*'` |
 | Container in unhealthy state | `journalctl -u <service>`, consider restarting |
 | Service has failed | `journalctl -u <service>`, consider restarting |
 | Pending evolution | Guide through install workflow |
@@ -230,7 +230,7 @@ When `## Pending Evolutions` appears in the runtime context, it lists evolutions
 ## Safety Rules
 
 - **All mutation commands require user confirmation** via the `confirm` affordance field.
-- Only nazar-* services and containers can be managed — sudoers restricts to `nazar-*` prefix.
+- Only pibloom-* services and containers can be managed — sudoers restricts to `pibloom-*` prefix.
 - **Never trigger `bootc upgrade` without explicit user confirmation.** An OS upgrade requires a reboot and should be scheduled by the user.
 - **Never install or rollback evolutions without user confirmation.** Always dry-run first.
 - Always check health after mutations — inspect services and containers to verify.

@@ -12,8 +12,8 @@
  * template variable substitution, or caching of loaded prompts.
  *
  * For implementation, see capabilities/persona/persona-loader.ts.
- * Persona layer files live in nazar-core/agent/persona/ by convention.
- * SYSTEM.md lives in nazar-core/agent/context/SYSTEM.md.
+ * Persona layer files live in pibloom-core/agent/persona/ by convention.
+ * SYSTEM.md lives in pibloom-core/agent/context/SYSTEM.md.
  */
 export interface IPersonaLoader {
   /** Load and compose OpenPersona 4-layer files into a single prompt string. */

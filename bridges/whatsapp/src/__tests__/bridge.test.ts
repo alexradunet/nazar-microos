@@ -1,8 +1,8 @@
 /**
- * Unit tests for nazar whatsapp-bridge.
+ * Unit tests for pibloom whatsapp-bridge.
  *
  * Uses node:test + node:assert/strict (zero framework deps).
- * Pure helper tests (isAllowed, validatePhoneNumber) live in @nazar/core.
+ * Pure helper tests (isAllowed, validatePhoneNumber) live in @pibloom/core.
  */
 
 import assert from "node:assert/strict";
@@ -20,7 +20,9 @@ import { chatIdToPhone, WhatsAppBotChannel } from "../index.js";
 function makeConfig(
   overrides: Partial<WhatsAppBridgeConfig> = {},
 ): WhatsAppBridgeConfig {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "nazar-whatsapp-test-"));
+  const tmpDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), "pibloom-whatsapp-test-"),
+  );
   return {
     allowedContacts: [],
     storageDir: path.join(tmpDir, "storage"),

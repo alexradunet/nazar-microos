@@ -21,7 +21,7 @@ export class ObjectStoreCapability implements Capability {
       );
     }
     const objectsDir =
-      process.env.NAZAR_OBJECTS_DIR ?? "/var/lib/nazar/objects";
+      process.env.PIBLOOM_OBJECTS_DIR ?? "/var/lib/pibloom/objects";
     this.store = new MarkdownFileStore(
       objectsDir,
       config.services.frontmatterParser,

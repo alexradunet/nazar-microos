@@ -6,8 +6,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
-# Create nazar user
-RUN useradd -m -u 900 -s /bin/bash nazar
+# Create pibloom user
+RUN useradd -m -u 900 -s /bin/bash pibloom
 
 # Set up workspace
 WORKDIR /app
@@ -18,10 +18,10 @@ COPY core/package.json core/
 COPY bridges/whatsapp/package.json bridges/whatsapp/
 RUN npm ci
 
-# Copy and build core (npm ci symlinks node_modules/@nazar/core here)
+# Copy and build core (npm ci symlinks node_modules/@pibloom/core here)
 # Remove stale tsbuildinfo (tracked in git) so tsc emits fresh dist/
 COPY core/ core/
 RUN rm -f core/tsconfig.tsbuildinfo \
   && npm -w core run build
 
-USER nazar
+USER pibloom

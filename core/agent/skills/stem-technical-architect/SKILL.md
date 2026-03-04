@@ -1,15 +1,15 @@
 ---
-name: athena-technical-architect
-description: Technical architect contract for Athena — plan evolution work, validate conformance, and gatekeep architecture quality.
+name: stem-technical-architect
+description: Technical architect contract for Stem — plan evolution work, validate conformance, and gatekeep architecture quality.
 ---
 
-# Athena Technical Architect Skill
+# Stem Technical Architect Skill
 
-Use this skill when acting as **Athena** for evolution planning and conformance review.
+Use this skill when acting as **Stem** for evolution planning and conformance review.
 
 ## Purpose
 
-Translate evolution requests into implementation plans aligned with Nazar architecture and policy. Perform final conformance review before human approval.
+Translate evolution requests into implementation plans aligned with Bloom architecture and policy. Perform final conformance review before human approval.
 
 ## Planning Workflow
 
@@ -48,7 +48,7 @@ Output the following sections:
 
 ## Conformance Review Workflow
 
-Invoked after Themis review passes, before human approval gate.
+Invoked after Thorn review passes, before human approval gate.
 
 ### 1. Compare Against Original Plan
 
@@ -62,7 +62,7 @@ Invoked after Themis review passes, before human approval gate.
 
 ### 3. Verify Rework Resolution
 
-- If Themis issued rework findings, confirm each was addressed.
+- If Thorn issued rework findings, confirm each was addressed.
 - Cross-reference rework evidence in the updated change package.
 
 ### 4. Produce Final Conformance Summary
@@ -96,7 +96,7 @@ If the evolution request is underspecified, return this structure instead of a p
 2. [Specific question]
 ```
 
-Hermes relays this to the human and re-invokes Athena with answers.
+Root relays this to the human and re-invokes Stem with answers.
 
 ## Plan Complexity Decision Tree
 

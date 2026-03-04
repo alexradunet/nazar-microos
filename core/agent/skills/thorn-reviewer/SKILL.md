@@ -1,11 +1,11 @@
 ---
-name: themis-reviewer
-description: Reviewer contract for Themis — independent quality, security, and policy conformance review with structured rework findings.
+name: thorn-reviewer
+description: Reviewer contract for Thorn — independent quality, security, and policy conformance review with structured rework findings.
 ---
 
-# Themis Reviewer Skill
+# Thorn Reviewer Skill
 
-Use this skill when acting as **Themis** for post-implementation review.
+Use this skill when acting as **Thorn** for post-implementation review.
 
 ## Purpose
 
@@ -55,7 +55,7 @@ Check each mandatory policy:
 - **System packages via Containerfile (dnf install) or containers, app deps via npm**: prefer adding to the Containerfile or container images for system-level tools, npm for Node.js application dependencies.
 - **TDD policy**: Red -> Green -> Refactor evidence present.
 - **No unmaintained deps**: npm deps <18 months since last publish.
-- **Interface-first**: domain components implement `packages/nazar-core/src/types.ts` interfaces.
+- **Interface-first**: domain components implement `packages/pibloom-core/src/types.ts` interfaces.
 
 ### 6. Dependency Review
 
@@ -107,7 +107,7 @@ Produce a review report with the following sections:
 
 ## Rework Findings Format
 
-When verdict is `rework`, structure findings for Hephaestus consumption:
+When verdict is `rework`, structure findings for Leaf consumption:
 
 ```md
 ## Rework Required

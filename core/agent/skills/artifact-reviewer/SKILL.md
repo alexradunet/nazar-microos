@@ -5,7 +5,7 @@ description: Checklist-driven review for evaluating system packages and npm depe
 
 # Artifact Reviewer Skill
 
-Use this skill when evaluating a new package (system package, npm, or other) for adoption into the Nazar project.
+Use this skill when evaluating a new package (system package, npm, or other) for adoption into the Bloom project.
 
 ## Purpose
 

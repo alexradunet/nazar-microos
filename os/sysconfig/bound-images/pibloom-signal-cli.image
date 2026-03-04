@@ -1,2 +1,2 @@
 [Image]
-Image=localhost/nazar-signal-cli:latest
+Image=localhost/pibloom-signal-cli:latest

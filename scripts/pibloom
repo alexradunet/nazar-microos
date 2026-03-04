@@ -1,31 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# nazar — CLI wrapper for the Nazar AI companion system.
+# pibloom — CLI wrapper for the piBloom AI companion system.
 #
 # Usage:
-#   nazar apply [--dry-run]    Apply config, generate Quadlet files, reload systemd
-#   nazar status               Show running services and object store stats
-#   nazar update               Pull latest remote container images (local images via nazar deploy --images)
-#   nazar rollback             Show bootc deployments and rollback instructions
-#   nazar deploy [flags]       Deploy changes to dev VM
-#   nazar vm <cmd>             Dev VM lifecycle (create/start/stop/destroy/ssh)
-#   nazar evolve <cmd> ...     Container evolution lifecycle
-#   nazar object <cmd> ...     Object store CRUD
-#   nazar signal <cmd>         Signal account setup (check/link/register/verify/accounts)
-#   nazar pi [args]            Launch Pi agent with persona + skills
-#   nazar setup                Interactive first-time setup (Pi with install-nazar skill)
-#   nazar                      Interactive Pi session (no args)
+#   pibloom apply [--dry-run]    Apply config, generate Quadlet files, reload systemd
+#   pibloom status               Show running services and object store stats
+#   pibloom update               Pull latest remote container images (local images via pibloom deploy --images)
+#   pibloom rollback             Show bootc deployments and rollback instructions
+#   pibloom deploy [flags]       Deploy changes to dev VM
+#   pibloom vm <cmd>             Dev VM lifecycle (create/start/stop/destroy/ssh)
+#   pibloom evolve <cmd> ...     Container evolution lifecycle
+#   pibloom object <cmd> ...     Object store CRUD
+#   pibloom signal <cmd>         Signal account setup (check/link/register/verify/accounts)
+#   pibloom pi [args]            Launch Pi agent with persona + skills
+#   pibloom setup                Interactive first-time setup (Pi with install-pibloom skill)
+#   pibloom                      Interactive Pi session (no args)
 
-NAZAR_SKILLS_DIR="${NAZAR_SKILLS_DIR:-/usr/local/share/nazar/skills}"
-NAZAR_PERSONA_DIR="${NAZAR_PERSONA_DIR:-/usr/local/share/nazar/persona}"
+PIBLOOM_SKILLS_DIR="${PIBLOOM_SKILLS_DIR:-/usr/local/share/pibloom/skills}"
+PIBLOOM_PERSONA_DIR="${PIBLOOM_PERSONA_DIR:-/usr/local/share/pibloom/persona}"
 
 cmd="${1:-}"
 shift 2>/dev/null || true
 
 case "$cmd" in
   apply)
-    nazar-core setup "$@"
+    pibloom-core setup "$@"
     # Reload systemd so it picks up new/changed Quadlet files
     if [[ ! " $* " =~ " --dry-run " ]]; then
       sudo systemctl daemon-reload
@@ -37,11 +37,11 @@ case "$cmd" in
     echo "=== bootc Status ==="
     sudo bootc status 2>/dev/null || echo "(bootc not available)"
     echo ""
-    echo "=== Nazar Services ==="
-    systemctl list-units 'nazar-*' --no-pager 2>/dev/null || echo "(no nazar services found)"
+    echo "=== piBloom Services ==="
+    systemctl list-units 'pibloom-*' --no-pager 2>/dev/null || echo "(no pibloom services found)"
     echo ""
     echo "=== Object Store ==="
-    objects_dir="${NAZAR_OBJECTS_DIR:-/var/lib/nazar/objects}"
+    objects_dir="${PIBLOOM_OBJECTS_DIR:-/var/lib/pibloom/objects}"
     if [[ -d "$objects_dir" ]]; then
       count=$(find "$objects_dir" -name '*.md' -type f 2>/dev/null | wc -l)
       echo "Objects: $count"
@@ -64,7 +64,7 @@ case "$cmd" in
     echo ""
     echo "=== Container Images ==="
     echo "Pulling latest container images..."
-    echo "Done. Restart services with: systemctl restart nazar-*"
+    echo "Done. Restart services with: systemctl restart pibloom-*"
     ;;
 
   rollback)
@@ -76,27 +76,27 @@ case "$cmd" in
     echo "  sudo systemctl reboot"
     echo ""
     echo "To rollback a container evolution:"
-    echo "  nazar evolve rollback <slug>"
+    echo "  pibloom evolve rollback <slug>"
     ;;
 
   deploy)
-    exec nazar-deploy "$@"
+    exec pibloom-deploy "$@"
     ;;
 
   vm)
-    exec nazar-vm "$@"
+    exec pibloom-vm "$@"
     ;;
 
   evolve)
-    exec nazar-core evolve "$@"
+    exec pibloom-core evolve "$@"
     ;;
 
   object)
-    exec nazar-core object "$@"
+    exec pibloom-core object "$@"
     ;;
 
   signal)
-    exec nazar-signal-setup "$@"
+    exec pibloom-signal-setup "$@"
     ;;
 
   pi)
@@ -104,7 +104,7 @@ case "$cmd" in
     ;;
 
   setup)
-    exec pi --skill "${NAZAR_SKILLS_DIR}/install-nazar"
+    exec pi --skill "${PIBLOOM_SKILLS_DIR}/install-pibloom"
     ;;
 
   "")
@@ -115,7 +115,7 @@ case "$cmd" in
   *)
     echo "Error: unknown command: $cmd" >&2
     echo "" >&2
-    echo "Usage: nazar <apply|status|update|rollback|deploy|vm|evolve|object|signal|pi|setup>" >&2
+    echo "Usage: pibloom <apply|status|update|rollback|deploy|vm|evolve|object|signal|pi|setup>" >&2
     exit 1
     ;;
 esac

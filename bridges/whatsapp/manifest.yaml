@@ -1,4 +1,4 @@
-apiVersion: nazar.dev/v1
+apiVersion: pibloom.dev/v1
 kind: BridgeManifest
 metadata:
   name: whatsapp
@@ -6,19 +6,19 @@ metadata:
   version: "1.0.0"
   channel: whatsapp
 containers:
-  - name: nazar-whatsapp-bridge
-    image: localhost/nazar-whatsapp-bridge:latest
+  - name: pibloom-whatsapp-bridge
+    image: localhost/pibloom-whatsapp-bridge:latest
     description: WhatsApp to Pi agent bridge
     volumes:
-      - /var/lib/nazar/objects:/data/objects:rw,z
-      - /etc/nazar:/etc/nazar:ro,z
-      - /usr/local/share/nazar/persona:/data/persona:ro,z
-      - /usr/local/share/nazar/skills:/data/skills:ro,z
-      - /var/lib/nazar/whatsapp:/data/whatsapp:rw,z
-      - /var/lib/nazar/sessions:/data/sessions:rw,z
+      - /var/lib/pibloom/objects:/data/objects:rw,z
+      - /etc/pibloom:/etc/pibloom:ro,z
+      - /usr/local/share/pibloom/persona:/data/persona:ro,z
+      - /usr/local/share/pibloom/skills:/data/skills:ro,z
+      - /var/lib/pibloom/whatsapp:/data/whatsapp:rw,z
+      - /var/lib/pibloom/sessions:/data/sessions:rw,z
     environment:
-      NAZAR_CONFIG: /etc/nazar/nazar.yaml
-      NAZAR_OBJECTS_DIR: /data/objects
+      PIBLOOM_CONFIG: /etc/pibloom/pibloom.yaml
+      PIBLOOM_OBJECTS_DIR: /data/objects
       WHATSAPP_ALLOWED_CONTACTS: "{{allowed_contacts}}"
       PI_SKILLS_DIR: /data/skills
       PI_PERSONA_DIR: /data/persona
@@ -31,20 +31,20 @@ configSchema:
     default: []
     envVar: WHATSAPP_ALLOWED_CONTACTS
 setupInstructions: |
-  1. Build whatsapp-bridge container: `podman build -t nazar-whatsapp-bridge bridges/whatsapp/`
-  2. Optionally configure: Add `bridges.whatsapp.allowed_contacts` to nazar.yaml
-  3. Install: `nazar-core bridge install /usr/local/share/nazar/manifests/whatsapp/manifest.yaml`
+  1. Build whatsapp-bridge container: `podman build -t pibloom-whatsapp-bridge bridges/whatsapp/`
+  2. Optionally configure: Add `bridges.whatsapp.allowed_contacts` to pibloom.yaml
+  3. Install: `pibloom-core bridge install /usr/local/share/pibloom/manifests/whatsapp/manifest.yaml`
   4. Scan QR code: Check container logs for the WhatsApp Web QR code
 compactionInstructions: |
   You are resuming after context compaction on a WhatsApp messaging channel.
   - Keep messages casual and conversational
   - Preserve the user's identity and conversation context
-  - Maintain your persona (Pi/Nazar) and any pending tasks
+  - Maintain your persona (Pi/Bloom) and any pending tasks
   - Discard verbose command outputs and intermediate steps
 provides:
   - name: whatsapp-messaging
     description: Send and receive WhatsApp messages
 requiredImages:
-  - name: nazar-whatsapp-bridge
+  - name: pibloom-whatsapp-bridge
     context: bridges/whatsapp
     containerfile: Containerfile

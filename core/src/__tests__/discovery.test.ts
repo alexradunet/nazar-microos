@@ -15,10 +15,10 @@ import { MockSystemExecutor } from "../testing/mock-system-executor.js";
 describe("parseManifest", () => {
   it("parses a valid manifest", () => {
     const raw = `
-apiVersion: nazar.dev/v1
+apiVersion: pibloom.dev/v1
 kind: CapabilityManifest
 metadata:
-  name: nazar-whisper
+  name: pibloom-whisper
   description: Speech-to-text transcription
   version: "1.0.0"
 skills:
@@ -28,9 +28,9 @@ provides:
     description: Speech-to-text transcription
 `;
     const manifest = parseManifest(raw);
-    assert.equal(manifest.apiVersion, "nazar.dev/v1");
+    assert.equal(manifest.apiVersion, "pibloom.dev/v1");
     assert.equal(manifest.kind, "CapabilityManifest");
-    assert.equal(manifest.metadata.name, "nazar-whisper");
+    assert.equal(manifest.metadata.name, "pibloom-whisper");
     assert.deepEqual(manifest.skills, ["transcribe-audio"]);
     assert.equal(manifest.provides?.length, 1);
     assert.equal(manifest.provides?.[0].name, "whisper-stt");
@@ -38,10 +38,10 @@ provides:
 
   it("parses a minimal manifest (skills only)", () => {
     const raw = `
-apiVersion: nazar.dev/v1
+apiVersion: pibloom.dev/v1
 kind: CapabilityManifest
 metadata:
-  name: nazar-ha
+  name: pibloom-ha
   description: Home automation
   version: "1.0.0"
 skills:
@@ -66,7 +66,7 @@ skills:
 
 describe("validateManifest", () => {
   const validManifest = {
-    apiVersion: "nazar.dev/v1" as const,
+    apiVersion: "pibloom.dev/v1" as const,
     kind: "CapabilityManifest" as const,
     metadata: {
       name: "test",
@@ -139,11 +139,11 @@ describe("validateManifest", () => {
 
 describe("DiscoveryCapability", () => {
   let executor: MockSystemExecutor;
-  const capDir = "/var/lib/nazar/capabilities";
-  const skillsDir = "/var/lib/nazar/skills";
+  const capDir = "/var/lib/pibloom/capabilities";
+  const skillsDir = "/var/lib/pibloom/skills";
 
   const makeConfig = (): CapabilityConfig => ({
-    nazar: { hostname: "test", primary_user: "test" },
+    pibloom: { hostname: "test", primary_user: "test" },
     services: { systemExecutor: executor },
   });
 
@@ -159,7 +159,7 @@ describe("DiscoveryCapability", () => {
     },
   ) => {
     const lines = [
-      `apiVersion: nazar.dev/v1`,
+      `apiVersion: pibloom.dev/v1`,
       `kind: CapabilityManifest`,
       `metadata:`,
       `  name: ${name}`,
@@ -194,7 +194,7 @@ describe("DiscoveryCapability", () => {
   };
 
   it("discovers manifests and resolves skill paths", async () => {
-    addManifest("core", { skills: ["nazar-runtime", "object-store"] });
+    addManifest("core", { skills: ["bloom-runtime", "object-store"] });
     addSkillDir("core");
 
     const cap = new DiscoveryCapability({ capabilitiesDir: capDir, skillsDir });
@@ -219,8 +219,8 @@ describe("DiscoveryCapability", () => {
   it("falls back to scanning skills dir when no manifests", async () => {
     // No manifests (capDir doesn't exist), but skills directories exist
     addSkillDir("core");
-    addSkillDir("nazar-whisper");
-    executor.directories.set(skillsDir, ["core", "nazar-whisper"]);
+    addSkillDir("pibloom-whisper");
+    executor.directories.set(skillsDir, ["core", "pibloom-whisper"]);
 
     const cap = new DiscoveryCapability({
       capabilitiesDir: "/nonexistent/caps",
@@ -231,7 +231,7 @@ describe("DiscoveryCapability", () => {
     assert.ok(reg.skillPaths);
     assert.equal(reg.skillPaths.length, 2);
     const names = reg.skillPaths.map((p) => path.basename(p)).sort();
-    assert.deepEqual(names, ["core", "nazar-whisper"]);
+    assert.deepEqual(names, ["core", "pibloom-whisper"]);
   });
 
   it("skips manifests with validation errors", async () => {
@@ -268,10 +268,10 @@ describe("DiscoveryCapability", () => {
   });
 
   it("discovers multiple capability sources", async () => {
-    addManifest("core", { skills: ["nazar-runtime"] });
-    addManifest("nazar-whisper", { skills: ["transcribe-audio"] });
+    addManifest("core", { skills: ["bloom-runtime"] });
+    addManifest("pibloom-whisper", { skills: ["transcribe-audio"] });
     addSkillDir("core");
-    addSkillDir("nazar-whisper");
+    addSkillDir("pibloom-whisper");
 
     const cap = new DiscoveryCapability({ capabilitiesDir: capDir, skillsDir });
     const reg = await cap.init(makeConfig());
@@ -281,11 +281,11 @@ describe("DiscoveryCapability", () => {
   });
 
   it("creates extension factory when provides entries exist", async () => {
-    addManifest("nazar-whisper", {
+    addManifest("pibloom-whisper", {
       skills: ["transcribe-audio"],
       provides: [{ name: "whisper-stt", description: "Speech-to-text" }],
     });
-    addSkillDir("nazar-whisper");
+    addSkillDir("pibloom-whisper");
 
     const cap = new DiscoveryCapability({ capabilitiesDir: capDir, skillsDir });
     const reg = await cap.init(makeConfig());
@@ -304,7 +304,7 @@ describe("DiscoveryCapability", () => {
   });
 
   it("does not create extension factory when no provides", async () => {
-    addManifest("core", { skills: ["nazar-runtime"] });
+    addManifest("core", { skills: ["bloom-runtime"] });
     addSkillDir("core");
 
     const cap = new DiscoveryCapability({ capabilitiesDir: capDir, skillsDir });
@@ -345,8 +345,8 @@ describe("CapabilityExtractor", () => {
       };
 
       const result = await extractor.extractManifest(
-        "nazar-whisper",
-        "/var/lib/nazar/capabilities/nazar-whisper.yaml",
+        "pibloom-whisper",
+        "/var/lib/pibloom/capabilities/pibloom-whisper.yaml",
       );
       assert.equal(result, true);
 
@@ -354,10 +354,10 @@ describe("CapabilityExtractor", () => {
         (c) => c.cmd === "podman" && c.args[0] === "cp",
       );
       assert.ok(cpCall);
-      assert.equal(cpCall.args[1], "nazar-whisper:/nazar/capability.yaml");
+      assert.equal(cpCall.args[1], "pibloom-whisper:/pibloom/capability.yaml");
       assert.equal(
         cpCall.args[2],
-        "/var/lib/nazar/capabilities/nazar-whisper.yaml",
+        "/var/lib/pibloom/capabilities/pibloom-whisper.yaml",
       );
     });
 
@@ -372,8 +372,8 @@ describe("CapabilityExtractor", () => {
       };
 
       const result = await extractor.extractManifest(
-        "nazar-plain",
-        "/var/lib/nazar/capabilities/nazar-plain.yaml",
+        "pibloom-plain",
+        "/var/lib/pibloom/capabilities/pibloom-plain.yaml",
       );
       assert.equal(result, false);
     });
@@ -382,13 +382,15 @@ describe("CapabilityExtractor", () => {
   describe("extractSkills", () => {
     it("creates output dir and extracts each skill", async () => {
       await extractor.extractSkills(
-        "nazar-whisper",
+        "pibloom-whisper",
         ["transcribe-audio", "speech-detect"],
-        "/var/lib/nazar/skills/nazar-whisper",
+        "/var/lib/pibloom/skills/pibloom-whisper",
       );
 
       assert.ok(
-        executor.createdDirs.includes("/var/lib/nazar/skills/nazar-whisper"),
+        executor.createdDirs.includes(
+          "/var/lib/pibloom/skills/pibloom-whisper",
+        ),
       );
 
       const cpCalls = executor.execCalls.filter(
@@ -397,15 +399,15 @@ describe("CapabilityExtractor", () => {
       assert.equal(cpCalls.length, 2);
       assert.equal(
         cpCalls[0].args[1],
-        "nazar-whisper:/nazar/skills/transcribe-audio",
+        "pibloom-whisper:/pibloom/skills/transcribe-audio",
       );
       assert.equal(
         cpCalls[0].args[2],
-        "/var/lib/nazar/skills/nazar-whisper/transcribe-audio",
+        "/var/lib/pibloom/skills/pibloom-whisper/transcribe-audio",
       );
       assert.equal(
         cpCalls[1].args[1],
-        "nazar-whisper:/nazar/skills/speech-detect",
+        "pibloom-whisper:/pibloom/skills/speech-detect",
       );
     });
   });

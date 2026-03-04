@@ -14,7 +14,7 @@ export {
 
 export class SetupCapability implements Capability {
   readonly name = "setup";
-  readonly description = "Quadlet file generation from NazarConfig";
+  readonly description = "Quadlet file generation from PibloomConfig";
 
   private generator?: QuadletSetupGenerator;
 

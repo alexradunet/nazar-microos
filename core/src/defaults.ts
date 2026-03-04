@@ -5,7 +5,7 @@
  *
  * Two factory functions:
  * - `createDefaultRegistry()` — registers all capabilities, caller inits
- * - `createInitializedRegistry(nazar)` — registers AND inits with phased
+ * - `createInitializedRegistry(pibloom)` — registers AND inits with phased
  *   bootstrapping (leaf capabilities first, then dependents).
  *
  * Phase diagram for createInitializedRegistry():
@@ -41,7 +41,7 @@ import { SetupCapability } from "./capabilities/setup/index.js";
 import { SystemExecutorCapability } from "./capabilities/system-executor/index.js";
 import type { CapabilityConfig, LeafServices } from "./capability.js";
 import { CapabilityRegistry } from "./registry.js";
-import type { NazarConfig } from "./types.js";
+import type { PibloomConfig } from "./types.js";
 
 /** Create a registry with all built-in capabilities registered (not initialized). */
 export function createDefaultRegistry(): CapabilityRegistry {
@@ -67,7 +67,7 @@ export function createDefaultRegistry(): CapabilityRegistry {
  * Phase 3: Init dependent capabilities with full CoreServices
  */
 export async function createInitializedRegistry(
-  nazar: NazarConfig,
+  pibloom: PibloomConfig,
 ): Promise<CapabilityRegistry> {
   const registry = new CapabilityRegistry();
 
@@ -99,7 +99,7 @@ export async function createInitializedRegistry(
   }
 
   // Phase 1: Init leaf capabilities (no service dependencies)
-  const phase1Config: CapabilityConfig = { nazar, services: {} };
+  const phase1Config: CapabilityConfig = { pibloom, services: {} };
   for (const name of [
     "frontmatter",
     "config",
@@ -120,14 +120,14 @@ export async function createInitializedRegistry(
     systemExecutor: sysExec.getExecutor(),
     personaLoader: persona.getLoader(),
   };
-  const phase2Config: CapabilityConfig = { nazar, services: leafServices };
+  const phase2Config: CapabilityConfig = { pibloom, services: leafServices };
 
   await registry.initCapability("object-store", phase2Config);
   await registry.initCapability("discovery", phase2Config);
 
   // Phase 3: Full services (with object store), init dependents
   const fullServices = { ...leafServices, objectStore: objectStore.getStore() };
-  const phase3Config: CapabilityConfig = { nazar, services: fullServices };
+  const phase3Config: CapabilityConfig = { pibloom, services: fullServices };
 
   await registry.initCapability("evolution", phase3Config);
 

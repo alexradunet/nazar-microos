@@ -2,9 +2,9 @@
  * Value types — no behavior, no interfaces.
  * All port interfaces live in ./ports/.
  *
- * This file is the canonical schema definition for nazar.yaml and all
+ * This file is the canonical schema definition for pibloom.yaml and all
  * supporting value types used across the codebase. Adding a new top-level
- * config block = add a field to NazarConfig here.
+ * config block = add a field to PibloomConfig here.
  */
 
 export type { IncomingMessage } from "./ports/message-channel.js";
@@ -14,14 +14,14 @@ export type { ObjectData, ObjectRef } from "./ports/object-store.js";
 /**
  * Configuration for agent integration.
  *
- * These fields map to the `agent:` block in nazar.yaml plus env-var overrides
+ * These fields map to the `agent:` block in pibloom.yaml plus env-var overrides
  * applied by bridge-bootstrap.ts (loadBaseBridgeConfig). They configure the
  * Pi agent process that handles AI conversations.
  *
  * Field notes:
  *   agentCommand  — the CLI binary to invoke (typically "pi")
  *   agentDir      — Pi agent config directory (contains auth.json)
- *   repoRoot      — base directory for Nazar data (objects, sessions)
+ *   repoRoot      — base directory for piBloom data (objects, sessions)
  *   objectsDir    — where flat-file objects are stored (PARA structure)
  *   skillsDir     — Pi skill SKILL.md files injected into agent prompts
  *   timeoutMs     — max ms to wait for an agent response before aborting
@@ -41,33 +41,33 @@ export interface AgentConfig {
 }
 
 /**
- * Nazar system configuration (nazar.yaml schema).
+ * piBloom system configuration (pibloom.yaml schema).
  *
- * This is the top-level config type parsed from nazar.yaml by IConfigReader.
+ * This is the top-level config type parsed from pibloom.yaml by IConfigReader.
  * All fields except `hostname` and `primary_user` are optional — capabilities
  * check for their section's presence before activating.
  *
  * @example
  * ```yaml
- * # nazar.yaml
- * hostname: nazar-pi
+ * # pibloom.yaml
+ * hostname: pibloom-pi
  * primary_user: alex
  * timezone: Europe/Berlin
  * bridges:
  *   whatsapp:
  *     allowed_contacts: ["+4917699999999"]
  * agent:
- *   skills_dir: /usr/local/share/nazar/skills
- *   persona_dir: /usr/local/share/nazar/persona
+ *   skills_dir: /usr/local/share/pibloom/skills
+ *   persona_dir: /usr/local/share/pibloom/persona
  * evolution:
  *   max_containers_per_evolution: 3
  * ```
  *
  * For the YAML file that generates Quadlet files from this config,
- * see os/sysconfig/nazar.yaml.example.
+ * see os/sysconfig/pibloom.yaml.example.
  * For config reading implementation, see capabilities/config/yaml-config-reader.ts.
  */
-export interface NazarConfig {
+export interface PibloomConfig {
   hostname: string;
   primary_user: string;
   timezone?: string;

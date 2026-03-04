@@ -57,7 +57,7 @@ interface AgentSession {
 
 // --- AgentBridge class ---
 
-const DEFAULT_MAX_SESSIONS = Number(process.env.NAZAR_MAX_SESSIONS) || 50;
+const DEFAULT_MAX_SESSIONS = Number(process.env.PIBLOOM_MAX_SESSIONS) || 50;
 
 export class AgentBridge implements IAgentBridge {
   private config: BridgeConfig;

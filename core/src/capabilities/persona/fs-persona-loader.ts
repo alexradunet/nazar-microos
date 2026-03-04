@@ -75,7 +75,7 @@ export class FsPersonaLoader implements IPersonaLoader {
 
     if (sections.length === 0) return "";
 
-    return `# Nazar — Personal AI Companion\n\n${sections.join("\n\n")}`;
+    return `# piBloom — Personal AI Companion\n\n${sections.join("\n\n")}`;
   }
 
   loadSystemContext(systemMdPath: string): string {

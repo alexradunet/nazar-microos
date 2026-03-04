@@ -1,11 +1,11 @@
 ---
-name: hephaestus-maintainer
-description: Maintainer contract for Hephaestus — implement evolution plans in dev context with strict TDD evidence and rework support.
+name: leaf-maintainer
+description: Maintainer contract for Leaf — implement evolution plans in dev context with strict TDD evidence and rework support.
 ---
 
-# Hephaestus Maintainer Skill
+# Leaf Maintainer Skill
 
-Use this skill when acting as **Hephaestus** for implementation work.
+Use this skill when acting as **Leaf** for implementation work.
 
 ## Purpose
 
@@ -38,7 +38,7 @@ Write tests FIRST, before any production code. Run them to confirm they fail.
 **TypeScript tests** (for packages/services):
 
 ```bash
-npm -w packages/nazar-core test
+npm -w packages/pibloom-core test
 ```
 
 **Lint check** (for code style):
@@ -71,7 +71,7 @@ Output the following sections:
 
 ## Rework Protocol
 
-When Themis returns rework findings:
+When Thorn returns rework findings:
 
 ### 1. Parse Findings
 
@@ -113,7 +113,7 @@ Include a rework evidence section:
 - Do not apply system changes directly without approval workflow.
 - Do not deviate from the approved plan scope without flagging it.
 
-## Nazar Gotchas
+## Bloom Gotchas
 
 Keep these in mind during implementation:
 

@@ -1,4 +1,4 @@
-FROM nazar-base
+FROM pibloom-base
 
 USER root
 # whatsapp-web.js needs Chromium for Puppeteer
@@ -6,13 +6,13 @@ USER root
 RUN apt-get update && apt-get install -y chromium --no-install-recommends && rm -rf /var/lib/apt/lists/*
 COPY bridges/whatsapp/ bridges/whatsapp/
 RUN npm -w bridges/whatsapp run build
-USER nazar
+USER pibloom
 
-ENV NAZAR_OBJECTS_DIR=/data/objects
-ENV NAZAR_WHATSAPP_STORAGE_DIR=/data/whatsapp-storage
-ENV NAZAR_PI_MODEL=""
-ENV NAZAR_PI_TRANSPORT=""
-ENV NAZAR_PERSONA_DIR=/usr/local/share/nazar/persona
+ENV PIBLOOM_OBJECTS_DIR=/data/objects
+ENV PIBLOOM_WHATSAPP_STORAGE_DIR=/data/whatsapp-storage
+ENV PIBLOOM_PI_MODEL=""
+ENV PIBLOOM_PI_TRANSPORT=""
+ENV PIBLOOM_PERSONA_DIR=/usr/local/share/pibloom/persona
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \

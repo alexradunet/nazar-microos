@@ -2,20 +2,20 @@
 
 ## Project
 
-Nazar — self-hosted AI companion on Fedora bootc. Podman Quadlet containers, systemd, flat-file object store.
+piBloom — self-hosted AI companion on Fedora bootc. Podman Quadlet containers, systemd, flat-file object store.
 
 ## Architecture
 
-- **Monorepo**: npm workspaces — `core` (shared library, package: `@nazar/core`), `bridges/*` (bridge services)
-- **Shell scripts**: `scripts/` — bash CLI tools (nazar router, deploy, vm)
-- **nazar-core CLI**: `nazar-core object|setup|evolve|bridge` — TypeScript CLI replacing yq/jq bash scripts
+- **Monorepo**: npm workspaces — `core` (shared library, package: `@pibloom/core`), `bridges/*` (bridge services)
+- **Shell scripts**: `scripts/` — bash CLI tools (pibloom router, deploy, vm)
+- **pibloom-core CLI**: `pibloom-core object|setup|evolve|bridge` — TypeScript CLI replacing yq/jq bash scripts
 - **Agent**: `core/agent/persona/` — OpenPersona 4-layer (SOUL, BODY, FACULTY, SKILL)
 - **Agent**: `core/agent/skills/*/SKILL.md` — Pi agent domain skills
 - **Agent**: `core/agent/context/` — System context for agent prompts (SYSTEM.md, APPEND_SYSTEM.md)
 - **Bridges**: `bridges/{signal,web,whatsapp}/` — bridge services, each with manifest.yaml, body-channel.md, Containerfile
 - **Containers**: `core/containers/base/` — shared base container, `core/containers/heartbeat/` — core health service
 - **OS image**: `os/Containerfile` — Fedora bootc 42
-- **Config**: `nazar.yaml` applied by `nazar-core setup` → Podman Quadlet files
+- **Config**: `pibloom.yaml` applied by `pibloom-core setup` → Podman Quadlet files
 
 ## Build and Test
 
@@ -42,4 +42,4 @@ make containers                # build service containers
 - Use `Dockerfile` naming — always `Containerfile`
 - Use `docker` CLI — always `podman`
 - Add pnpm or yarn — npm workspaces only
-- Commit `.nazar-deploy.env` or `os/bootc/config.toml`
+- Commit `.pibloom-deploy.env` or `os/bootc/config.toml`

@@ -1,6 +1,6 @@
 import YAML from "js-yaml";
 
-/** Capability manifest declared inside container images at /nazar/capability.yaml. */
+/** Capability manifest declared inside container images at /pibloom/capability.yaml. */
 export interface CapabilityManifest {
   apiVersion: string;
   kind: "CapabilityManifest";
@@ -26,9 +26,9 @@ export function parseManifest(raw: string): CapabilityManifest {
 export function validateManifest(manifest: CapabilityManifest): string[] {
   const errors: string[] = [];
 
-  if (manifest.apiVersion !== "nazar.dev/v1") {
+  if (manifest.apiVersion !== "pibloom.dev/v1") {
     errors.push(
-      `unsupported apiVersion: '${manifest.apiVersion}' (expected 'nazar.dev/v1')`,
+      `unsupported apiVersion: '${manifest.apiVersion}' (expected 'pibloom.dev/v1')`,
     );
   }
   if (manifest.kind !== "CapabilityManifest") {

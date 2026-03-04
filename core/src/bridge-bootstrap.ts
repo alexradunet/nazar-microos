@@ -6,7 +6,7 @@
  *   - MessageQueue            — sequential message processing with backpressure
  *   - HealthFileReporter      — periodic health timestamp writer (HEALTHCHECK integration)
  *   - bootstrapBridge()       — full bootstrap for MessageChannel-based bridges
- *   - bridgeNazarConfig()     — minimal valid NazarConfig from env vars
+ *   - bridgePibloomConfig()     — minimal valid PibloomConfig from env vars
  *
  * Does NOT handle:
  *   - Channel-specific connection logic (e.g. WhatsApp Puppeteer)
@@ -32,36 +32,38 @@ import type {
 import { createInitializedRegistry } from "./defaults.js";
 import type { IncomingMessage, MessageChannel } from "./ports/index.js";
 import type { CapabilityRegistry } from "./registry.js";
-import type { NazarConfig } from "./types.js";
+import type { PibloomConfig } from "./types.js";
 
 /** Load the shared BridgeConfig fields from env vars. */
 export function loadBaseBridgeConfig(channelName: string): BridgeConfig {
   return {
     allowedContacts: [],
     personaDir:
-      process.env.NAZAR_PERSONA_DIR || "/usr/local/share/nazar/persona",
-    systemMdPath: process.env.NAZAR_SYSTEM_MD || "",
+      process.env.PIBLOOM_PERSONA_DIR || "/usr/local/share/pibloom/persona",
+    systemMdPath: process.env.PIBLOOM_SYSTEM_MD || "",
     channelName,
-    agentCommand: process.env.NAZAR_PI_COMMAND || "pi",
+    agentCommand: process.env.PIBLOOM_PI_COMMAND || "pi",
     agentDir:
       process.env.PI_CODING_AGENT_DIR || `${process.env.HOME}/.pi/agent`,
-    repoRoot: process.env.NAZAR_REPO_ROOT || "/var/lib/nazar",
-    objectsDir: process.env.NAZAR_OBJECTS_DIR || "/var/lib/nazar/objects",
-    skillsDir: process.env.NAZAR_SKILLS_DIR || "/usr/local/share/nazar/skills",
+    repoRoot: process.env.PIBLOOM_REPO_ROOT || "/var/lib/pibloom",
+    objectsDir: process.env.PIBLOOM_OBJECTS_DIR || "/var/lib/pibloom/objects",
+    skillsDir:
+      process.env.PIBLOOM_SKILLS_DIR || "/usr/local/share/pibloom/skills",
     timeoutMs: 120_000,
-    model: process.env.NAZAR_PI_MODEL || undefined,
+    model: process.env.PIBLOOM_PI_MODEL || undefined,
     transport:
-      (process.env.NAZAR_PI_TRANSPORT as "sse" | "websocket" | "auto") ||
+      (process.env.PIBLOOM_PI_TRANSPORT as "sse" | "websocket" | "auto") ||
       undefined,
-    sessionsDir: process.env.NAZAR_SESSIONS_DIR || "/var/lib/nazar/sessions",
+    sessionsDir:
+      process.env.PIBLOOM_SESSIONS_DIR || "/var/lib/pibloom/sessions",
   };
 }
 
-/** Minimal valid NazarConfig from env vars (replaces `{} as NazarConfig`). */
-export function bridgeNazarConfig(): NazarConfig {
+/** Minimal valid PibloomConfig from env vars (replaces `{} as PibloomConfig`). */
+export function bridgePibloomConfig(): PibloomConfig {
   return {
-    hostname: process.env.NAZAR_HOSTNAME || "nazar",
-    primary_user: process.env.NAZAR_PRIMARY_USER || "user",
+    hostname: process.env.PIBLOOM_HOSTNAME || "pibloom",
+    primary_user: process.env.PIBLOOM_PRIMARY_USER || "user",
   };
 }
 
@@ -152,7 +154,7 @@ export interface BootstrapResult {
 /**
  * Full bootstrap for MessageChannel-based bridges.
  *
- * Handles: auth validation, startup logging, registry init with valid NazarConfig,
+ * Handles: auth validation, startup logging, registry init with valid PibloomConfig,
  * agent session wiring, channel.onMessage, channel.connect, SIGTERM/SIGINT.
  *
  * Does NOT handle: channel-specific connection protocols, contact allow-listing,
@@ -179,7 +181,7 @@ export async function bootstrapBridge<C extends BridgeConfig>(
   if (!fs.existsSync(authFile)) {
     throw new Error(
       `Agent auth not found at ${authFile}. ` +
-        "Provision it to /var/lib/nazar/pi-config/agent/ on the host.",
+        "Provision it to /var/lib/pibloom/pi-config/agent/ on the host.",
     );
   }
 
@@ -187,7 +189,7 @@ export async function bootstrapBridge<C extends BridgeConfig>(
   validate?.(config);
 
   // Startup logging
-  console.log(`Nazar ${config.channelName} Bridge starting...`);
+  console.log(`piBloom ${config.channelName} Bridge starting...`);
   console.log(`  Agent dir: ${config.agentDir}`);
   console.log(`  Objects dir: ${config.objectsDir}`);
   console.log(`  Persona dir: ${config.personaDir}`);
@@ -199,8 +201,8 @@ export async function bootstrapBridge<C extends BridgeConfig>(
     `  Allowed contacts: ${config.allowedContacts.length === 0 ? "all" : config.allowedContacts.join(", ")}`,
   );
 
-  // Initialize registry with valid NazarConfig
-  const registry = await createInitializedRegistry(bridgeNazarConfig());
+  // Initialize registry with valid PibloomConfig
+  const registry = await createInitializedRegistry(bridgePibloomConfig());
   const agentSession = registry.get<AgentSessionCapability>("agent-session");
   const bridge = agentSession.createBridge(config);
 

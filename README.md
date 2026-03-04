@@ -1,21 +1,21 @@
-# Nazar
+# piBloom
 
 An AI companion system built on Fedora bootc with Podman Quadlet containers.
 
-## What is Nazar?
+## What is piBloom?
 
-Nazar is a self-hosted AI companion that manages your digital life through a flat-file object store, periodic heartbeat reflections, and Signal messaging. It runs on an immutable bootc base with containerized services managed by Podman Quadlet.
+piBloom is a self-hosted AI companion that manages your digital life through a flat-file object store, periodic heartbeat reflections, and Signal messaging. It runs on an immutable bootc base with containerized services managed by Podman Quadlet.
 
 ## Architecture
 
-- **Domain logic** (`packages/nazar-core/`): ObjectStore, FrontmatterParser, shared types
-- **CLI** (`packages/nazar-core/`): `nazar-core` TypeScript CLI for object CRUD, config application, evolution
-- **Containers** (`containers/`): Base, heartbeat, signal-cli, signal-bridge — all built FROM `nazar-base` (except signal-cli which uses eclipse-temurin)
+- **Domain logic** (`packages/pibloom-core/`): ObjectStore, FrontmatterParser, shared types
+- **CLI** (`packages/pibloom-core/`): `pibloom-core` TypeScript CLI for object CRUD, config application, evolution
+- **Containers** (`containers/`): Base, heartbeat, signal-cli, signal-bridge — all built FROM `pibloom-base` (except signal-cli which uses eclipse-temurin)
 - **OS Image** (`os/Containerfile`): Fedora bootc image with all packages, scripts, and config baked in
 - **Persona** (`agent/persona/`): OpenPersona 4-layer identity (SOUL, BODY, FACULTY, SKILL)
 - **Skills** (`agent/skills/`): Pi agent domain skills (journaling, tasks, notes, heartbeat, etc.)
 - **Context** (`agent/context/`): System context for agent prompts
-- **Config** (`nazar.yaml`): Single YAML file replacing NixOS typed options
+- **Config** (`pibloom.yaml`): Single YAML file replacing NixOS typed options
 
 ## Quick Start
 
@@ -32,21 +32,21 @@ npm run check                      # Biome lint + format check
 1. Copy `os/bootc/config.toml.example` to `os/bootc/config.toml` and add your SSH public key
 2. Build the OS image: `make image`
 3. Generate a QCOW2 disk: `make qcow2`
-4. Boot the VM: `nazar vm create`
-5. Edit `/etc/nazar/nazar.yaml` to customize, then run `nazar apply`
+4. Boot the VM: `pibloom vm create`
+5. Edit `/etc/pibloom/pibloom.yaml` to customize, then run `pibloom apply`
 
 ## CLI
 
 ```
-nazar apply              # Apply config, generate Quadlet files, reload systemd
-nazar status             # Show bootc deployments, running services, and object store stats
-nazar update             # Update OS via bootc and pull latest container images
-nazar rollback           # Show bootc deployments and rollback instructions
-nazar evolve install <s> # Deploy containers from an evolution object
-nazar evolve rollback <s># Stop and remove evolution containers
-nazar object <cmd>       # Object store CRUD
-nazar pi [args]          # Launch Pi agent
-nazar setup              # Interactive first-time setup
+pibloom apply              # Apply config, generate Quadlet files, reload systemd
+pibloom status             # Show bootc deployments, running services, and object store stats
+pibloom update             # Update OS via bootc and pull latest container images
+pibloom rollback           # Show bootc deployments and rollback instructions
+pibloom evolve install <s> # Deploy containers from an evolution object
+pibloom evolve rollback <s># Stop and remove evolution containers
+pibloom object <cmd>       # Object store CRUD
+pibloom pi [args]          # Launch Pi agent
+pibloom setup              # Interactive first-time setup
 ```
 
 ## Development

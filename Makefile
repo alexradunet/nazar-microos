@@ -1,8 +1,8 @@
-IMAGE_NAME := localhost/nazar-os
+IMAGE_NAME := localhost/pibloom-os
 IMAGE_TAG  := latest
 
 REGISTRY_PORT := 5000
-REGISTRY_IMAGE := localhost:$(REGISTRY_PORT)/nazar-os:$(IMAGE_TAG)
+REGISTRY_IMAGE := localhost:$(REGISTRY_PORT)/pibloom-os:$(IMAGE_TAG)
 
 .PHONY: image qcow2 iso chunked-oci containers registry push push-ghcr clean
 
@@ -23,11 +23,11 @@ qcow2:
 	  --type qcow2 --rootfs xfs --config /config.toml $(IMAGE_NAME):$(IMAGE_TAG)
 
 containers:
-	podman build -t nazar-base -f core/containers/base/Containerfile .
-	podman build -t localhost/nazar-signal-cli:latest -f bridges/signal/containers/signal-cli/Containerfile .
-	podman build -t localhost/nazar-signal-bridge:latest -f bridges/signal/Containerfile .
-	podman build -t localhost/nazar-web-bridge:latest -f bridges/web/Containerfile .
-	podman build -t localhost/nazar-whatsapp-bridge:latest -f bridges/whatsapp/Containerfile .
+	podman build -t pibloom-base -f core/containers/base/Containerfile .
+	podman build -t localhost/pibloom-signal-cli:latest -f bridges/signal/containers/signal-cli/Containerfile .
+	podman build -t localhost/pibloom-signal-bridge:latest -f bridges/signal/Containerfile .
+	podman build -t localhost/pibloom-web-bridge:latest -f bridges/web/Containerfile .
+	podman build -t localhost/pibloom-whatsapp-bridge:latest -f bridges/whatsapp/Containerfile .
 
 iso:
 	@test -f os/bootc/config.toml || { echo "ERROR: Copy os/bootc/config.toml.example to os/bootc/config.toml"; exit 1; }
@@ -47,18 +47,18 @@ chunked-oci:
 	rpm-ostree compose image \
 	  --format=ociarchive \
 	  $(IMAGE_NAME):$(IMAGE_TAG) \
-	  _output/nazar-os-chunked.ociarchive
+	  _output/pibloom-os-chunked.ociarchive
 
 registry:
-	@if podman container exists nazar-registry 2>/dev/null; then \
-	  if [ "$$(podman inspect --format '{{.State.Running}}' nazar-registry)" = "true" ]; then \
+	@if podman container exists pibloom-registry 2>/dev/null; then \
+	  if [ "$$(podman inspect --format '{{.State.Running}}' pibloom-registry)" = "true" ]; then \
 	    echo "Registry already running on port $(REGISTRY_PORT)"; \
 	  else \
-	    podman start nazar-registry; \
+	    podman start pibloom-registry; \
 	  fi; \
 	else \
-	  podman run -d --name nazar-registry -p $(REGISTRY_PORT):5000 \
-	    --restart=always -v nazar-registry-data:/var/lib/registry \
+	  podman run -d --name pibloom-registry -p $(REGISTRY_PORT):5000 \
+	    --restart=always -v pibloom-registry-data:/var/lib/registry \
 	    docker.io/library/registry:2; \
 	fi
 
@@ -67,7 +67,7 @@ push: image registry
 	podman push --tls-verify=false $(REGISTRY_IMAGE)
 
 push-ghcr:
-	@test -n "$(GHCR_REPO)" || { echo "ERROR: Set GHCR_REPO (e.g., ghcr.io/youruser/nazar-os)"; exit 1; }
+	@test -n "$(GHCR_REPO)" || { echo "ERROR: Set GHCR_REPO (e.g., ghcr.io/youruser/pibloom-os)"; exit 1; }
 	podman build -t $(IMAGE_NAME):$(IMAGE_TAG) -f os/Containerfile .
 	podman tag $(IMAGE_NAME):$(IMAGE_TAG) $(GHCR_REPO):$(IMAGE_TAG)
 	podman push $(GHCR_REPO):$(IMAGE_TAG)

@@ -4,7 +4,7 @@ export type { BootstrapOptions, BootstrapResult } from "./bridge-bootstrap.js";
 // --- Bridge bootstrap ---
 export {
   bootstrapBridge,
-  bridgeNazarConfig,
+  bridgePibloomConfig,
   HealthFileReporter,
   loadBaseBridgeConfig,
   MessageQueue,
@@ -24,7 +24,7 @@ export {
 export type { ResponseRenderer } from "./capabilities/affordances/text-renderer.js";
 export { TextRenderer } from "./capabilities/affordances/text-renderer.js";
 export type { ExtensionFactory } from "./capabilities/agent-session/extension.js";
-export { createNazarExtension } from "./capabilities/agent-session/extension.js";
+export { createPibloomExtension } from "./capabilities/agent-session/extension.js";
 export { AgentSessionCapability } from "./capabilities/agent-session/index.js";
 // --- Concrete implementations ---
 export type { BridgeConfig } from "./capabilities/agent-session/pi-agent-bridge.js";
@@ -98,6 +98,6 @@ export type {
   ContainerSpec,
   EvolveOptions,
   GeneratedFile,
-  NazarConfig,
+  PibloomConfig,
   SetupOptions,
 } from "./types.js";

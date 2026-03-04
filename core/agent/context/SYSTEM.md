@@ -1,54 +1,54 @@
 # System Context
 
-You are running on a Fedora bootc system managed by Nazar.
+You are running on a Fedora bootc system managed by Bloom.
 
 ## Architecture
 
 - **OS:** Fedora bootc (immutable, image-based updates via `bootc update`)
 - **Services:** Podman Quadlet containers managed by systemd
-- **Config:** `/etc/nazar/nazar.yaml` — single YAML config, applied via `nazar apply`
-- **Data:** `/var/lib/nazar/objects/` — flat-file object store (YAML frontmatter + Markdown)
-- **User:** `nazar-agent` (uid 900) — system user running all services
+- **Config:** `/etc/pibloom/pibloom.yaml` — single YAML config, applied via `pibloom apply`
+- **Data:** `/var/lib/pibloom/objects/` — flat-file object store (YAML frontmatter + Markdown)
+- **User:** `pibloom-agent` (uid 900) — system user running all services
 
 ## Key Commands
 
 | Command | Purpose |
 |---------|---------|
-| `nazar apply` | Read config, generate Quadlet files, reload systemd |
-| `nazar apply --dry-run` | Generate Quadlet files without reloading |
-| `nazar status` | Show bootc deployments, running services, and object store stats |
-| `nazar update` | Update OS via bootc and pull latest container images |
-| `nazar rollback` | Show bootc deployments and rollback instructions |
-| `nazar evolve install <slug>` | Deploy containers from an approved evolution object |
-| `nazar evolve rollback <slug>` | Stop and remove evolution containers |
-| `nazar evolve status [slug]` | Show evolution state |
-| `nazar object <cmd>` | Object store CRUD (`create`, `read`, `list`, `update`, `search`, `link`) |
+| `pibloom apply` | Read config, generate Quadlet files, reload systemd |
+| `pibloom apply --dry-run` | Generate Quadlet files without reloading |
+| `pibloom status` | Show bootc deployments, running services, and object store stats |
+| `pibloom update` | Update OS via bootc and pull latest container images |
+| `pibloom rollback` | Show bootc deployments and rollback instructions |
+| `pibloom evolve install <slug>` | Deploy containers from an approved evolution object |
+| `pibloom evolve rollback <slug>` | Stop and remove evolution containers |
+| `pibloom evolve status [slug]` | Show evolution state |
+| `pibloom object <cmd>` | Object store CRUD (`create`, `read`, `list`, `update`, `search`, `link`) |
 
 ## Core Services
 
 | Service | Type | Purpose |
 |---------|------|---------|
-| `nazar-heartbeat.service` | Native systemd oneshot | Periodic Pi heartbeat (triggered by timer) |
-| `nazar-heartbeat.timer` | Native systemd timer | Schedules heartbeat runs |
+| `pibloom-heartbeat.service` | Native systemd oneshot | Periodic Pi heartbeat (triggered by timer) |
+| `pibloom-heartbeat.timer` | Native systemd timer | Schedules heartbeat runs |
 
-Additional services (bridges) may be installed as Podman Quadlet containers via bridge manifests. Run `nazar evolve status` or `nazar bridge list` to see installed bridges.
+Additional services (bridges) may be installed as Podman Quadlet containers via bridge manifests. Run `pibloom evolve status` or `pibloom bridge list` to see installed bridges.
 
 ## File Locations
 
 | Path | Contents |
 |------|----------|
-| `/etc/nazar/nazar.yaml` | System configuration |
-| `/var/lib/nazar/objects/` | Object store (journals, tasks, notes, etc.) |
+| `/etc/pibloom/pibloom.yaml` | System configuration |
+| `/var/lib/pibloom/objects/` | Object store (journals, tasks, notes, etc.) |
 | `/etc/systemd/system/` | Heartbeat .service + .timer |
 | `/etc/containers/systemd/` | Generated Quadlet .container files (bridges) |
-| `/usr/local/share/nazar/persona/` | OpenPersona identity files |
-| `/usr/local/share/nazar/skills/` | Pi agent skills |
-| `/var/lib/nazar/evolution/` | Evolution state |
-| `/usr/local/bin/nazar` | CLI wrapper |
+| `/usr/local/share/pibloom/persona/` | OpenPersona identity files |
+| `/usr/local/share/pibloom/skills/` | Pi agent skills |
+| `/var/lib/pibloom/evolution/` | Evolution state |
+| `/usr/local/bin/pibloom` | CLI wrapper |
 
 ## Object Store
 
-Objects are Markdown files with YAML frontmatter in `/var/lib/nazar/objects/<type>/<slug>.md`.
+Objects are Markdown files with YAML frontmatter in `/var/lib/pibloom/objects/<type>/<slug>.md`.
 
 Types: `journal`, `task`, `note`, `evolution`
 
@@ -66,22 +66,22 @@ sudo bootc rollback               # Switch to previous deployment
 sudo systemctl reboot             # Apply rollback
 ```
 
-Note: `/var/lib/nazar/` persists across rollbacks.
+Note: `/var/lib/pibloom/` persists across rollbacks.
 
 ## Self-Evolution (Container-Based)
 
-Nazar evolves by adding new containers via Podman Quadlet:
+Bloom evolves by adding new containers via Podman Quadlet:
 
 1. An evolution object with `area: containers` and a `containers` list is created and approved through the pipeline.
-2. User runs `nazar evolve install <slug>` — interactive confirmation, then Quadlet file generation.
+2. User runs `pibloom evolve install <slug>` — interactive confirmation, then Quadlet file generation.
 3. `systemctl daemon-reload` + `systemctl start` — no reboot needed.
 4. Health check verifies container is running. If unhealthy, Quadlet files are removed automatically.
 
-Safety: restricted sudo (only `systemctl daemon-reload/start/stop/restart/is-active nazar-*`), configurable max containers per evolution, interactive approval, automatic rollback on health check failure.
+Safety: restricted sudo (only `systemctl daemon-reload/start/stop/restart/is-active pibloom-*`), configurable max containers per evolution, interactive approval, automatic rollback on health check failure.
 
 ## Persona
 
-The OpenPersona 4-layer identity model is in `/usr/local/share/nazar/persona/`:
+The OpenPersona 4-layer identity model is in `/usr/local/share/pibloom/persona/`:
 - `SOUL.md` — Identity, values, voice, boundaries
 - `BODY.md` — Channel adaptation, presence behavior
 - `FACULTY.md` — Reasoning patterns, PARA methodology

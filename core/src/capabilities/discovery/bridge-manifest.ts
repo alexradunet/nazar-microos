@@ -18,7 +18,7 @@ export interface TimerSpec {
   wantedBy?: string;
 }
 
-/** Schema field for bridge-specific config under `bridges.<name>:` in nazar.yaml. */
+/** Schema field for bridge-specific config under `bridges.<name>:` in pibloom.yaml. */
 export interface ConfigSchemaField {
   name: string;
   type: "string" | "number" | "boolean" | "string[]";
@@ -34,10 +34,10 @@ export interface ConfigSchemaField {
  * setup instructions, and agent skills.
  *
  * Lives at `bridges/<name>/manifest.yaml` or `infra/<name>/manifest.yaml`
- * and is processed by `nazar-core bridge install`.
+ * and is processed by `pibloom-core bridge install`.
  */
 export interface BridgeManifest {
-  apiVersion: "nazar.dev/v1";
+  apiVersion: "pibloom.dev/v1";
   kind: "BridgeManifest";
   metadata: {
     name: string;
@@ -73,9 +73,9 @@ export function parseBridgeManifest(raw: string): BridgeManifest {
 export function validateBridgeManifest(manifest: BridgeManifest): string[] {
   const errors: string[] = [];
 
-  if (manifest.apiVersion !== "nazar.dev/v1") {
+  if (manifest.apiVersion !== "pibloom.dev/v1") {
     errors.push(
-      `unsupported apiVersion: '${manifest.apiVersion}' (expected 'nazar.dev/v1')`,
+      `unsupported apiVersion: '${manifest.apiVersion}' (expected 'pibloom.dev/v1')`,
     );
   }
   if (manifest.kind !== "BridgeManifest") {
@@ -178,7 +178,7 @@ export function validateBridgeManifest(manifest: BridgeManifest): string[] {
 
 /**
  * Resolve `{{key}}` template variables in manifest string fields using
- * bridge config values from `bridges.<name>:` in nazar.yaml.
+ * bridge config values from `bridges.<name>:` in pibloom.yaml.
  *
  * Returns a new manifest with templates replaced. Unresolved templates
  * are left as-is (caller can detect them for required-field validation).

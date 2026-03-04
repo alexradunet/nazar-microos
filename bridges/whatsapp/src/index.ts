@@ -1,8 +1,8 @@
 /**
- * Nazar WhatsApp Bridge — whatsapp-web.js → Pi AgentSession bridge.
+ * piBloom WhatsApp Bridge — whatsapp-web.js → Pi AgentSession bridge.
  *
  * Architecture (Ports and Adapters):
- * - Port: MessageChannel interface (from @nazar/core)
+ * - Port: MessageChannel interface (from @pibloom/core)
  * - Adapter: whatsapp-web.js Client with LocalAuth
  * - Core: Message → AgentBridge.processMessage() → streaming events → respond
  *
@@ -16,14 +16,14 @@ import type {
   BridgeConfig,
   IncomingMessage,
   MessageChannel,
-} from "@nazar/core";
+} from "@pibloom/core";
 import {
   bootstrapBridge,
   HealthFileReporter,
   isAllowed,
   loadBaseBridgeConfig,
   MessageQueue,
-} from "@nazar/core";
+} from "@pibloom/core";
 
 // --- WhatsApp-specific config ---
 
@@ -187,12 +187,12 @@ export class WhatsAppBotChannel implements MessageChannel {
 async function main(): Promise<void> {
   const config: WhatsAppBridgeConfig = {
     ...loadBaseBridgeConfig("WhatsApp"),
-    allowedContacts: (process.env.NAZAR_WHATSAPP_ALLOWED_CONTACTS || "")
+    allowedContacts: (process.env.PIBLOOM_WHATSAPP_ALLOWED_CONTACTS || "")
       .split(",")
       .filter(Boolean),
     storageDir:
-      process.env.NAZAR_WHATSAPP_STORAGE_DIR || "/data/whatsapp-storage",
-    timeoutMs: Number(process.env.NAZAR_WHATSAPP_TIMEOUT_MS) || 120_000,
+      process.env.PIBLOOM_WHATSAPP_STORAGE_DIR || "/data/whatsapp-storage",
+    timeoutMs: Number(process.env.PIBLOOM_WHATSAPP_TIMEOUT_MS) || 120_000,
   };
 
   await bootstrapBridge({

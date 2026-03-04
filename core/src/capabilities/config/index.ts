@@ -3,7 +3,7 @@ import type {
   CapabilityConfig,
   CapabilityRegistration,
 } from "../../capability.js";
-import type { NazarConfig } from "../../types.js";
+import type { PibloomConfig } from "../../types.js";
 import { YamlConfigReader } from "./yaml-config-reader.js";
 
 export { configValue } from "./config-value.js";
@@ -18,7 +18,7 @@ export class ConfigCapability implements Capability {
   init(_config: CapabilityConfig): CapabilityRegistration {
     this.reader = new YamlConfigReader();
     return {
-      validateConfig: (config: NazarConfig) => this.validate(config),
+      validateConfig: (config: PibloomConfig) => this.validate(config),
     };
   }
 
@@ -29,7 +29,7 @@ export class ConfigCapability implements Capability {
     return this.reader;
   }
 
-  private validate(config: NazarConfig): string[] {
+  private validate(config: PibloomConfig): string[] {
     const errors: string[] = [];
     if (!config.hostname) errors.push("required field 'hostname' is missing");
     if (!config.primary_user)

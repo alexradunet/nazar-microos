@@ -11,16 +11,16 @@ RUN dnf install -y \
 RUN HOME=/tmp npm install -g @mariozechner/pi-coding-agent@0.55.3
 
 # System user + directory definitions (systemd creates at boot)
-COPY os/sysconfig/sysusers.d/nazar.conf /usr/lib/sysusers.d/nazar.conf
-COPY os/sysconfig/tmpfiles.d/nazar.conf /usr/lib/tmpfiles.d/nazar.conf
+COPY os/sysconfig/sysusers.d/pibloom.conf /usr/lib/sysusers.d/pibloom.conf
+COPY os/sysconfig/tmpfiles.d/pibloom.conf /usr/lib/tmpfiles.d/pibloom.conf
 
 # Hostname
-RUN echo "nazar-box" > /etc/hostname
+RUN echo "pibloom-box" > /etc/hostname
 
 # Sudoers
 COPY os/sysconfig/sudoers.d/core-wheel /etc/sudoers.d/core-wheel
-COPY os/sysconfig/sudoers.d/nazar-evolve /etc/sudoers.d/nazar-evolve
-RUN chmod 0440 /etc/sudoers.d/core-wheel /etc/sudoers.d/nazar-evolve
+COPY os/sysconfig/sudoers.d/pibloom-evolve /etc/sudoers.d/pibloom-evolve
+RUN chmod 0440 /etc/sudoers.d/core-wheel /etc/sudoers.d/pibloom-evolve
 
 # Dev registry config (insecure pull from host for bootc upgrade)
 COPY os/sysconfig/registries.conf.d/ /etc/containers/registries.conf.d/
@@ -28,45 +28,45 @@ COPY os/sysconfig/registries.conf.d/ /etc/containers/registries.conf.d/
 # Tailscale login prompt
 COPY os/sysconfig/profile.d/tailscale-login.sh /etc/profile.d/tailscale-login.sh
 
-# nazar-core TypeScript CLI — install deps first for layer caching
-COPY core/package.json /usr/local/lib/nazar-core/package.json
-RUN cd /usr/local/lib/nazar-core && HOME=/tmp npm install --omit=dev
-COPY core/dist/ /usr/local/lib/nazar-core/dist/
-RUN ln -s /usr/local/lib/nazar-core/dist/cli.js /usr/local/bin/nazar-core \
-    && chmod +x /usr/local/lib/nazar-core/dist/cli.js \
-    && printf '#!/usr/bin/env bash\nexec nazar-core object "$@"\n' > /usr/local/bin/nazar-object \
-    && printf '#!/usr/bin/env bash\nexec nazar-core setup "$@"\n' > /usr/local/bin/nazar-setup \
-    && printf '#!/usr/bin/env bash\nexec nazar-core evolve "$@"\n' > /usr/local/bin/nazar-evolve \
-    && printf '#!/usr/bin/env bash\nexec nazar-core bridge "$@"\n' > /usr/local/bin/nazar-bridge \
-    && chmod +x /usr/local/bin/nazar-object /usr/local/bin/nazar-setup /usr/local/bin/nazar-evolve /usr/local/bin/nazar-bridge
+# pibloom-core TypeScript CLI — install deps first for layer caching
+COPY core/package.json /usr/local/lib/pibloom-core/package.json
+RUN cd /usr/local/lib/pibloom-core && HOME=/tmp npm install --omit=dev
+COPY core/dist/ /usr/local/lib/pibloom-core/dist/
+RUN ln -s /usr/local/lib/pibloom-core/dist/cli.js /usr/local/bin/pibloom-core \
+    && chmod +x /usr/local/lib/pibloom-core/dist/cli.js \
+    && printf '#!/usr/bin/env bash\nexec pibloom-core object "$@"\n' > /usr/local/bin/pibloom-object \
+    && printf '#!/usr/bin/env bash\nexec pibloom-core setup "$@"\n' > /usr/local/bin/pibloom-setup \
+    && printf '#!/usr/bin/env bash\nexec pibloom-core evolve "$@"\n' > /usr/local/bin/pibloom-evolve \
+    && printf '#!/usr/bin/env bash\nexec pibloom-core bridge "$@"\n' > /usr/local/bin/pibloom-bridge \
+    && chmod +x /usr/local/bin/pibloom-object /usr/local/bin/pibloom-setup /usr/local/bin/pibloom-evolve /usr/local/bin/pibloom-bridge
 
 # CLI scripts
-COPY scripts/nazar /usr/local/bin/nazar
-COPY scripts/nazar-vm.sh /usr/local/bin/nazar-vm
-COPY scripts/nazar-deploy.sh /usr/local/bin/nazar-deploy
-COPY scripts/nazar-signal-setup.sh /usr/local/bin/nazar-signal-setup
-COPY os/sysconfig/nazar-heartbeat.sh /usr/local/bin/nazar-heartbeat
-RUN chmod 0755 /usr/local/bin/nazar /usr/local/bin/nazar-vm /usr/local/bin/nazar-deploy /usr/local/bin/nazar-signal-setup /usr/local/bin/nazar-heartbeat \
-    && mkdir -p /etc/nazar /usr/local/share/nazar/persona /usr/local/share/nazar/skills /usr/local/share/nazar/pi-config/agent
+COPY scripts/pibloom /usr/local/bin/pibloom
+COPY scripts/pibloom-vm.sh /usr/local/bin/pibloom-vm
+COPY scripts/pibloom-deploy.sh /usr/local/bin/pibloom-deploy
+COPY scripts/pibloom-signal-setup.sh /usr/local/bin/pibloom-signal-setup
+COPY os/sysconfig/pibloom-heartbeat.sh /usr/local/bin/pibloom-heartbeat
+RUN chmod 0755 /usr/local/bin/pibloom /usr/local/bin/pibloom-vm /usr/local/bin/pibloom-deploy /usr/local/bin/pibloom-signal-setup /usr/local/bin/pibloom-heartbeat \
+    && mkdir -p /etc/pibloom /usr/local/share/pibloom/persona /usr/local/share/pibloom/skills /usr/local/share/pibloom/pi-config/agent
 
 # Config, docs, persona, skills
-COPY os/sysconfig/nazar.yaml.default /etc/nazar/nazar.yaml
-COPY core/agent/context/SYSTEM.md /usr/local/share/nazar/SYSTEM.md
-COPY core/agent/context/SYSTEM.md /usr/local/share/nazar/pi-config/agent/SYSTEM.md
-COPY core/agent/context/APPEND_SYSTEM.md /usr/local/share/nazar/pi-config/agent/APPEND_SYSTEM.md
-COPY core/agent/persona/ /usr/local/share/nazar/persona/
-COPY core/agent/skills/ /usr/local/share/nazar/skills/
+COPY os/sysconfig/pibloom.yaml.default /etc/pibloom/pibloom.yaml
+COPY core/agent/context/SYSTEM.md /usr/local/share/pibloom/SYSTEM.md
+COPY core/agent/context/SYSTEM.md /usr/local/share/pibloom/pi-config/agent/SYSTEM.md
+COPY core/agent/context/APPEND_SYSTEM.md /usr/local/share/pibloom/pi-config/agent/APPEND_SYSTEM.md
+COPY core/agent/persona/ /usr/local/share/pibloom/persona/
+COPY core/agent/skills/ /usr/local/share/pibloom/skills/
 # Service manifests (bridges + infra)
-COPY bridges/signal/manifest.yaml bridges/signal/body-channel.md /usr/local/share/nazar/manifests/signal/
-COPY bridges/web/manifest.yaml bridges/web/body-channel.md /usr/local/share/nazar/manifests/web/
-COPY bridges/whatsapp/manifest.yaml bridges/whatsapp/body-channel.md /usr/local/share/nazar/manifests/whatsapp/
+COPY bridges/signal/manifest.yaml bridges/signal/body-channel.md /usr/local/share/pibloom/manifests/signal/
+COPY bridges/web/manifest.yaml bridges/web/body-channel.md /usr/local/share/pibloom/manifests/web/
+COPY bridges/whatsapp/manifest.yaml bridges/whatsapp/body-channel.md /usr/local/share/pibloom/manifests/whatsapp/
 
 # Logically-bound container images (pulled on first boot)
 COPY os/sysconfig/bound-images/ /usr/share/containers/systemd/
 
 # Enable services
-COPY os/sysconfig/systemd/nazar-setup.service /usr/lib/systemd/system/nazar-setup.service
-RUN systemctl enable tailscaled.service nazar-setup.service
+COPY os/sysconfig/systemd/pibloom-setup.service /usr/lib/systemd/system/pibloom-setup.service
+RUN systemctl enable tailscaled.service pibloom-setup.service
 
 # Validate
 RUN bootc container lint

@@ -1,11 +1,11 @@
 services:
   signal-bridge:
-    image: nazar-signal-bridge
-    container_name: nazar-test-bridge
+    image: pibloom-signal-bridge
+    container_name: pibloom-test-bridge
     environment:
-      NAZAR_SIGNAL_PHONE: "+12345678901"
-      NAZAR_OBJECTS_DIR: /data/objects
-      NAZAR_SIGNAL_STORAGE_DIR: /data/signal-storage
+      PIBLOOM_SIGNAL_PHONE: "+12345678901"
+      PIBLOOM_OBJECTS_DIR: /data/objects
+      PIBLOOM_SIGNAL_STORAGE_DIR: /data/signal-storage
     volumes:
       - bridge-data:/data
 

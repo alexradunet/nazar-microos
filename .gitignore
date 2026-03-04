@@ -14,7 +14,7 @@ _output/
 *.qcow2
 .omc
 # Local config (secrets/machine-specific)
-.nazar-deploy.env
+.pibloom-deploy.env
 os/bootc/config.toml
 
 # Data directories

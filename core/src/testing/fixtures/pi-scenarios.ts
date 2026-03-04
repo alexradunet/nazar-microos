@@ -1,5 +1,5 @@
 /**
- * Pre-built Pi scenarios for common Nazar operations.
+ * Pre-built Pi scenarios for common piBloom operations.
  */
 import type { PiScenario } from "../pi-mock.js";
 

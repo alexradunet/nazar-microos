@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "lastScanned": 1772547293165,
-  "projectRoot": "/var/home/alex/Development/nazar-microos",
+  "projectRoot": "/var/home/alex/Development/pibloom",
   "techStack": {
     "languages": [
       {
@@ -55,7 +55,7 @@
   "structure": {
     "isMonorepo": true,
     "workspaces": [
-      "nazar-core",
+      "pibloom-core",
       "bridges/*"
     ],
     "mainDirectories": [
@@ -102,8 +102,8 @@
         "whatsapp-bridge-plan.md"
       ]
     },
-    "nazar-core": {
-      "path": "nazar-core",
+    "pibloom-core": {
+      "path": "pibloom-core",
       "purpose": null,
       "fileCount": 2,
       "lastAccessed": 1772547293152,
@@ -128,9 +128,9 @@
       "lastAccessed": 1772547293154,
       "keyFiles": [
         "nazar",
-        "nazar-deploy.sh",
-        "nazar-signal-setup.sh",
-        "nazar-vm.sh"
+        "pibloom-deploy.sh",
+        "pibloom-signal-setup.sh",
+        "pibloom-vm.sh"
       ]
     },
     "tests": {
@@ -140,8 +140,8 @@
       "lastAccessed": 1772547293155,
       "keyFiles": []
     },
-    "nazar-core/src": {
-      "path": "nazar-core/src",
+    "pibloom-core/src": {
+      "path": "pibloom-core/src",
       "purpose": "Source code",
       "fileCount": 16,
       "lastAccessed": 1772547293159,
@@ -155,48 +155,48 @@
   "hotPaths": [
     {
       "path": "",
-      "accessCount": 129,
-      "lastAccessed": 1772582327622,
+      "accessCount": 131,
+      "lastAccessed": 1772583283395,
       "type": "directory"
     },
     {
-      "path": "nazar-core/src/capabilities/agent-session/index.ts",
+      "path": "pibloom-core/src/capabilities/agent-session/index.ts",
       "accessCount": 31,
       "lastAccessed": 1772562727682,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/capabilities/agent-session/extension.ts",
+      "path": "pibloom-core/src/capabilities/agent-session/extension.ts",
       "accessCount": 27,
       "lastAccessed": 1772562558474,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/defaults.ts",
+      "path": "pibloom-core/src/defaults.ts",
       "accessCount": 26,
       "lastAccessed": 1772562575055,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/bridge-bootstrap.ts",
+      "path": "pibloom-core/src/bridge-bootstrap.ts",
       "accessCount": 26,
       "lastAccessed": 1772563572623,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/capabilities/agent-session/pi-agent-bridge.ts",
+      "path": "pibloom-core/src/capabilities/agent-session/pi-agent-bridge.ts",
       "accessCount": 24,
       "lastAccessed": 1772562732009,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/types.ts",
+      "path": "pibloom-core/src/types.ts",
       "accessCount": 23,
       "lastAccessed": 1772562543081,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/capability.ts",
+      "path": "pibloom-core/src/capability.ts",
       "accessCount": 21,
       "lastAccessed": 1772563572426,
       "type": "file"
@@ -214,61 +214,61 @@
       "type": "file"
     },
     {
-      "path": "nazar-core/src/ports/system-executor.ts",
+      "path": "pibloom-core/src/ports/system-executor.ts",
       "accessCount": 16,
       "lastAccessed": 1772561962090,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/registry.ts",
+      "path": "pibloom-core/src/registry.ts",
       "accessCount": 16,
       "lastAccessed": 1772563572239,
       "type": "file"
     },
     {
-      "path": "bridges/whatsapp/src/index.ts",
-      "accessCount": 15,
-      "lastAccessed": 1772581279124,
+      "path": "package.json",
+      "accessCount": 16,
+      "lastAccessed": 1772583587803,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/index.ts",
+      "path": "bridges/whatsapp/src/index.ts",
+      "accessCount": 16,
+      "lastAccessed": 1772583611369,
+      "type": "file"
+    },
+    {
+      "path": "pibloom-core/src/index.ts",
       "accessCount": 13,
       "lastAccessed": 1772562589146,
       "type": "file"
     },
     {
-      "path": "package.json",
-      "accessCount": 12,
-      "lastAccessed": 1772580498751,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/agent-bridge.ts",
+      "path": "pibloom-core/src/agent-bridge.ts",
       "accessCount": 10,
       "lastAccessed": 1772561993750,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/capabilities/setup/quadlet-generator.ts",
+      "path": "pibloom-core/src/capabilities/setup/quadlet-generator.ts",
       "accessCount": 10,
       "lastAccessed": 1772562547155,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/ports/agent-bridge.ts",
+      "path": "pibloom-core/src/ports/agent-bridge.ts",
       "accessCount": 9,
       "lastAccessed": 1772561958053,
       "type": "file"
     },
     {
-      "path": "nazar-core/src",
+      "path": "pibloom-core/src",
       "accessCount": 9,
       "lastAccessed": 1772562006865,
       "type": "directory"
     },
     {
-      "path": "nazar-core/src/capabilities/evolution/index.ts",
+      "path": "pibloom-core/src/capabilities/evolution/index.ts",
       "accessCount": 9,
       "lastAccessed": 1772562674970,
       "type": "file"
@@ -280,55 +280,55 @@
       "type": "file"
     },
     {
-      "path": "nazar-core/src/extension.ts",
+      "path": "pibloom-core/src/extension.ts",
       "accessCount": 8,
       "lastAccessed": 1772562722326,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/__tests__/bridge-bootstrap.test.ts",
+      "path": "pibloom-core/src/__tests__/bridge-bootstrap.test.ts",
       "accessCount": 7,
       "lastAccessed": 1772557778836,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/__tests__/evolve.test.ts",
+      "path": "pibloom-core/src/__tests__/evolve.test.ts",
       "accessCount": 7,
       "lastAccessed": 1772557971220,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/capabilities/agent-session/session-pool.ts",
+      "path": "pibloom-core/src/capabilities/agent-session/session-pool.ts",
       "accessCount": 7,
       "lastAccessed": 1772561972177,
       "type": "file"
     },
     {
-      "path": "nazar-core/agent/skills/nazar-runtime/SKILL.md",
+      "path": "pibloom-core/agent/skills/bloom-runtime/SKILL.md",
       "accessCount": 7,
       "lastAccessed": 1772561997614,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/ports/persona-loader.ts",
+      "path": "pibloom-core/src/ports/persona-loader.ts",
       "accessCount": 6,
       "lastAccessed": 1772561961400,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/capabilities/discovery/index.ts",
+      "path": "pibloom-core/src/capabilities/discovery/index.ts",
       "accessCount": 6,
       "lastAccessed": 1772561972983,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/capabilities/object-store/index.ts",
+      "path": "pibloom-core/src/capabilities/object-store/index.ts",
       "accessCount": 6,
       "lastAccessed": 1772561974877,
       "type": "file"
     },
     {
-      "path": "nazar-core/package.json",
+      "path": "pibloom-core/package.json",
       "accessCount": 6,
       "lastAccessed": 1772562584523,
       "type": "file"
@@ -340,27 +340,27 @@
       "type": "file"
     },
     {
-      "path": "nazar-core/src/__tests__/discovery.test.ts",
+      "path": "bridges/whatsapp/src/__tests__/bridge.test.ts",
+      "accessCount": 6,
+      "lastAccessed": 1772583720305,
+      "type": "file"
+    },
+    {
+      "path": "pibloom-core/src/__tests__/discovery.test.ts",
       "accessCount": 5,
       "lastAccessed": 1772547950042,
       "type": "file"
     },
     {
-      "path": "nazar-core/agent/persona/SOUL.md",
+      "path": "pibloom-core/agent/persona/SOUL.md",
       "accessCount": 5,
       "lastAccessed": 1772561991409,
       "type": "file"
     },
     {
-      "path": "nazar-core/agent/skills/heartbeat/SKILL.md",
+      "path": "pibloom-core/agent/skills/heartbeat/SKILL.md",
       "accessCount": 5,
       "lastAccessed": 1772561997672,
-      "type": "file"
-    },
-    {
-      "path": "bridges/whatsapp/src/__tests__/bridge.test.ts",
-      "accessCount": 5,
-      "lastAccessed": 1772580338240,
       "type": "file"
     },
     {
@@ -370,85 +370,85 @@
       "type": "directory"
     },
     {
-      "path": "nazar-core/src/capabilities/system-executor/node-executor.ts",
+      "path": "README.md",
+      "accessCount": 5,
+      "lastAccessed": 1772583696480,
+      "type": "file"
+    },
+    {
+      "path": "pibloom-core/src/capabilities/system-executor/node-executor.ts",
       "accessCount": 4,
       "lastAccessed": 1772557788146,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/capabilities/affordances/parser.ts",
+      "path": "pibloom-core/src/capabilities/affordances/parser.ts",
       "accessCount": 4,
       "lastAccessed": 1772557953788,
       "type": "file"
     },
     {
-      "path": "nazar-core/agent/persona/BODY.md",
+      "path": "pibloom-core/agent/persona/BODY.md",
       "accessCount": 4,
       "lastAccessed": 1772562640908,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/testing/mock-system-executor.ts",
+      "path": "pibloom-core/src/testing/mock-system-executor.ts",
       "accessCount": 3,
       "lastAccessed": 1772547861750,
       "type": "file"
     },
     {
-      "path": "nazar-core/agent/persona/FACULTY.md",
+      "path": "pibloom-core/agent/persona/FACULTY.md",
       "accessCount": 3,
       "lastAccessed": 1772561992213,
       "type": "file"
     },
     {
-      "path": "nazar-core/agent/persona/SKILL.md",
+      "path": "pibloom-core/agent/persona/SKILL.md",
       "accessCount": 3,
       "lastAccessed": 1772561992735,
       "type": "file"
     },
     {
-      "path": "nazar-core/agent/skills/object-task/SKILL.md",
+      "path": "pibloom-core/agent/skills/object-task/SKILL.md",
       "accessCount": 3,
       "lastAccessed": 1772562005778,
       "type": "file"
     },
     {
-      "path": "README.md",
-      "accessCount": 3,
-      "lastAccessed": 1772572624871,
-      "type": "file"
-    },
-    {
-      "path": "nazar-core/src/capabilities/persona/fs-persona-loader.ts",
+      "path": "pibloom-core/src/capabilities/persona/fs-persona-loader.ts",
       "accessCount": 2,
       "lastAccessed": 1772553813572,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/capabilities/persona/index.ts",
+      "path": "pibloom-core/src/capabilities/persona/index.ts",
       "accessCount": 2,
       "lastAccessed": 1772561976226,
       "type": "file"
     },
     {
-      "path": "nazar-core/agent/skills/claude-consult/SKILL.md",
+      "path": "pibloom-core/agent/skills/claude-consult/SKILL.md",
       "accessCount": 2,
       "lastAccessed": 1772562012006,
       "type": "file"
     },
     {
-      "path": "nazar-core/agent/skills/tdd/SKILL.md",
+      "path": "pibloom-core/agent/skills/tdd/SKILL.md",
       "accessCount": 2,
       "lastAccessed": 1772562012066,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/persona.ts",
+      "path": "pibloom-core/src/persona.ts",
       "accessCount": 1,
       "lastAccessed": 1772547702937,
       "type": "file"
     },
     {
-      "path": "nazar-core/src/__tests__",
+      "path": "pibloom-core/src/__tests__",
       "accessCount": 1,
       "lastAccessed": 1772550177130,
       "type": "directory"

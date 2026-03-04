@@ -9,7 +9,7 @@ import type {
   ContainerSpec,
   EvolveOptions,
   GeneratedFile,
-  NazarConfig,
+  PibloomConfig,
 } from "../../types.js";
 import { YamlConfigReader } from "../config/yaml-config-reader.js";
 import type { BridgeManifest } from "../discovery/bridge-manifest.js";
@@ -22,10 +22,10 @@ import {
   renderQuadletTimer,
 } from "../setup/quadlet-generator.js";
 
-const CONTAINER_NAME_RE = /^nazar-[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
+const CONTAINER_NAME_RE = /^pibloom-[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
 const DEFAULT_HEALTH_TIMEOUT = 30;
-const CAPABILITIES_DIR = "/var/lib/nazar/capabilities";
-const SKILLS_DIR = "/var/lib/nazar/skills";
+const CAPABILITIES_DIR = "/var/lib/pibloom/capabilities";
+const SKILLS_DIR = "/var/lib/pibloom/skills";
 
 export class EvolveManager implements IEvolveManager {
   private readonly cfgReader: YamlConfigReader;
@@ -52,7 +52,7 @@ export class EvolveManager implements IEvolveManager {
   }
 
   /**
-   * Validate a container spec: name must start with nazar-, image required.
+   * Validate a container spec: name must start with pibloom-, image required.
    */
   private validateContainer(spec: ContainerSpec): void {
     if (!spec.name) {
@@ -63,7 +63,7 @@ export class EvolveManager implements IEvolveManager {
     }
     if (!CONTAINER_NAME_RE.test(spec.name)) {
       throw new Error(
-        `invalid container name: '${spec.name}' (must start with 'nazar-' and contain only alphanumeric, dot, underscore, hyphen)`,
+        `invalid container name: '${spec.name}' (must start with 'pibloom-' and contain only alphanumeric, dot, underscore, hyphen)`,
       );
     }
   }
@@ -77,7 +77,7 @@ export class EvolveManager implements IEvolveManager {
       content: renderQuadletContainer({
         name: spec.name,
         image: spec.image,
-        description: `Nazar Evolution Container: ${spec.name}`,
+        description: `piBloom Evolution Container: ${spec.name}`,
         volumes: spec.volumes,
         environment: spec.environment,
       }),
@@ -107,12 +107,12 @@ export class EvolveManager implements IEvolveManager {
     return false;
   }
 
-  private readNazarConfig(): NazarConfig {
+  private readPibloomConfig(): PibloomConfig {
     return this.cfgReader.read(this.configPath);
   }
 
   private readConfigValue<T>(
-    config: NazarConfig,
+    config: PibloomConfig,
     cfgPath: string,
     defaultValue: T,
   ): T {
@@ -124,9 +124,9 @@ export class EvolveManager implements IEvolveManager {
     const containers = this.readContainers(slug);
 
     // Load config for max container limit
-    let config: NazarConfig;
+    let config: PibloomConfig;
     try {
-      config = this.readNazarConfig();
+      config = this.readPibloomConfig();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.warn(`Warning: config load failed (${msg}), using defaults`);
@@ -140,7 +140,7 @@ export class EvolveManager implements IEvolveManager {
     );
     if (containers.length > maxContainers) {
       throw new Error(
-        `too many containers (${containers.length} > max ${maxContainers}). Increase evolution.max_containers_per_evolution in nazar.yaml`,
+        `too many containers (${containers.length} > max ${maxContainers}). Increase evolution.max_containers_per_evolution in pibloom.yaml`,
       );
     }
 
@@ -199,7 +199,7 @@ export class EvolveManager implements IEvolveManager {
         try {
           this.store.update("evolution", slug, {
             status: "rejected",
-            agent: "hermes",
+            agent: "root",
           });
         } catch {
           // best effort
@@ -218,7 +218,7 @@ export class EvolveManager implements IEvolveManager {
     try {
       this.store.update("evolution", slug, {
         status: "applied",
-        agent: "hermes",
+        agent: "root",
       });
     } catch {
       // best effort
@@ -260,7 +260,7 @@ export class EvolveManager implements IEvolveManager {
           name: spec.name,
           image: spec.image,
           description:
-            spec.description ?? `Nazar Bridge Container: ${spec.name}`,
+            spec.description ?? `piBloom Bridge Container: ${spec.name}`,
           volumes: spec.volumes,
           environment: spec.environment,
           pod: spec.pod,
@@ -393,7 +393,7 @@ export class EvolveManager implements IEvolveManager {
     try {
       this.store.update("evolution", slug, {
         status: "rejected",
-        agent: "hermes",
+        agent: "root",
       });
     } catch {
       // best effort
@@ -404,7 +404,7 @@ export class EvolveManager implements IEvolveManager {
 
   /**
    * Extract capability manifests and skills from running containers.
-   * Silently skips containers without /nazar/capability.yaml.
+   * Silently skips containers without /pibloom/capability.yaml.
    */
   private async extractCapabilities(containerNames: string[]): Promise<void> {
     const extractor = new CapabilityExtractor(this.executor);
