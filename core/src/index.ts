@@ -9,14 +9,17 @@ export {
   loadBaseBridgeConfig,
   MessageQueue,
 } from "./bridge-bootstrap.js";
+export { mimeFromPath } from "./capabilities/affordances/mime.js";
 // --- Affordances (HATEOAS) ---
 export type {
   HateoasResponse,
   Link,
+  MediaRef,
   ParsedAgentOutput,
 } from "./capabilities/affordances/parser.js";
 export {
   isLink,
+  isMediaRef,
   parseAgentOutput,
   toHateoasResponse,
   validateLink,
@@ -82,14 +85,18 @@ export type {
   IConfigReader,
   IEvolveManager,
   IFrontmatterParser,
+  IMediaTranscriber,
   IncomingMessage,
   IObjectStore,
   IPersonaLoader,
   ISystemExecutor,
+  MediaAttachment,
   MessageChannel,
   ObjectData,
   ObjectFilters,
   ObjectRef,
+  OutgoingMedia,
+  TranscriptionResult,
 } from "./ports/index.js";
 export { CapabilityRegistry } from "./registry.js";
 // --- Value types ---

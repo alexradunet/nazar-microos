@@ -13,11 +13,16 @@
  * For the session SDK, see @mariozechner/pi-coding-agent (node_modules).
  */
 import type { ParsedAgentOutput } from "../capabilities/affordances/parser.js";
+import type { MediaAttachment } from "./message-channel.js";
 
 /** Port for processing messages through the AI agent. */
 export interface IAgentBridge {
   /** Process an incoming message and return the agent's parsed output. */
-  processMessage(text: string, from: string): Promise<ParsedAgentOutput>;
+  processMessage(
+    text: string,
+    from: string,
+    attachments?: MediaAttachment[],
+  ): Promise<ParsedAgentOutput>;
   /** Dispose of all sessions and free resources. */
   dispose(): void;
 }

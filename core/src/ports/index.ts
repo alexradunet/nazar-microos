@@ -17,7 +17,16 @@ export type { IConfigReader } from "./config-reader.js";
 export type { BridgeInstallOptions, IEvolveManager } from "./evolve-manager.js";
 export type { IFrontmatterParser } from "./frontmatter-parser.js";
 export type { IHealthReporter } from "./health-reporter.js";
-export type { IncomingMessage, MessageChannel } from "./message-channel.js";
+export type {
+  IMediaTranscriber,
+  TranscriptionResult,
+} from "./media-transcriber.js";
+export type {
+  IncomingMessage,
+  MediaAttachment,
+  MessageChannel,
+  OutgoingMedia,
+} from "./message-channel.js";
 export type {
   IObjectStore,
   ObjectData,

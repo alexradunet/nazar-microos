@@ -2,8 +2,11 @@ FROM pibloom-base
 
 USER root
 # whatsapp-web.js needs Chromium for Puppeteer
+# ffmpeg for audio conversion, python3+pip for whisper transcription
 # Chromium version unpinned: tracks Debian stable; pinning would break on point releases
-RUN apt-get update && apt-get install -y chromium --no-install-recommends && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y chromium ffmpeg python3 python3-pip --no-install-recommends \
+    && pip3 install --no-cache-dir --break-system-packages openai-whisper \
+    && rm -rf /var/lib/apt/lists/*
 COPY bridges/whatsapp/ bridges/whatsapp/
 RUN npm -w bridges/whatsapp run build
 USER pibloom
@@ -12,6 +15,7 @@ ENV PIBLOOM_OBJECTS_DIR=/data/objects
 ENV PIBLOOM_WHATSAPP_STORAGE_DIR=/data/whatsapp-storage
 ENV PIBLOOM_PI_MODEL=""
 ENV PIBLOOM_PI_TRANSPORT=""
+ENV PIBLOOM_WHISPER_MODEL="small"
 ENV PIBLOOM_PERSONA_DIR=/usr/local/share/pibloom/persona
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 

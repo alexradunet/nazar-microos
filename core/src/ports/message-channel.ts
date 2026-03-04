@@ -22,12 +22,33 @@
  * ```
  */
 
+/** A media file attached to an incoming message. */
+export interface MediaAttachment {
+  type: "image" | "audio" | "video" | "document";
+  mimeType: string;
+  /** Base64-encoded file data. */
+  data: string;
+  filename?: string;
+  filesize?: number;
+}
+
 /** Incoming message from any channel. */
 export interface IncomingMessage {
   from: string;
   text: string;
   timestamp: number;
   channel: string;
+  attachments?: MediaAttachment[];
+}
+
+/** A media file to send to a user. */
+export interface OutgoingMedia {
+  type: "image" | "audio" | "video" | "document";
+  mimeType: string;
+  /** Base64-encoded file data. */
+  data: string;
+  filename?: string;
+  caption?: string;
 }
 
 /** Port interface for message channels (e.g. WhatsApp). */
@@ -41,6 +62,8 @@ export interface MessageChannel {
    */
   onMessage(handler: (msg: IncomingMessage) => Promise<string>): void;
   sendMessage(to: string, text: string): Promise<void>;
+  /** Send a media file to a recipient. Optional — not all channels support media. */
+  sendMedia?(to: string, media: OutgoingMedia): Promise<void>;
   connect(): Promise<void>;
   disconnect(): Promise<void>;
 }

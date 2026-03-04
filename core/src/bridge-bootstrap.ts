@@ -19,6 +19,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { mimeFromPath } from "./capabilities/affordances/mime.js";
 import { toHateoasResponse } from "./capabilities/affordances/parser.js";
 import {
   type ResponseRenderer,
@@ -30,7 +31,11 @@ import type {
   BridgeConfig,
 } from "./capabilities/agent-session/pi-agent-bridge.js";
 import { createInitializedRegistry } from "./defaults.js";
-import type { IncomingMessage, MessageChannel } from "./ports/index.js";
+import type {
+  IncomingMessage,
+  MessageChannel,
+  OutgoingMedia,
+} from "./ports/index.js";
 import type { CapabilityRegistry } from "./registry.js";
 import type { PibloomConfig } from "./types.js";
 
@@ -209,7 +214,38 @@ export async function bootstrapBridge<C extends BridgeConfig>(
   // Wire channel
   const channel = createChannel(config);
   channel.onMessage(async (msg: IncomingMessage) => {
-    const parsed = await bridge.processMessage(msg.text, msg.from);
+    const parsed = await bridge.processMessage(
+      msg.text,
+      msg.from,
+      msg.attachments,
+    );
+
+    // Send media files before the text response
+    if (parsed.media && parsed.media.length > 0 && channel.sendMedia) {
+      for (const ref of parsed.media) {
+        try {
+          if (!fs.existsSync(ref.path)) {
+            console.warn(`Media file not found: ${ref.path}`);
+            continue;
+          }
+          const fileData = fs.readFileSync(ref.path);
+          const media: OutgoingMedia = {
+            type: ref.type,
+            mimeType: mimeFromPath(ref.path),
+            data: fileData.toString("base64"),
+            filename: path.basename(ref.path),
+            caption: ref.caption,
+          };
+          await channel.sendMedia(msg.from, media);
+        } catch (err) {
+          console.error(
+            `Failed to send media ${ref.path}:`,
+            err instanceof Error ? err.message : String(err),
+          );
+        }
+      }
+    }
+
     const response = toHateoasResponse(parsed, channel.name);
     return renderer.render(response);
   });

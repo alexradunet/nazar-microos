@@ -11,7 +11,11 @@ import os from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
 import type { WhatsAppBridgeConfig } from "../index.js";
-import { chatIdToPhone, WhatsAppBotChannel } from "../index.js";
+import {
+  chatIdToPhone,
+  msgTypeToAttachmentType,
+  WhatsAppBotChannel,
+} from "../index.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -77,5 +81,41 @@ describe("WhatsAppBotChannel", () => {
     const config = makeConfig();
     const channel = new WhatsAppBotChannel(config);
     assert.equal(channel.name, "whatsapp");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// msgTypeToAttachmentType
+// ---------------------------------------------------------------------------
+
+describe("msgTypeToAttachmentType", () => {
+  it("maps image to image", () => {
+    assert.equal(msgTypeToAttachmentType("image"), "image");
+  });
+
+  it("maps sticker to image", () => {
+    assert.equal(msgTypeToAttachmentType("sticker"), "image");
+  });
+
+  it("maps audio to audio", () => {
+    assert.equal(msgTypeToAttachmentType("audio"), "audio");
+  });
+
+  it("maps ptt (push-to-talk) to audio", () => {
+    assert.equal(msgTypeToAttachmentType("ptt"), "audio");
+  });
+
+  it("maps video to video", () => {
+    assert.equal(msgTypeToAttachmentType("video"), "video");
+  });
+
+  it("maps document to document", () => {
+    assert.equal(msgTypeToAttachmentType("document"), "document");
+  });
+
+  it("returns undefined for unsupported types", () => {
+    assert.equal(msgTypeToAttachmentType("chat"), undefined);
+    assert.equal(msgTypeToAttachmentType("location"), undefined);
+    assert.equal(msgTypeToAttachmentType("contact"), undefined);
   });
 });

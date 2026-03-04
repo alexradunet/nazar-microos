@@ -15,7 +15,9 @@ import path from "node:path";
 import type {
   BridgeConfig,
   IncomingMessage,
+  MediaAttachment,
   MessageChannel,
+  OutgoingMedia,
 } from "@pibloom/core";
 import {
   bootstrapBridge,
@@ -40,6 +42,29 @@ export interface WhatsAppBridgeConfig extends BridgeConfig {
 export function chatIdToPhone(chatId: string): string {
   const num = chatId.replace(/@c\.us$/, "");
   return num.startsWith("+") ? num : `+${num}`;
+}
+
+/**
+ * Map a whatsapp-web.js message type to a MediaAttachment type.
+ * Returns undefined for unsupported types.
+ */
+export function msgTypeToAttachmentType(
+  waType: string,
+): MediaAttachment["type"] | undefined {
+  switch (waType) {
+    case "image":
+    case "sticker":
+      return "image";
+    case "audio":
+    case "ptt":
+      return "audio";
+    case "video":
+      return "video";
+    case "document":
+      return "document";
+    default:
+      return undefined;
+  }
 }
 
 // --- Adapter: WhatsApp Bot Channel ---
@@ -67,6 +92,23 @@ export class WhatsAppBotChannel implements MessageChannel {
     // WhatsApp expects chatId format: <number>@c.us
     const chatId = to.includes("@") ? to : `${to.replace(/^\+/, "")}@c.us`;
     await this.client.sendMessage(chatId, text);
+  }
+
+  async sendMedia(to: string, media: OutgoingMedia): Promise<void> {
+    if (!this.client) {
+      throw new Error("Cannot send media: not connected");
+    }
+    const { MessageMedia } = await import("whatsapp-web.js");
+    const chatId = to.includes("@") ? to : `${to.replace(/^\+/, "")}@c.us`;
+    const waMedia = new MessageMedia(
+      media.mimeType,
+      media.data,
+      media.filename,
+    );
+    await this.client.sendMessage(chatId, waMedia, {
+      caption: media.caption,
+      sendAudioAsVoice: media.type === "audio",
+    });
   }
 
   async disconnect(): Promise<void> {
@@ -134,17 +176,50 @@ export class WhatsAppBotChannel implements MessageChannel {
         return;
       }
 
-      const text = msg.body;
-      if (!text) return;
+      const text = msg.body || "";
+      const hasMedia = msg.hasMedia;
 
-      console.log(`Message from ${from}: ${text.substring(0, 50)}...`);
+      // Skip messages with no text and no media
+      if (!text && !hasMedia) return;
+
+      console.log(
+        `Message from ${from}: ${text.substring(0, 50)}${hasMedia ? " [+media]" : ""}`,
+      );
 
       this.queue.enqueue(async () => {
+        // Download media attachments if present
+        let attachments: MediaAttachment[] | undefined;
+        if (hasMedia) {
+          try {
+            const media = await msg.downloadMedia();
+            if (media) {
+              const attType = msgTypeToAttachmentType(msg.type);
+              if (attType) {
+                attachments = [
+                  {
+                    type: attType,
+                    mimeType: media.mimetype,
+                    data: media.data,
+                    filename: media.filename || undefined,
+                    filesize: media.filesize || undefined,
+                  },
+                ];
+              }
+            }
+          } catch (dlErr: unknown) {
+            const errMsg =
+              dlErr instanceof Error ? dlErr.message : String(dlErr);
+            console.error(`Failed to download media: ${errMsg}`);
+            // Continue with text only
+          }
+        }
+
         const incoming: IncomingMessage = {
           from,
           text,
           timestamp: Date.now(),
           channel: "whatsapp",
+          attachments,
         };
 
         const response = await handleMessage(incoming);

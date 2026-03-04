@@ -60,6 +60,22 @@ Rules:
 - Use `confirm` for destructive actions (restart, delete)
 - Labels should be short and clear (max 100 chars)
 
+### Media Attachments
+
+When your response includes files to send to the user, add a `---MEDIA---` block
+(before `---AFFORDANCES---` if both present):
+
+```
+Your text response...
+---MEDIA---
+[{"path": "/var/lib/pibloom/objects/chart.png", "type": "image", "caption": "Monthly chart"}]
+---AFFORDANCES---
+[{"rel": "status", "label": "Check Status", "method": "GET", "href": "/agents/ops/status/pibloom-heartbeat"}]
+```
+
+Types: `image`, `audio`, `video`, `document`. Only reference files that exist on disk.
+The bridge reads the file and sends it as a native media message to the user.
+
 ### Interactive TUI
 
 - Full conversational mode. Rich context, multi-turn dialogue.

@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import type { Link } from "../capabilities/affordances/parser.js";
+import { mimeFromPath } from "../capabilities/affordances/mime.js";
+import type { Link, MediaRef } from "../capabilities/affordances/parser.js";
 import {
   isLink,
+  isMediaRef,
   parseAgentOutput,
   toHateoasResponse,
   validateLink,
@@ -280,5 +282,179 @@ describe("TextRenderer", () => {
       "whatsapp",
     );
     assert.equal(renderer.render(response), "Status:\n\n1. Check Status");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isMediaRef
+// ---------------------------------------------------------------------------
+
+describe("isMediaRef", () => {
+  const valid: MediaRef = {
+    path: "/var/lib/pibloom/objects/chart.png",
+    type: "image",
+  };
+
+  it("accepts a valid media ref", () => {
+    assert.ok(isMediaRef(valid));
+  });
+
+  it("accepts media ref with caption", () => {
+    assert.ok(isMediaRef({ ...valid, caption: "Monthly chart" }));
+  });
+
+  it("accepts all valid types", () => {
+    for (const type of ["image", "audio", "video", "document"]) {
+      assert.ok(isMediaRef({ ...valid, type }));
+    }
+  });
+
+  it("rejects null", () => {
+    assert.ok(!isMediaRef(null));
+  });
+
+  it("rejects non-object", () => {
+    assert.ok(!isMediaRef("string"));
+  });
+
+  it("rejects missing path", () => {
+    assert.ok(!isMediaRef({ type: "image" }));
+  });
+
+  it("rejects empty path", () => {
+    assert.ok(!isMediaRef({ path: "", type: "image" }));
+  });
+
+  it("rejects invalid type", () => {
+    assert.ok(!isMediaRef({ path: "/a.png", type: "gif" }));
+  });
+
+  it("rejects non-string caption", () => {
+    assert.ok(!isMediaRef({ ...valid, caption: 42 }));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// parseAgentOutput with ---MEDIA---
+// ---------------------------------------------------------------------------
+
+describe("parseAgentOutput with ---MEDIA---", () => {
+  it("parses media block only", () => {
+    const raw = `Here is your chart.
+---MEDIA---
+[{"path":"/data/chart.png","type":"image","caption":"Chart"}]`;
+    const result = parseAgentOutput(raw);
+    assert.equal(result.text, "Here is your chart.");
+    assert.deepEqual(result.links, []);
+    assert.equal(result.media?.length, 1);
+    assert.equal(result.media?.[0].path, "/data/chart.png");
+    assert.equal(result.media?.[0].type, "image");
+    assert.equal(result.media?.[0].caption, "Chart");
+  });
+
+  it("parses media + affordances together", () => {
+    const raw = `Response text.
+---MEDIA---
+[{"path":"/data/file.mp3","type":"audio"}]
+---AFFORDANCES---
+[{"rel":"status","label":"Check","method":"GET","href":"/s"}]`;
+    const result = parseAgentOutput(raw);
+    assert.equal(result.text, "Response text.");
+    assert.equal(result.media?.length, 1);
+    assert.equal(result.media?.[0].type, "audio");
+    assert.equal(result.links.length, 1);
+    assert.equal(result.links[0].rel, "status");
+  });
+
+  it("drops invalid media refs silently", () => {
+    const raw = `Text
+---MEDIA---
+[{"path":"/a.png","type":"image"},{"bad":"object"},{"path":"","type":"image"}]`;
+    const result = parseAgentOutput(raw);
+    assert.equal(result.media?.length, 1);
+    assert.equal(result.media?.[0].path, "/a.png");
+  });
+
+  it("returns no media for malformed JSON", () => {
+    const raw = "Text\n---MEDIA---\n{not valid}";
+    const result = parseAgentOutput(raw);
+    assert.equal(result.text, "Text");
+    assert.equal(result.media, undefined);
+  });
+
+  it("returns no media for empty media block", () => {
+    const raw = "Text\n---MEDIA---\n";
+    const result = parseAgentOutput(raw);
+    assert.equal(result.text, "Text");
+    assert.equal(result.media, undefined);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// toHateoasResponse with media
+// ---------------------------------------------------------------------------
+
+describe("toHateoasResponse with media", () => {
+  it("carries media through to HateoasResponse", () => {
+    const parsed = {
+      text: "Here",
+      links: [],
+      media: [
+        { path: "/data/img.png", type: "image" as const, caption: "An image" },
+      ],
+    };
+    const response = toHateoasResponse(parsed, "whatsapp");
+    assert.equal(response.media?.length, 1);
+    assert.equal(response.media?.[0].path, "/data/img.png");
+  });
+
+  it("omits media when not present", () => {
+    const response = toHateoasResponse({ text: "Hi", links: [] }, "test");
+    assert.equal(response.media, undefined);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// mimeFromPath
+// ---------------------------------------------------------------------------
+
+describe("mimeFromPath", () => {
+  it("resolves common image types", () => {
+    assert.equal(mimeFromPath("/data/photo.png"), "image/png");
+    assert.equal(mimeFromPath("/data/photo.jpg"), "image/jpeg");
+    assert.equal(mimeFromPath("/data/photo.jpeg"), "image/jpeg");
+    assert.equal(mimeFromPath("/data/photo.webp"), "image/webp");
+    assert.equal(mimeFromPath("/data/photo.gif"), "image/gif");
+  });
+
+  it("resolves common audio types", () => {
+    assert.equal(mimeFromPath("voice.ogg"), "audio/ogg");
+    assert.equal(mimeFromPath("voice.mp3"), "audio/mpeg");
+    assert.equal(mimeFromPath("voice.wav"), "audio/wav");
+    assert.equal(mimeFromPath("voice.opus"), "audio/opus");
+  });
+
+  it("resolves common video types", () => {
+    assert.equal(mimeFromPath("video.mp4"), "video/mp4");
+    assert.equal(mimeFromPath("video.webm"), "video/webm");
+  });
+
+  it("resolves document types", () => {
+    assert.equal(mimeFromPath("doc.pdf"), "application/pdf");
+    assert.equal(mimeFromPath("data.json"), "application/json");
+    assert.equal(mimeFromPath("readme.txt"), "text/plain");
+  });
+
+  it("returns octet-stream for unknown extension", () => {
+    assert.equal(mimeFromPath("file.xyz"), "application/octet-stream");
+  });
+
+  it("returns octet-stream for no extension", () => {
+    assert.equal(mimeFromPath("noext"), "application/octet-stream");
+  });
+
+  it("is case-insensitive", () => {
+    assert.equal(mimeFromPath("PHOTO.PNG"), "image/png");
+    assert.equal(mimeFromPath("file.MP4"), "video/mp4");
   });
 });

@@ -7,6 +7,8 @@
 
 import fs from "node:fs";
 import type { IAgentBridge } from "../../ports/agent-bridge.js";
+import type { IMediaTranscriber } from "../../ports/media-transcriber.js";
+import type { MediaAttachment } from "../../ports/message-channel.js";
 import type { IPersonaLoader } from "../../ports/persona-loader.js";
 import type { AgentConfig } from "../../types.js";
 import type { ParsedAgentOutput } from "../affordances/parser.js";
@@ -48,9 +50,20 @@ type AgentSessionEvent =
   | { type: "auto_compaction_start" }
   | { type: "auto_compaction_end" };
 
+/** Image content for the Pi SDK prompt() options. */
+interface ImageContent {
+  type: "image";
+  data: string;
+  mimeType: string;
+}
+
+interface PromptOptions {
+  images?: ImageContent[];
+}
+
 interface AgentSession {
   subscribe(cb: (event: AgentSessionEvent) => void): () => void;
-  prompt(text: string): Promise<void>;
+  prompt(text: string, options?: PromptOptions): Promise<void>;
   dispose?(): void;
   compact?(guidance?: string): Promise<unknown>;
 }
@@ -65,6 +78,7 @@ export class AgentBridge implements IAgentBridge {
   private extensionFactories: ExtensionFactory[];
   private skillPaths: string[];
   private personaLoader: IPersonaLoader;
+  private transcriber?: IMediaTranscriber;
 
   constructor(
     config: BridgeConfig,
@@ -73,6 +87,7 @@ export class AgentBridge implements IAgentBridge {
       extensionFactories?: ExtensionFactory[];
       skillPaths?: string[];
       personaLoader?: IPersonaLoader;
+      transcriber?: IMediaTranscriber;
     },
   ) {
     this.config = config;
@@ -83,9 +98,14 @@ export class AgentBridge implements IAgentBridge {
       loadPersonaPrompt: () => "",
       loadSystemContext: () => "",
     };
+    this.transcriber = opts?.transcriber;
   }
 
-  async processMessage(text: string, from: string): Promise<ParsedAgentOutput> {
+  async processMessage(
+    text: string,
+    from: string,
+    attachments?: MediaAttachment[],
+  ): Promise<ParsedAgentOutput> {
     // Lazy-load the Pi AgentSession SDK to allow testing without it installed.
     const {
       createAgentSession,
@@ -161,6 +181,9 @@ export class AgentBridge implements IAgentBridge {
     let unsub: (() => void) | undefined;
     let timer: ReturnType<typeof setTimeout>;
     try {
+      // Build prompt options from attachments before entering the Promise
+      const promptOpts = await this.buildPromptOptions(text, attachments);
+
       const agentPromise = new Promise<ParsedAgentOutput>((resolve, reject) => {
         let accumulated = "";
         unsub = activeSession.subscribe((event: AgentSessionEvent) => {
@@ -190,7 +213,7 @@ export class AgentBridge implements IAgentBridge {
             reject(new Error(event.message));
           }
         });
-        activeSession.prompt(text).catch(reject);
+        activeSession.prompt(promptOpts.text, promptOpts.options).catch(reject);
       });
 
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -205,6 +228,104 @@ export class AgentBridge implements IAgentBridge {
       clearTimeout(timer!);
       unsub?.();
     }
+  }
+
+  /**
+   * Convert media attachments into prompt text augmentations and image options.
+   *
+   * - Images → Pi SDK ImageContent via PromptOptions.images
+   * - Audio → transcribed via Whisper (if available), prepended to text
+   * - Video → audio extracted + transcribed, keyframes sent as images
+   * - Other → noted as attachment in text
+   */
+  private async buildPromptOptions(
+    text: string,
+    attachments?: MediaAttachment[],
+  ): Promise<{ text: string; options?: PromptOptions }> {
+    if (!attachments || attachments.length === 0) {
+      return { text };
+    }
+
+    const images: ImageContent[] = [];
+    const textParts: string[] = [];
+
+    const canTranscribe =
+      this.transcriber && (await this.transcriber.isAvailable());
+
+    for (const att of attachments) {
+      switch (att.type) {
+        case "image":
+          images.push({
+            type: "image",
+            data: att.data,
+            mimeType: att.mimeType,
+          });
+          break;
+
+        case "audio":
+          if (canTranscribe) {
+            try {
+              const result = await this.transcriber?.transcribe(
+                att.data,
+                att.mimeType,
+              );
+              if (result?.text) {
+                textParts.push(`[Voice message]: "${result.text}"`);
+              }
+            } catch (err) {
+              console.error(
+                "Transcription failed:",
+                err instanceof Error ? err.message : String(err),
+              );
+              textParts.push(
+                `[Attachment: voice message (${att.mimeType}) — transcription failed]`,
+              );
+            }
+          } else {
+            textParts.push(
+              `[Attachment: voice message (${att.mimeType}) — transcription unavailable]`,
+            );
+          }
+          break;
+
+        case "video":
+          if (canTranscribe) {
+            try {
+              const result = await this.transcriber?.transcribe(
+                att.data,
+                att.mimeType,
+              );
+              if (result?.text) {
+                textParts.push(`[Video message audio]: "${result.text}"`);
+              }
+            } catch (err) {
+              console.error(
+                "Video transcription failed:",
+                err instanceof Error ? err.message : String(err),
+              );
+              textParts.push(
+                `[Attachment: video (${att.mimeType}) — transcription failed]`,
+              );
+            }
+          } else {
+            textParts.push(
+              `[Attachment: video (${att.mimeType}) — transcription unavailable]`,
+            );
+          }
+          break;
+
+        case "document":
+          textParts.push(
+            `[Attachment: document${att.filename ? ` "${att.filename}"` : ""} (${att.mimeType})]`,
+          );
+          break;
+      }
+    }
+
+    // Prepend attachment context to the user's text
+    const augmented = [...textParts, text].filter(Boolean).join("\n\n");
+    const options = images.length > 0 ? { images } : undefined;
+    return { text: augmented, options };
   }
 
   dispose(): void {

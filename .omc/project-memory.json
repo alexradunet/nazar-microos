@@ -155,8 +155,8 @@
   "hotPaths": [
     {
       "path": "",
-      "accessCount": 131,
-      "lastAccessed": 1772583283395,
+      "accessCount": 141,
+      "lastAccessed": 1772585639672,
       "type": "directory"
     },
     {
@@ -181,6 +181,12 @@
       "path": "pibloom-core/src/bridge-bootstrap.ts",
       "accessCount": 26,
       "lastAccessed": 1772563572623,
+      "type": "file"
+    },
+    {
+      "path": "bridges/whatsapp/src/index.ts",
+      "accessCount": 25,
+      "lastAccessed": 1772586424882,
       "type": "file"
     },
     {
@@ -232,15 +238,15 @@
       "type": "file"
     },
     {
-      "path": "bridges/whatsapp/src/index.ts",
-      "accessCount": 16,
-      "lastAccessed": 1772583611369,
-      "type": "file"
-    },
-    {
       "path": "pibloom-core/src/index.ts",
       "accessCount": 13,
       "lastAccessed": 1772562589146,
+      "type": "file"
+    },
+    {
+      "path": "bridges/whatsapp/src/__tests__/bridge.test.ts",
+      "accessCount": 11,
+      "lastAccessed": 1772586553055,
       "type": "file"
     },
     {
@@ -337,12 +343,6 @@
       "path": "bridges/signal/src/__tests__/bridge.test.ts",
       "accessCount": 6,
       "lastAccessed": 1772580338141,
-      "type": "file"
-    },
-    {
-      "path": "bridges/whatsapp/src/__tests__/bridge.test.ts",
-      "accessCount": 6,
-      "lastAccessed": 1772583720305,
       "type": "file"
     },
     {
