@@ -7,8 +7,10 @@
  * config block = add a field to PibloomConfig here.
  */
 
+// Re-export value types that originate in port files but are commonly needed
+// by code that doesn't use the full port interface. Using `export type` ensures
+// these are erased at runtime — no circular dependency risk.
 export type { IncomingMessage } from "./ports/message-channel.js";
-// Re-export value types from ports that are also used as standalone types
 export type { ObjectData, ObjectRef } from "./ports/object-store.js";
 
 /**
@@ -29,15 +31,15 @@ export type { ObjectData, ObjectRef } from "./ports/object-store.js";
  *   sessionsDir   — persistent conversation history per contact
  */
 export interface AgentConfig {
-  agentCommand: string;
-  agentDir: string;
-  repoRoot: string;
-  objectsDir: string;
-  skillsDir: string;
-  timeoutMs: number;
-  model?: string;
-  transport?: "sse" | "websocket" | "auto";
-  sessionsDir?: string;
+  agentCommand: string; // CLI binary to spawn (e.g. "pi")
+  agentDir: string; // Pi config dir containing auth.json
+  repoRoot: string; // Base piBloom data dir (objects, sessions live under here)
+  objectsDir: string; // Flat-file PARA store: /var/lib/pibloom/objects/
+  skillsDir: string; // SKILL.md files injected into agent system prompt
+  timeoutMs: number; // Abort agent call if no response within this many ms
+  model?: string; // Override default LLM model
+  transport?: "sse" | "websocket" | "auto"; // Pi SDK communication protocol
+  sessionsDir?: string; // Per-contact conversation history (one dir per phone number)
 }
 
 /**
@@ -68,14 +70,18 @@ export interface AgentConfig {
  * For config reading implementation, see capabilities/config/yaml-config-reader.ts.
  */
 export interface PibloomConfig {
-  hostname: string;
-  primary_user: string;
-  timezone?: string;
-  heartbeat?: { interval?: string };
-  agent?: { skills_dir?: string; persona_dir?: string };
-  evolution?: { max_containers_per_evolution?: number };
-  firewall?: { restrict_to_tailscale?: boolean; open_ports?: number[] };
+  hostname: string; // Machine hostname, used in Quadlet unit descriptions
+  primary_user: string; // OS user that owns piBloom data dirs
+  timezone?: string; // IANA timezone (e.g. "Europe/Berlin")
+  heartbeat?: { interval?: string }; // Core health-check container config
+  agent?: { skills_dir?: string; persona_dir?: string }; // Override default agent file paths
+  evolution?: { max_containers_per_evolution?: number }; // Safety limit for container deploys
+  firewall?: { restrict_to_tailscale?: boolean; open_ports?: number[] }; // Network lockdown rules
+  // Extensible bridge config: each key is a bridge name (e.g. "whatsapp", "signal"),
+  // value is bridge-specific settings. This avoids hardcoding bridge types in core.
   bridges?: Record<string, Record<string, unknown>>;
+  // Index signature: allows arbitrary future config sections without breaking the type.
+  // Capabilities check for their section's presence before reading it.
   [key: string]: unknown;
 }
 
@@ -95,32 +101,32 @@ export interface GeneratedFile {
  * For the Quadlet generation logic, see capabilities/setup/quadlet-generator.ts.
  */
 export interface ContainerSpec {
-  name: string;
-  image: string;
-  description?: string;
-  volumes?: string[];
-  environment?: Record<string, string>;
-  pod?: string;
-  after?: string;
-  publishPorts?: string[];
-  readOnly?: boolean;
-  noNewPrivileges?: boolean;
-  serviceType?: string;
-  restart?: string;
-  wantedBy?: string;
+  name: string; // Container name → becomes systemd unit name (e.g. "pibloom-heartbeat")
+  image: string; // OCI image reference (e.g. "localhost/pibloom-heartbeat:latest")
+  description?: string; // Human-readable label for the [Unit] section
+  volumes?: string[]; // Bind mounts, format: "host:container[:options]"
+  environment?: Record<string, string>; // Env vars injected into the container
+  pod?: string; // If set, emits Pod=<value> → shared network namespace with other pod members
+  after?: string; // systemd ordering: start this unit after the named unit
+  publishPorts?: string[]; // Host:container port mappings (e.g. "8080:3000")
+  readOnly?: boolean; // Mount root filesystem read-only (security hardening)
+  noNewPrivileges?: boolean; // Prevent privilege escalation inside container
+  serviceType?: string; // systemd service type (e.g. "notify", "oneshot")
+  restart?: string; // Restart policy (e.g. "on-failure", "always")
+  wantedBy?: string; // systemd install target (e.g. "default.target")
 }
 
-/** Options for the setup generator. */
+/** Options for the setup generator (pibloom-core setup CLI). */
 export interface SetupOptions {
-  configPath?: string;
-  outputDir?: string;
-  dryRun?: boolean;
+  configPath?: string; // Path to pibloom.yaml (default: /etc/pibloom/pibloom.yaml)
+  outputDir?: string; // Where to write Quadlet files (default: /etc/systemd/system)
+  dryRun?: boolean; // Print generated files without writing them
 }
 
-/** Options for evolution install/rollback. */
+/** Options for evolution install/rollback (pibloom-core evolve CLI). */
 export interface EvolveOptions {
-  slug: string;
-  dryRun?: boolean;
-  autoApprove?: boolean;
-  healthCheckTimeout?: number;
+  slug: string; // Object slug identifying the evolution to deploy
+  dryRun?: boolean; // Preview changes without executing
+  autoApprove?: boolean; // Skip interactive confirmation prompts
+  healthCheckTimeout?: number; // Max ms to wait for container health after deploy
 }

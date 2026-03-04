@@ -35,7 +35,9 @@ import type { PibloomConfig } from "./types.js";
  * For phase details, see createInitializedRegistry() in defaults.ts.
  */
 export interface CapabilityConfig {
-  pibloom: PibloomConfig;
+  pibloom: PibloomConfig; // Parsed pibloom.yaml — every capability can read system config
+  // Partial because Phase 1 caps get {} (they ARE the services), Phase 2 gets
+  // LeafServices, Phase 3 gets full CoreServices. Each phase widens the bag.
   services: Partial<CoreServices>;
 }
 
@@ -46,10 +48,10 @@ export interface CapabilityConfig {
  * and are initialized first. All Phase 2+ capabilities can depend on these.
  */
 export interface LeafServices {
-  frontmatterParser: IFrontmatterParser;
-  configReader: IConfigReader;
-  systemExecutor: ISystemExecutor;
-  personaLoader: IPersonaLoader;
+  frontmatterParser: IFrontmatterParser; // YAML ↔ Markdown frontmatter parsing
+  configReader: IConfigReader; // Read pibloom.yaml from disk
+  systemExecutor: ISystemExecutor; // Run shell commands (child_process wrapper)
+  personaLoader: IPersonaLoader; // Load agent persona files (SOUL.md, BODY.md, etc.)
 }
 
 /**
@@ -59,7 +61,7 @@ export interface LeafServices {
  * so it cannot be a leaf service and must be initialized in Phase 2.
  */
 export interface CoreServices extends LeafServices {
-  objectStore: IObjectStore;
+  objectStore: IObjectStore; // Flat-file CRUD — available only after Phase 2 (depends on frontmatter + executor)
 }
 
 /**
@@ -92,12 +94,15 @@ export interface CapabilityRegistration {
  * implementing this interface, which keeps them lightweight and independently testable.
  */
 export interface Capability {
-  readonly name: string;
-  readonly description: string;
-  /** Initialize the capability and return its registrations. */
+  readonly name: string; // Unique key used by registry (e.g. "object-store", "evolution")
+  readonly description: string; // Human-readable label for diagnostics/logging
+  // Called once during bootstrap. Receives config + available services for this phase.
+  // Returns what this capability contributes (extensions, skills, validators).
+  // Can be sync or async — the registry awaits either way.
   init(
     config: CapabilityConfig,
   ): Promise<CapabilityRegistration> | CapabilityRegistration;
-  /** Dispose of resources held by this capability. */
+  // Optional teardown — called by registry.disposeAll() in reverse registration order.
+  // Use for closing connections, flushing buffers, cleaning temp files.
   dispose?(): Promise<void> | void;
 }

@@ -220,6 +220,12 @@
       "type": "file"
     },
     {
+      "path": "package.json",
+      "accessCount": 17,
+      "lastAccessed": 1772612904528,
+      "type": "file"
+    },
+    {
       "path": "pibloom-core/src/ports/system-executor.ts",
       "accessCount": 16,
       "lastAccessed": 1772561962090,
@@ -229,12 +235,6 @@
       "path": "pibloom-core/src/registry.ts",
       "accessCount": 16,
       "lastAccessed": 1772563572239,
-      "type": "file"
-    },
-    {
-      "path": "package.json",
-      "accessCount": 16,
-      "lastAccessed": 1772583587803,
       "type": "file"
     },
     {

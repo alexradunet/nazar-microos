@@ -43,19 +43,20 @@ import type { CapabilityConfig, LeafServices } from "./capability.js";
 import { CapabilityRegistry } from "./registry.js";
 import type { PibloomConfig } from "./types.js";
 
-/** Create a registry with all built-in capabilities registered (not initialized). */
+// Register-only factory: all capabilities are known but none are initialized.
+// Used by tests that want to selectively init specific capabilities with mock services.
 export function createDefaultRegistry(): CapabilityRegistry {
   const registry = new CapabilityRegistry();
-  registry.register(new FrontmatterCapability());
-  registry.register(new ConfigCapability());
-  registry.register(new SystemExecutorCapability());
-  registry.register(new PersonaCapability());
-  registry.register(new ObjectStoreCapability());
-  registry.register(new AffordancesCapability());
-  registry.register(new SetupCapability());
-  registry.register(new EvolutionCapability());
-  registry.register(new DiscoveryCapability());
-  registry.register(new AgentSessionCapability());
+  registry.register(new FrontmatterCapability()); // YAML ↔ Markdown frontmatter
+  registry.register(new ConfigCapability()); // pibloom.yaml reader
+  registry.register(new SystemExecutorCapability()); // Shell command executor
+  registry.register(new PersonaCapability()); // Agent identity file loader
+  registry.register(new ObjectStoreCapability()); // Flat-file CRUD store
+  registry.register(new AffordancesCapability()); // HATEOAS response formatting
+  registry.register(new SetupCapability()); // Quadlet file generation
+  registry.register(new EvolutionCapability()); // Container deploy/rollback lifecycle
+  registry.register(new DiscoveryCapability()); // Bridge manifest parsing
+  registry.register(new AgentSessionCapability()); // Pi agent session management
   return registry;
 }
 
@@ -71,7 +72,9 @@ export async function createInitializedRegistry(
 ): Promise<CapabilityRegistry> {
   const registry = new CapabilityRegistry();
 
-  // Register all capabilities
+  // Instantiate all capabilities. We keep local references so we can call
+  // typed getters (e.g. frontmatter.getParser()) after Phase 1 init to
+  // build the LeafServices bag for Phase 2.
   const frontmatter = new FrontmatterCapability();
   const configCap = new ConfigCapability();
   const sysExec = new SystemExecutorCapability();

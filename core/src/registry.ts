@@ -29,10 +29,13 @@ import type {
 } from "./capability.js";
 
 export class CapabilityRegistry {
+  // All registered capabilities, keyed by name. Insertion order = registration order.
   private capabilities = new Map<string, Capability>();
+  // Results of init() calls, keyed by name. Presence here means "initialized".
   private registrations = new Map<string, CapabilityRegistration>();
 
-  /** Register a capability. Must be called before initAll(). */
+  // Register a capability by name. Fails fast on duplicates to catch wiring bugs early.
+  // Must be called before any init method.
   register(cap: Capability): void {
     if (this.capabilities.has(cap.name)) {
       throw new Error(`capability already registered: ${cap.name}`);
@@ -40,7 +43,9 @@ export class CapabilityRegistry {
     this.capabilities.set(cap.name, cap);
   }
 
-  /** Initialize all registered capabilities with the given config. */
+  // Initialize every registered capability with the same config. Idempotent per capability.
+  // Used in tests where phased bootstrapping isn't needed — just init everything at once.
+  // Production code uses initCapability() per-capability instead (see defaults.ts).
   async initAll(config: CapabilityConfig): Promise<void> {
     for (const [name, cap] of this.capabilities) {
       if (!this.registrations.has(name)) {
@@ -67,7 +72,9 @@ export class CapabilityRegistry {
     this.registrations.set(name, registration);
   }
 
-  /** Aggregate extension factories from all capabilities. */
+  // Collect extension factories from all initialized capabilities.
+  // Extensions hook into the Pi agent lifecycle (e.g. injecting system context).
+  // Called by AgentSessionCapability when creating a new agent session.
   getExtensionFactories(): ExtensionFactory[] {
     const factories: ExtensionFactory[] = [];
     for (const reg of this.registrations.values()) {
@@ -78,7 +85,8 @@ export class CapabilityRegistry {
     return factories;
   }
 
-  /** Aggregate skill paths from all capabilities. */
+  // Collect SKILL.md directory paths from all initialized capabilities.
+  // These are injected into the agent's system prompt so it knows its abilities.
   getSkillPaths(): string[] {
     const paths: string[] = [];
     for (const reg of this.registrations.values()) {
@@ -103,7 +111,10 @@ export class CapabilityRegistry {
     this.registrations.clear();
   }
 
-  /** Get a registered capability by name. */
+  // Typed getter — retrieves a capability instance cast to a specific subtype.
+  // Callers use this to access capability-specific methods (e.g. getStore(), getParser())
+  // that aren't part of the generic Capability interface.
+  // Example: registry.get<ObjectStoreCapability>("object-store").getStore()
   get<T extends Capability>(name: string): T {
     const cap = this.capabilities.get(name);
     if (!cap) {
