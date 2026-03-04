@@ -5,7 +5,7 @@ description: Create, read, update, search, and link objects in the Nazar flat-fi
 
 # Object Store Skill
 
-Use this skill when the user wants to create, read, update, search, or link any type of object in the Nazar store. This is the general-purpose object management skill — for domain-specific behavior see `object-task`, `object-journal`, `object-note`, and `object-evolution`.
+Use this skill when the user wants to create, read, update, search, or link any type of object in the Nazar store. For evolution pipeline tracking, see `object-evolution`.
 
 ## Object Model
 

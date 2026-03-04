@@ -194,7 +194,7 @@ describe("DiscoveryCapability", () => {
   };
 
   it("discovers manifests and resolves skill paths", async () => {
-    addManifest("core", { skills: ["nazar-runtime", "object-task"] });
+    addManifest("core", { skills: ["nazar-runtime", "object-store"] });
     addSkillDir("core");
 
     const cap = new DiscoveryCapability({ capabilitiesDir: capDir, skillsDir });
